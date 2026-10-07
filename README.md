@@ -644,7 +644,7 @@ ok  structure is consistent (1 project(s): [erp])
 conditional CEL rules: a credential that sets neither a literal nor a reference
 or both, a class block missing or doubled, a `toolsetClass` without the block it
 requires. Every one of those renders, lints and passes a server-side dry-run,
-and is refused at apply. 40 of the 79 `XValidation` markers are
+and is refused at apply. 27 of the 69 `XValidation` markers are
 `self == oldSelf`, comparing a proposal against the object already on the
 cluster, and cannot be seen offline at all.
 

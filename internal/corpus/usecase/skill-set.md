@@ -65,10 +65,10 @@ The Syncer writes to `destinationPath: "git/"`, trailing slash included, and
 a searchPath is then `git/skills/pdf/`. The SourceSet declares no members;
 the paths its Syncers write to are exactly what is in it.
 
-`destinationPath`, `statePath` and `sourceSetName` are immutable, along with
-the repository location for every syncerClass. So a Syncer is never repointed:
-"sync from there instead" is a new Syncer and a deleted one, the apiserver
-refuses the edit, and the cursor does not come with it.
+`destinationPath`, `statePath` and `sourceSetName` are immutable, so a Syncer
+never writes somewhere else: that is a new Syncer and a deleted one, and the
+apiserver refuses the edit. `repoUrl` is not immutable, so "sync from that
+repository instead" is an edit to the existing Syncer.
 `../wiki/crd-rules.md` lists the Syncer's immutable fields.
 
 > Two older shapes appear in charts that have not been touched recently.
@@ -115,7 +115,7 @@ reader gets whichever finished last.
 Do not rename it: the service writing into it holds the SourceSet name in its own configuration,
 so renaming the CR silently breaks every route that writes to it.
 
-**Checked:** against `asgard-freyr-kube`'s
+**Checked:** against asgard-freyr-kube `8f6d6c1`
 `source_set/brand_skills.yaml`, whose own comment forbids reusing the
 Syncer-backed SourceSet and cites that deployment's `asgard-freyr-api` TASK-183
 D183-6 for the requirement.
@@ -346,8 +346,10 @@ shape, and what `add` writes to handle it.
     asgard-ai.com/syncer-suspend: "true"        stops the SCHEDULER, and nothing else
     asgard-ai.com/auto-fire-on-rollout: "true"  the deploy fires it once, and waits
 
-Both shapes set `syncer-suspend: "true"` and let the deploy fire each Syncer
-once - sync timing is tied to deploys on purpose. That takes both labels.
+What `add` writes sets `syncer-suspend: "true"` and lets the deploy fire each
+Syncer once - sync timing is tied to deploys on purpose. That takes both labels.
+`../wiki/knowledge.md` says what suspending costs a git Syncer, and why one
+deployment schedules its skills Syncers instead.
 The platform's apply step fires only the Syncers of this release that carry
 `auto-fire-on-rollout`, and firing works fine against a suspended CronJob.
 

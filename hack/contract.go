@@ -13,7 +13,7 @@ import (
 //
 // **The rule count and the property count are not the same number**, because
 // one kind can carry the rule at two paths - which is why `wiki/crd-rules.md`
-// states 41 rules and 40 properties and says so.
+// states one more rule than properties and says so.
 func immutableFields(crds []crd) map[string][]string {
 	out := map[string][]string{}
 	for _, c := range crds {
@@ -57,7 +57,7 @@ func checkImmutable(root string, crds []crd) []string {
 
 	// **Pairs, not distinct paths.** `bot.botProviderName` is immutable on the
 	// Loader and on the Syncer, and those are two fields somebody can be
-	// refused on - counting the path once says 33 where the answer is 40.
+	// refused on - counting the path once gives fewer than there are.
 	pairs, classes := 0, map[string]bool{}
 	for _, fields := range byKind {
 		pairs += len(fields)
@@ -75,8 +75,8 @@ func checkImmutable(root string, crds []crd) []string {
 		what  string
 	}{
 		{regexp.MustCompile(`(\d+) properties across\s*\n?\s*twelve kinds`), pairs, "immutable properties"},
-		{regexp.MustCompile(`(?i)the Syncer is where this costs the most: (\d+) of the \d+`), len(byKind["Syncer"]), "Syncer immutable fields"},
-		{regexp.MustCompile(`costs the most: \d+ of the (\d+)`), pairs, "immutable properties"},
+		{regexp.MustCompile(`(?i)the Syncer carries (\d+) of the \d+`), len(byKind["Syncer"]), "Syncer immutable fields"},
+		{regexp.MustCompile(`(?i)the Syncer carries \d+ of the (\d+)`), pairs, "immutable properties"},
 	} {
 		m := want.re.FindStringSubmatch(text)
 		if m == nil {

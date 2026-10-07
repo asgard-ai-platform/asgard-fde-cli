@@ -58,6 +58,15 @@ Not every `syncerClass` the CRD supports is reachable from the UI.
 The ones marked no can only be declared in a chart. If a customer's data lives on an
 FTP server or an SMB share, that route works, but it has to be built in a chart.
 
+An `sftp` Syncer can set `sftp.transfers` (files moved in parallel) and
+`sftp.checkers` (files compared in parallel), each between 1 and 64. Leave both
+unset unless the sync is too slow or the server objects: the right value
+belongs to the customer's server, not to the platform. A small NAS, a managed
+SFTP endpoint with a session limit, or a host behind fail2ban can treat high
+concurrency as an attack, so ask whether their server limits sessions, for the
+values to set. Raising `checkers` past what the server handles makes the scan
+slower, not faster.
+
 ### Context Index
 
 Builds a searchable index over the Drive so an agent queries the index instead of
@@ -106,6 +115,22 @@ Firing on deploy used to be the default, opted out of with
 label; it is left from the CD workflows that predate the pipeline. Now a Syncer
 does not fire on deploy unless it carries the auto-fire label. See
 `../usecase/skill-set.md`.
+
+Suspending a git Syncer has a cost the labels do not show. A git sync clones
+into a temporary directory, then empties the destination and copies into it,
+with no atomic swap. A sync interrupted between the two leaves a partial skill
+tree, and the agent answers from it without any error. Every run rebuilds the
+whole tree, so the next successful run repairs it - but on a suspended Syncer
+the next run is the next deploy, and until then the tree stays partial. One
+deployment leaves its skills Syncers unsuspended on a 30-minute schedule for
+this reason, and accepts a few seconds every half hour in which the tree is
+being rewritten. Which one to choose is a trade: suspended keeps the skills
+tied to what was deployed, and scheduled repairs itself.
+
+Changing a Syncer's spec bumps its generation, and the operator replaces its
+CronJob. A Job created from that CronJob is deleted with it, so a deploy that
+changes a Syncer's spec should not overlap another deploy that fires it.
+Changing only its labels does not bump the generation.
 
 ## Knowledge Base
 
@@ -230,6 +255,14 @@ CRs and backup name, the Knowledge Base `aliasName` and the Indexer's required
 fields against asgard-kube `3da0365` `pkg/apis/asgard/v1alpha1/types.go`; the
 `-ci` suffix and the suspend label being read by the Syncer reconciler against
 asgard-core `478cf5d6` `internal/constants.go` and `internal/bpoperator/reconciler/syn_reconciler.go`;
+the git sync's clear-then-copy against
+asgard-syncer `8d278689` `internal/syncer/git.go` (`GitSyncer.Run`, `clearDir`),
+the unsuspended schedule against asgard-freyr-kube `8f6d6c1`
+`tenants/xxtechec/chart/app/templates/source_set/git_repos.yaml`, and the
+CronJob replacement against
+asgard-core `001bbf69` `internal/bpoperator/reconciler/syn_reconciler.go`;
+the SFTP concurrency fields against asgard-kube `42e8722`
+`crd/asgard-ai.com_syncers.yaml`;
 the citation field against asgard-core `478cf5d6` `internal/models/edgeserver.go`
 (`MessageTemplate`, `MessageTemplateReference`) and
 asgard-core `internal/models/processor.go` (`PushMessageStaticConfig`), and asgard-js-sdk `56ad14e` `packages/core/src/types/sse-response.ts`.

@@ -24,10 +24,10 @@ that version.
 | xxentria-asgard-kube | `967407c` |
 | finance-ai-asgard-kube | `d062197` |
 | buy123-asgard-kube | `4dab85d` |
-| asgard-freyr-kube | `3ebd2be` |
-| asgard-auto-post-kube | `55cc90e` |
-| asgard-industry-demo-generator | `718cc0e` |
-| asgard-freyr-skills | `f06331f` |
+| asgard-freyr-kube | `8f6d6c1` |
+| asgard-auto-post-kube | `62ccbe0` |
+| asgard-industry-demo-generator | `1106771` |
+| asgard-freyr-skills | `2ff0e1e` |
 
 How far each has moved since is computed by `go run ./hack sources --extracts`,
 which asks whether an extract still describes that chart. Do not add a column
@@ -47,20 +47,19 @@ these rows against the clones here instead.
 
 ## The deployments read so far
 
-Both columns below are counted at the written-from commit in the table above,
-which is why `auto-post` says 28 Plugin CRs where `internal/corpus/usecase/plugin.md`
-says 29: that page counts at `edb0ad0` and says so. They are counts of
-different commits, and `go run ./hack counts` holds both against the clone.
+Both columns below are counted at the written-from commit in the table above.
+`internal/corpus/usecase/plugin.md` counts its Plugins at `edb0ad0` and says
+so; `go run ./hack counts` holds both counts against the clone.
 
 | deployment | shape it demonstrates | CR files | referred to in extracts as |
 |---|---|---|---|
 | unitech-e | agent hub (5 agents / 6 semantic layers) and a single-agent flow agent; trigger; knowledge drive. Archived 2026-09: the project moved to the customer's own repository (github.com/UnitechE/unitech-e-asgard-kube) and its namespaces were destroyed, so this clone is a record of the pilot and nothing newer | 41 | "a later one", "a deployment with an internal hub and a public widget" |
-| freyr | supervisor + 5 subagents, `agents.expression`, sandbox hooks, shared SourceSet; a DataConnector and two SemanticLayers bound with `allowedCubes` | 26 | "a commerce back-office with five specialists", "an earlier deployment" |
+| freyr | supervisor + 5 subagents, `agents.expression`, sandbox hooks, shared SourceSet; a DataConnector and two SemanticLayers bound with `allowedCubes`; two tenant charts, the second an internal demo copy of the first | 52 | "a commerce back-office with five specialists", "an earlier deployment" |
 | xxentria | supervisor + 9 agents | 17 | "a manufacturing one with nine" |
 | finance-ai | supervisor, 3 semantic layers | 12 | "a finance one with three" |
 | buy123 | the minimal flow agent - no Agent CR at all. Moved 2026-09-13 to github.com/xxtechec/infra-buy123-asgard-kube and deployed by the platform pipeline; this clone is the pre-move history | 8 | not yet cited |
-| auto-post | 28 Plugin CRs, knowledge bases, api workflows | 65 | not yet cited |
-| industry-demo-generator | 12 industries, read/write governance split, a Claude Code plugin of commands + skills | many | "a 12-industry demo chart set", "one agent per business role" |
+| auto-post | 29 Plugin CRs, knowledge bases, api workflows | 64 | not yet cited |
+| industry-demo-generator | 12 industries under `projects/`, one Platform Pipeline release each, read/write governance split, a Claude Code plugin of commands + skills | many | "a 12-industry demo chart set", "one agent per business role" |
 
 ### Which customer each one is
 
@@ -97,9 +96,9 @@ one is current.
 | topic | earlier | later | which wins |
 |---|---|---|---|
 | SkillSet to SourceSet | one shared store, several skill sets slicing it with searchPaths (freyr) | 1:1:1, one file per skill set (unitech-e, changed 2026-08-28) | later. The earlier shape leaves the UI unable to find a skill set's git config |
-| `bot-provider-type` label | stamped, "front end breaks without it" (freyr) | dropped, platform derives it from `botProviderClass` (unitech-e, workflow-service #336) | later, but stamping it anyway is harmless |
-| canvas metadata | hand-written `node_positions` ConfigMaps (demo generator) | dropped, platform auto-lays-out (unitech-e, #336-#340, 2026-08-31) | later |
-| `Agent.managed.completionModelName` | required (demo generator's GOAL.md) | Agent takes no model; the caller picks per turn (unitech-e) | later |
+| `bot-provider-type` label | stamped, "front end breaks without it" (freyr `39a2b8c`, removed in `7f6e564`) | dropped, platform derives it from `botProviderClass` (unitech-e, workflow-service #336) | later, but stamping it anyway is harmless |
+| canvas metadata | hand-written `node_positions` ConfigMaps (demo generator at `718cc0e`, removed upstream in `927a386`) | dropped, platform auto-lays-out (unitech-e, #336-#340, 2026-08-31) | later |
+| `Agent.managed.completionModelName` | required (demo generator's GOAL.md before `0202bc2`) | Agent takes no model; the caller picks per turn (unitech-e) | later |
 | `KnowledgeBase` | in use (auto-post) | one deployment replaced it with a SourceSet Drive + contextIndex (TASK-013). Live and unmarked in the CRDs; do not restate as a platform deprecation | later |
 
 ## Where the platform's own documentation disagrees with every chart
@@ -136,7 +135,7 @@ comments rather than the YAML.
 | `Trigger` | `unitech-e/.../trigger/tr-pr-arrival-notify.yaml` (2.6KB) |
 | `BotProvider` | `unitech-e/.../agent/bp-website.yaml` (4.4KB) |
 | `SemanticLayer` | too large to ship whole (23KB-253KB); take one cube plus the `sampleQueries` shape |
-| `CompletionModel`, write-path `Workflow` with `requestConsent` | `industry-demo-generator/retail/chart/...` |
+| `CompletionModel`, write-path `Workflow` with `requestConsent` | `industry-demo-generator/projects/retail/chart/app/templates/completion_model.yaml`; the write path is `.../toolset/wms/toolset.yaml` (`requestConsent: true`) and its tools |
 
 `SemanticLayer` has no single source small enough to ship: take one cube plus the
 `sampleQueries` shape. `CompletionModel` and the write-path `Workflow` with

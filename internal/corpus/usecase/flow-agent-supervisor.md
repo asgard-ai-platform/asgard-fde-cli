@@ -354,10 +354,10 @@ platform default) caps how many processor hand-offs one request may make -
 ## Problems deployments have hit
 
 
-### Sandbox hooks: `user-prompt-submit`, never `session-start`
+### Sandbox hooks: anything derived from the turn goes in `user-prompt-submit`
 
 A deployment that writes runtime config into the sandbox with a hook records
-why the obvious event is wrong (2026-08-21):
+why the obvious event is wrong (asgard-freyr-kube `3ebd2be`, 2026-08-21):
 
 > session-start hook 進 Sandbox CR spec,內容一變 generation +1 -> pod 對話中被
 > 重建。user-prompt-submit 由 driver 每 turn 用當輪 payload 重新評估、走 task

@@ -22,8 +22,9 @@ constraint to know before promising anything:
 The Open API cannot write the merchant's own fields. Store name, phone,
 email are readable and not writable - there is no merchant write endpoint. What
 the API can write is Merchant Metafields, the store-level custom fields, plus a
-restricted direct product creation (`POST /v1/products`) that the skill allows
-only to a user holding `products:force_publish` who has chosen it over Freyr's
+restricted direct product creation (`POST /v1/products`, with an image upload
+to the media library, `POST /v1/media`, behind the same gate) that the skill
+allows only to a user holding `products:force_publish` who has chosen it over Freyr's
 review flow; it has no endpoint that modifies an existing product, and no
 orders. Changing the store's own details means the back office.
 
@@ -111,16 +112,17 @@ for a channel skill at full size.
 
 ## Sources
 
-- asgard-freyr-skills at `f06331f`: `shopline/SKILL.md`, `shopline/glossary.md`,
+- asgard-freyr-skills at `2ff0e1e`: `shopline/SKILL.md`, `shopline/glossary.md`,
   `shopline-backoffice/SKILL.md` and `shopline-backoffice/references/page-map.md`
   in asgard-freyr-skills
 - Searched for PChome, momo, 蝦皮/Shopee, Coupang and 酷澎 across every
   reference deployment clone at the commits below, plus asgard-freyr-skills: unitech-e at `44e71a2`, xxentria at `967407c`,
-  finance-ai at `d062197`, buy123 at `4dab85d`, freyr at `3ebd2be`, auto-post at
-  `55cc90e`, industry-demo-generator at `718cc0e`
+  finance-ai at `d062197`, buy123 at `4dab85d`, freyr at `8f6d6c1`, auto-post at
+  `62ccbe0`, industry-demo-generator at `1106771` (excluding `.agents/skills/asgard-platform/`,
+  which is this corpus as `init` wrote it)
 
 **Checked:** the SHOPLINE split, the merchant write limit and the map's own
-counts against asgard-freyr-skills at `f06331f`; the absence of every other
+counts against asgard-freyr-skills at `2ff0e1e`; the absence of every other
 channel against the eight repositories at the commits above.
 
 **Unchecked:** which of the other channels offers an open API today, which is

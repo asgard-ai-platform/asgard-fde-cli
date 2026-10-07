@@ -65,13 +65,13 @@ thing to come back and fix when that model is retired.
 
 ## Which of them a render can be held against
 
-There are 79 CEL rules written and 231 enforced. 79 is the number of `XValidation` markers in asgard-kube's Go
-types; the generated CRDs carry 231 rule instances, 46 of them distinct,
+There are 69 CEL rules written and 227 enforced. 69 is the number of `XValidation` markers in asgard-kube's Go
+types; the generated CRDs carry 227 rule instances, 49 of them distinct,
 because one marker on a struct several kinds embed lands in every CRD that
 embeds it. Hold a render against the CRDs, not against the markers: the
 generated schema is the contract and the Go types are only its source.
 
-41 of the enforced rules are exactly `self == oldSelf` - 40 of the markers -
+28 of the enforced rules are exactly `self == oldSelf` - 27 of the markers -
 and they compare a proposed object against the one already on the cluster, so a
 render, which is one object with no history, cannot see any of them.
 
@@ -84,49 +84,59 @@ is applied:
 
 ### Which fields are chosen once
 
-Every resource's class is immutable. `agentClass`, `botProviderClass`,
+Most classes are immutable: `agentClass`, `botProviderClass`,
 `completionModelClass`, `dataConnectorClass`, `embeddingModelClass`,
 `imageGenerationModelClass`, `knowledgeBaseClass`, `loaderClass`,
-`sourceClass`, `syncerClass`, `transcriptionModelClass` - eleven of them, one
-per kind that has a class. `botProviderClass` is the one an FDE usually meets
-first. Changing what kind of thing a resource is means a new resource with a new
-name, and the old one's references have to move.
+the Source's `sourceClass`, `syncerClass` and `transcriptionModelClass`.
+`botProviderClass` is the one an FDE usually meets first. Changing what kind of
+thing such a resource is means a new resource with a new name, and the old
+one's references have to move. `toolsetClass`, `triggerClass` and the
+Indexer's `sourceClass` carry no such rule and can be edited in place.
 
-The Syncer is where this costs the most: 21 of the 40. That includes
-`syncerClass` and also where it reads from and where it writes to:
+The Syncer carries 8 of the 27: `syncerClass`, and the fields that decide
+where it writes and what its cursor follows:
 
     sourceSetName            which store it fills
     destinationPath          the path inside that store
     statePath                where it keeps its cursor
-    ftp.host  ftp.remotePath
-    sftp.host sftp.remotePath
-    smb.host  smb.remotePath
-    dropbox.folderPath       and its oAuthCredentialName
-    googleDrive.folderId     and its oAuthCredentialName
-    oneDrive.folderId oneDrive.folderPath  and its oAuthCredentialName
-    bot.botProviderName
-    database.columns
+    bot.botProviderName      the bot it reads; its cursor is a createdAt,
+                             which a different provider would inherit
+    database.columns         the projection it reads
+    destinationMemberKey     the deprecated spellings of destinationPath and
+    stateMemberKey           statePath, immutable the same way
 
-So to change what a Syncer reads or writes, replace it. "Sync from this folder
-instead" is a new Syncer and a deleted one, not an edit, and the cursor does
-not come with it, so the replacement re-reads from the beginning unless
-`statePath` is handed over deliberately. `../usecase/knowledge-drive.md` is
-where that costs something, because a database Syncer is the one that keeps a
-cursor; a git Syncer declares no `statePath` at all and re-clones every run,
-which `../usecase/skill-set.md` says at the field.
+Where a file-store Syncer reads from is not on that list. The `host` and
+`remotePath` of an ftp, sftp or smb Syncer, the `folderId`, `folderPath` and
+`oAuthCredentialName` of a googleDrive, oneDrive or dropbox Syncer, and a git
+Syncer's `repoUrl` are edited in place. Those classes mirror their source, so
+the run after the edit brings the destination into line with the new source
+and deletes what the old one left behind, and their state records only when
+the sync ran, so no cursor carries over.
 
-The Loader has the same rule on fewer fields. `knowledgeBaseName` is immutable, so
-a Loader cannot be pointed at a different knowledge base, along with its
-`loaderClass`, its Drive folder ids and its credential names.
+So "sync from this folder instead" is an edit, and "write somewhere else" is a
+new Syncer and a deleted one. The cursor does not come with it, so the
+replacement re-reads from the beginning unless `statePath` is handed over
+deliberately. `../usecase/knowledge-drive.md` is where that costs something,
+because a database Syncer is the one that keeps a cursor; a git Syncer
+declares no `statePath` at all and re-clones every run, which
+`../usecase/skill-set.md` says at the field.
+
+The Loader keeps the rule on its source, unlike the Syncer. `knowledgeBaseName`
+is immutable, so a Loader cannot be pointed at a different knowledge base,
+along with its `loaderClass`, its Drive folder ids and its credential names.
 
 `Indexer.spec.xlsx` is also immutable.
 Whether a Drive's index treats spreadsheets as tables is decided when the
 Indexer is created.
 
 **Checked:** by walking every `self == oldSelf` rule in asgard-kube
-`3da0365` `crd/` back to the property that carries it - 40 properties across
-twelve kinds. The count of rules is 41 because one kind carries the same rule
-at two paths. The evaluation-time rule was checked against
+`42e8722` `crd/` back to the property that carries it - 27 properties across
+twelve kinds. The count of rules is 28 because one kind carries the same rule
+at two paths. The mirror sync and the state that holds no cursor, which are
+why the file-store Syncer fields were made editable, against
+asgard-syncer `8d278689` `internal/utils/rclone.go` (`buildRcloneSyncArgs`
+runs `rclone sync --delete-after`) and the six class files beside it in
+asgard-syncer `internal/syncer/`, each of which writes only `syncedAt` as its state. The evaluation-time rule was checked against
 asgard-core `478cf5d6` `internal/bpcontroller/server/sandbox_orchestration.go`.
 
 The rest are two families, and `asgard-cli verify` checks both:
@@ -187,7 +197,7 @@ blueprint to be read by hand.
 
 - `asgard-kube/pkg/apis/asgard/v1alpha1/types.go` - the type
   definitions the CRDs are generated from, with the reasoning in comments
-  - asgard-kube `3da0365`
+  - asgard-kube `42e8722`
 - The generated CRDs carry the same rules without the reasoning:
   [asgard-kube `crd/`](https://github.com/asgard-ai-platform/asgard-kube/tree/main/crd)
 - The pruning behaviour: read off the two extracts that carry it against the

@@ -125,8 +125,8 @@ var crdConstraints = map[string]fieldConstraint{
 // `mountPath` must start with one - because helm renders either way and the
 // apiserver refuses at apply time, after the tag is pushed.
 //
-// Immutability is deliberately absent. 41 of the CRDs' 231 enforced CEL rules
-// are exactly `self == oldSelf` - 40 of the 79 `XValidation` markers the Go
+// Immutability is deliberately absent. 28 of the CRDs' 227 enforced CEL rules
+// are exactly `self == oldSelf` - 27 of the 69 `XValidation` markers the Go
 // types carry, which is a different count because one marker on a shared struct
 // is generated into every CRD that embeds it. Each compares a proposed object
 // against the one already on the cluster; a render is a single object with no

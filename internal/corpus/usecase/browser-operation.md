@@ -11,7 +11,7 @@ has an integration for.
 **Seen in:** a deployment operating a commerce platform's back office, where the
 capability is a skill describing 88 pages plus everything the menu cannot see.
 
-**Checked:** against the reference set it describes, asgard-freyr-skills `f06331f` - the four map files under `shopline-backoffice/references/`, `scripts/validate.py` for the map schema, and `requirements/tasks/TASK-001-shopline-backoffice-operation.md` and `requirements/tasks/TASK-006-backoffice-operation-map.md` for how the maps were produced and the three crawl misses - and against asgard-kube `3da0365` `pkg/apis/asgard/v1alpha1/types.go` for `browser` on the Agent and the SandboxBlueprint.
+**Checked:** against the reference set it describes, asgard-freyr-skills `2ff0e1e` - the four map files under `shopline-backoffice/references/`, `scripts/validate.py` for the map schema, and `requirements/tasks/TASK-001-shopline-backoffice-operation.md` and `requirements/tasks/TASK-006-backoffice-operation-map.md` for how the maps were produced and the three crawl misses - and against asgard-kube `3da0365` `pkg/apis/asgard/v1alpha1/types.go` for `browser` on the Agent and the SandboxBlueprint.
 
 **Unchecked:** the guidance on building the maps comes from one capability built by one team, and no second deployment has repeated it.
 

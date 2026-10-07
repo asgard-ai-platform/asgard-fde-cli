@@ -14,7 +14,7 @@ knowledge (`pg-med-*`, `pg-biz-*`, `pg-pr-*`) and writing style (`pg-style-*`).
 `edb0ad0`: one Plugin and one SkillSet per bundle, every SkillSet naming the
 same `ss-skill-repos`, and the CRD. The number of bundles moves as the
 deployment grows; the one store does not. Its bundle names against
-asgard-auto-post-kube `55cc90e` `chart/app/templates/plugin/`. How a Plugin is
+asgard-auto-post-kube `62ccbe0` `chart/app/templates/plugin/`. How a Plugin is
 loaded and what wins when two sources name the same thing against
 asgard-core `478cf5d6` `internal/bpcontroller/server/sandbox_orchestration.go`.
 

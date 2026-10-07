@@ -87,7 +87,7 @@ push on the Agent node's Failure branch. That is the shape a new Flow Agent
 is created with - see `../usecase/flow-agent-single.md` - so this chart is
 the default flow edited rather than one built from nothing.
 
-In the chart the site sends the credential in the message's `payload`, as a
+In the retail chart at `718cc0e` the site sends the credential in the message's `payload`, as a
 member id and an access token valid for ten minutes, and a `SandboxBlueprint`
 hook writes it to a file in the sandbox before each turn; the agent calls the
 site's own API with it. No Toolset is mounted, so this flow reads and replies
@@ -113,9 +113,11 @@ topology is `../usecase/flow-agent-supervisor.md` and `../usecase/agent-hub.md`.
 - [Odin: an AI help desk answering order questions](https://docs.asgard-ai.com/docs/product-suite/odin/case-studies/retail-ai-customer-service)
   - asgard-docs `6261fdff`
 
-**Checked:** the agents, the read and write split, the approval gate and the
-help-desk workflow against the retail chart,
-asgard-industry-demo-generator `718cc0e` `retail/chart/app/templates/`.
+**Checked:** the agents, the read and write split and the approval gate
+against the retail chart, asgard-industry-demo-generator `1106771`
+`projects/retail/chart/app/templates/`; the help-desk workflow against
+asgard-industry-demo-generator `718cc0e` `retail/chart/app/templates/supervisor/customer_service/`,
+which the chart no longer carries.
 
 **Unchecked:** the Mimir and Sindri screens - the seven steps, the counts in the
 answer, the three options and the approval dialog - which only a Console

@@ -13,9 +13,9 @@ another one.
 Capability is mostly skills; two of its agents also bind a read-only order and
 inventory SemanticLayer.
 
-**Checked:** against that skill repository - the declared
-`skill-layer` of every one, the dependency the README states, the write gates and
-the four-level exploration policy.
+**Checked:** against asgard-freyr-skills `2ff0e1e` - the declared
+`skill-layer` of every one, the dependency the README states, the write gates,
+the target-store check in `shopline/access.md` and the four-level exploration policy.
 
 **Unchecked:** whether the back-office map still matches the product. It was
 built by field exploration, nothing tracks drift, and only the live back office
@@ -56,7 +56,7 @@ the value. It holds judgements, not facts:
 
     which numbers in this screen are real, and which are placeholder or fixture
     when the system heals itself and when a person has to act
-    "the retry button on the sync page is a mock - never press it"
+    "the sync page cannot retry; a resend goes through the exception queue or a single-product resync"
 
 None of that is in any API contract. It is what a competent operator knows after
 six months, and without it an agent with full API access does wrong things
@@ -103,10 +103,11 @@ a batch create the product owner approved, and it carries its own chain of
 checks; nothing after creation is exempt.
 
 A token that reaches several stores does not say which one to write to. In
-that deployment the user names the target store, the name is checked against
-the system's own list of stores and the write is refused if it is not there,
-and the list itself is never shown, because the token can see other tenants'
-stores.
+that deployment the target store comes from the brand's own configuration,
+not from the user: the configured store is checked against the system's own
+list of stores, the write is refused if it is not there or if the
+configuration names none, the user confirms before the write, and the list
+itself is never shown, because the token can see other tenants' stores.
 
 ## Provenance per operation
 
