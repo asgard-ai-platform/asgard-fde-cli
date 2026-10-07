@@ -87,6 +87,7 @@ wherever; what goes into a page is the repository and the commit.
 | CRD definitions | https://github.com/asgard-ai-platform/asgard-kube |
 | runtime and processor definitions | https://github.com/asgard-ai-platform/asgard-core (private) |
 | the JavaScript SDK | https://github.com/asgard-ai-platform/asgard-js-sdk |
+| the Syncer runtime, what each `syncerClass` does when it runs | https://github.com/asgard-ai-platform/asgard-syncer (private) |
 | reference deployments | asgard-freyr-kube, asgard-freyr-skills, asgard-auto-post-kube, asgard-industry-demo-generator and the customer deployments, all under https://github.com/asgard-ai-platform/ |
 
 None of them lives in this repository, and each citation names the commit it

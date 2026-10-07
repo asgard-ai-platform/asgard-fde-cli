@@ -83,20 +83,6 @@ func markdownFilesIn(path string) int {
 // A vendored subchart under `charts/` is not one of ours and is excluded - it
 // would inflate the sample-size floor this count exists to state without adding
 // an arrangement anybody here read.
-// skillDirsIn counts the runtime skills under a path: one SKILL.md each, which
-// is what makes a directory a skill rather than a folder beside them.
-func skillDirsIn(path string) int {
-	n := 0
-	_ = filepath.Walk(path, func(p string, fi os.FileInfo, err error) error {
-		if err != nil || fi.IsDir() || filepath.Base(p) != "SKILL.md" {
-			return nil
-		}
-		n++
-		return nil
-	})
-	return n
-}
-
 // tokenIn counts occurrences of a word across the YAML and templates of a
 // clone, which is what a reader's grep would find.
 func tokenIn(word string) func(string) int {
@@ -271,12 +257,6 @@ type countRow struct {
 // Each count: where it comes from, how, and every way this material states it.
 var counts = []countRow{
 	{
-		Slug: "runtime-skills", Clone: "asgard-freyr-skills", Of: ".",
-		How:  skillDirsIn,
-		What: "runtime skills in the skills repository",
-		Says: []string{`(\d+) runtime skills`},
-	},
-	{
 		Slug: "shopline-l1-pages", Clone: "asgard-freyr-skills",
 		Of:   "shopline-backoffice/references/page-map.md",
 		How:  biggestTable,
@@ -330,7 +310,7 @@ var pinned = []pinnedRow{
 	{Slug: "auto-post-plugins", Clone: "asgard-auto-post-kube", Ref: "edb0ad0",
 		How: kindCount("Plugin"), What: "Plugin CRs",
 		Says: []string{`(\d+) Plugins and \d+ SkillSets`, `carrying (\d+) Plugins`}},
-	{Slug: "auto-post-plugins-as-read", Clone: "asgard-auto-post-kube", Ref: "d11b802",
+	{Slug: "auto-post-plugins-as-read", Clone: "asgard-auto-post-kube", Ref: "62ccbe0",
 		How: kindCount("Plugin"), What: "Plugin CRs at the commit its extracts were read at",
 		Says: []string{`(\d+) Plugin CRs`}},
 }

@@ -151,7 +151,8 @@ Use one when the same agent needs different capabilities on
 different turns, and a blueprint decides per request which bundles to load. If
 the capability set is fixed, mount the pieces directly and skip this layer.
 
-Hooks belong to a Plugin and to nothing else.
+A Plugin carries Hooks, and a SandboxBlueprint can also declare them directly
+in `spec.hooks`; `../usecase/flow-agent-supervisor.md` shows one.
 
 ### Hook events
 
@@ -181,7 +182,15 @@ hub, and no Toolset or SandboxBlueprint setting removes them. The platform
 hard-codes its disallow list to two planning tools and there is no field on any
 CRD to opt out.
 
-So the only control today is the prompt, which is a weak control:
+One reference deployment also denies a built-in skill through the CLI's own
+settings file: a SandboxBlueprint `session-start` hook writes a fixed
+`permissions.deny` list and `disableWorkflows` into the CLI's user settings in
+the sandbox's home directory. The platform does not support that path, so it
+can stop working with any sandbox image, and a hook that fails is only logged,
+after which the CLI starts with no deny at all. It is a deployment's own
+workaround, not a control to offer a customer.
+
+So the control the platform supports is the prompt, which is a weak control:
 
     a deployment that needs them off   says so in the prompt, explicitly
     that instruction                   must not be deleted as redundant
@@ -281,8 +290,12 @@ repair to make when guidance seems to be missing.
   against [asgard-kube](https://github.com/asgard-ai-platform/asgard-kube)
   `3da0365` - `SandboxHookEvent`, `PluginSpec`, and `crd/asgard-ai.com_plugins.yaml`,
   `crd/asgard-ai.com_toolsets.yaml`, `crd/asgard-ai.com_skillsets.yaml` - and
-  against the reference deployment carrying 29 Plugins, at `55cc90e`, where
+  against the reference deployment carrying 29 Plugins, at `62ccbe0`, where
   every Plugin's SkillSet slices the one shared SourceSet with searchPaths
+- The settings-file deny: asgard-auto-post-kube `62ccbe0`
+  `chart/app/templates/agent/global/sandbox_blueprint.yaml` and
+  `requirements/tasks/TASK-006-forbid-builtin-deep-research-skill.md`. That
+  the platform does not support its path is per the platform team
 - The card tools, when each is registered, the file/folder distinction, the
   working-directory rule and the result-set file: read from
   asgard-core `478cf5d6` `internal/constants.go` - `BuiltinToolCallSafeList`,

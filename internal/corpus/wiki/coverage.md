@@ -21,8 +21,7 @@ runtime skills and no CRs at all - it is the only source for
 | kind | in how many | where |
 |---|---|---|
 | Workflow | 7 of 7 | everywhere |
-| BotProvider | 7 of 7 | everywhere |
-| SandboxBlueprint | 7 of 7 | everywhere |
+| BotProvider / SandboxBlueprint | 6 of 7 | all but one, whose callers reach its agents through the platform's agent hub |
 | SkillSet / SourceSet / Syncer | 6 of 7 | all but the minimal flow agent |
 | DataConnector | 6 of 7 | all but one, which reaches its data through tools rather than a layer |
 | Toolset | 5 of 7 | |
@@ -34,8 +33,10 @@ runtime skills and no CRs at all - it is the only source for
 | **KnowledgeBase / Loader / Source** | **1 of 7** | auto-post only |
 | **Indexer** | **0 of 7** | a live CRD in no reference deployment. `../usecase/knowledge-drive.md` names it because the contract has it; nothing here has seen one configured |
 
-The three at 7 of 7 are the entry point, which every deployment has. The three
-at 1 of 7 are the thin samples, and the sections below are about them. `Indexer`
+Workflow is the one kind every deployment has. BotProvider and SandboxBlueprint
+are the entry point a deployment authors itself; the one without them uses the
+platform's per-namespace agent hub, which nobody authors, with an Agent CR per
+system - `../usecase/agent-hub.md`. The three at 1 of 7 are the thin samples, and the sections below are about them. `Indexer`
 at 0 of 7 has no sample: the material names it because the CRD does, and nobody
 here has seen one in a chart. Treat anything this material says about it as
 read off the schema.
@@ -75,7 +76,7 @@ on the sample size, not a measure of whether the shape was understood.
 **Checked:** the counts are the whole of this page and they were measured, not
 estimated - by rendering every chart in every reference
 repository with `helm template` against its own values plus the values the
-platform injects (`.Values.asgard.*`), 19 charts in all, then
+platform injects (`.Values.asgard.*`), 20 charts in all, then
 grouping by deployment and counting `kind:`. The denominator is stated with
 what it excludes, so the number can be re-derived: the table counts out of the deployments that declare CRs, and
 one reference repository declares none. The table's denominator is

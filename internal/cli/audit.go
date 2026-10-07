@@ -1363,7 +1363,7 @@ var ourFiles = regexp.MustCompile(`(?:^|[^A-Za-z0-9_./-])((?:source|hack|interna
 // the same contract as `replacements`: the list is what makes this check able
 // to tell provenance from a dead pointer.
 var knownRepos = []string{
-	"asgard-fde-cli", "asgard-core", "asgard-kube", "asgard-docs",
+	"asgard-fde-cli", "asgard-core", "asgard-kube", "asgard-docs", "asgard-syncer",
 	"asgard-ai-platform", "workflow-service",
 }
 

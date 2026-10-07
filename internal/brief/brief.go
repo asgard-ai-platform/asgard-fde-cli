@@ -85,7 +85,7 @@ customer's notes.`,
 			{
 				"how we reach a system inside their network",
 				`"a VPN, an allowlist or a jump host - whichever suits you"`,
-				"One shape only: they add our outbound addresses to their allowlist. Asgard is hosted and the agent runs in a sandbox in that cloud, so there is nothing of ours to place on their network. If you offer options, the customer picks one that does not apply. Ask who can change the firewall, and do not hand out the addresses",
+				"One shape only: they add our outbound addresses to their allowlist. Asgard is hosted and the agent runs in a sandbox in that cloud, so there is nothing of ours to place on their network. If you offer options, the customer picks one that does not apply. Ask who will make the firewall change, for the follow-up list, and do not hand out the addresses in the meeting",
 				"../wiki/operations.md",
 			},
 			{

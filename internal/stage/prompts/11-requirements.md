@@ -409,6 +409,10 @@ integration from days into weeks by being discovered late:
     finding that out takes the week you were trying to save.
     If their policy needs a VPN, that is their side's business about how the
     allowlist gets implemented; what we need from them is unchanged.
+    A database with no address reachable from outside can be reached
+    through an SSH bastion they already run, and then the allowlist goes on
+    the bastion: `../wiki/operations.md` says which database classes allow it
+    and what it needs.
 
     Ask whether it can be done and roughly when - a date changes our plan. This
     is the most expensive thing to discover in week three, and it takes one

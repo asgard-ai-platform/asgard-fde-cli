@@ -57,6 +57,11 @@ metadata:
     # the Syncer module ignores it and never looks at suspend. So a suspended
     # Syncer without auto-fire never runs - the skills resolve to zero, the
     # chart renders, the gate passes and nothing reports it.
+    #
+    # A sync interrupted mid-copy leaves a partial skill tree, and on a
+    # suspended Syncer only the next deploy repairs it. Dropping suspend and
+    # scheduling the Syncer repairs it on the next run instead;
+    # `.agents/skills/asgard-platform/wiki/knowledge.md` has the trade.
     asgard-ai.com/syncer-suspend: "true"
     asgard-ai.com/auto-fire-on-rollout: "true"
     {{- include "<<.Chart>>.labels" . | nindent 4 }}

@@ -93,9 +93,9 @@ router's URL, `.../ns/<namespace>/completion-model/<name>/router`, so a name
 that matches nothing is a 404 on the first turn, and no chart check sees it.
 
 A declared model that nothing names costs a key and changes nothing. In the
-demo generator's charts every `CompletionModel` is unreferenced - each layer and
-each agent still names `preset-balanced` - and in the auto-post chart all but one
-are. Copying that block into an engagement's chart obtains a provider key,
+demo generator's charts every `CompletionModel` is unreferenced - every
+SemanticLayer names `preset-balanced` through one chart value, and Agents take
+no model - and in the auto-post chart all but one are. Copying that block into an engagement's chart obtains a provider key,
 declares an `appSecret`, and changes which model answers nothing at all. Before
 writing the CR, find the field that will name it.
 

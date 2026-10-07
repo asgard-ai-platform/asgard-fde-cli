@@ -12,13 +12,15 @@ deployment rather than a slide.
 complete chart. It is the largest body of Asgard chart material there is,
 and every CR in it is produced from one source shape repeated per industry.
 
-**Checked:** against that repository - its wiring diagram, the
-frontmatter of a retail story, its consistency checker, and the CR kinds each
-industry's chart declares.
+**Checked:** against that repository at `1106771` - `.asgard-pipeline.yaml`,
+`docs/spec/asgard/delivery.md`, the frontmatter of a retail story, its
+consistency checker's code, and the CR kinds each industry's chart declares.
 
 **Unchecked:** whether a demo built this way has ever converted into an
 engagement, and what the second one costs once the first industry exists. The
-repository records neither.
+repository records neither. The consistency checker at `1106771` still looks
+for industries at the repository root and so finds none under `projects/`;
+what it enforces is read from its code, not from a clean run.
 
 Read the platform side first: `../wiki/product-suite.md` -
 which product a request lands in. This page assumes you have.
@@ -48,10 +50,10 @@ partial and real. Both are legitimate; do not present one as the other.
     skills/<name>/SKILL.md
         |
         v   one transform
-    <industry>/chart/     a Helm chart of asgard-ai.com CRs
+    projects/<industry>/chart/app   a Helm chart of asgard-ai.com CRs
         |
-        v   helm install
-    namespace asgard-demo-<industry>
+        v   Platform Pipeline, one release per industry, on a tag
+    the namespace of the Platform Project the release is bound to
 
 The story is the entry point and its frontmatter is the whole design. Before
 a CR exists, one file declares what the demo is made of:
@@ -114,16 +116,16 @@ industry you touched.
 
 ## Fields that are not obvious
 
-One namespace per industry, `asgard-demo-<industry>`, created by Terraform
-along with `app-secret` before anything is deployed - the same order every
-engagement follows, and the same project environment id that cannot be
-known until it exists.
+One release per industry, each bound to its own Platform Project, so the
+namespace belongs to the Project rather than to the chart. The platform injects
+the environment id, the Secret and ConfigMap names and the chart's appVersion
+on every run, and the chart uses `required` rather than `default` for them,
+because a default name renders, applies and resolves to nothing at runtime.
+`.asgard-pipeline.yaml` declares the keys each release takes and never their
+values; the values are set on the platform.
 
-helm has no `--app-version`. Setting one means packaging first and upgrading
-from the package:
-
-    pkg=$(helm package <industry>/chart/app --app-version dev-0.1.0 -d /tmp | sed 's/.*: //')
-    helm upgrade <name> "$pkg" --install -n asgard-demo-<industry> \
+The pipeline does not touch the database. The repository's own CI applies the
+SQL to Postgres on every tag, because a demo with no data is empty.
 
 Each industry declares its own pair of `CompletionModel` CRs, and nothing in
 any chart names either of them. Every `completionModelName` across the

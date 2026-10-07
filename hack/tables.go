@@ -19,7 +19,7 @@ var constraintKeys = []string{"pattern", "minLength", "maxLength", "minimum", "m
 func init() {
 	register("tables", check{
 		Needs: "$ASGARD_KUBE",
-		What:  "the pinned enum and constraint tables against the CRDs; **every CEL-rule count this repository states** - 231 enforced against 79 markers, two numbers easy to write for each other; **every immutable field** - that the page names all eleven class fields and states the Syncer's count and the total; and **every required field of a per-class block**, which is what an FDE asks a customer for",
+		What:  "the pinned enum and constraint tables against the CRDs; **every CEL-rule count this repository states** - rules enforced against markers written, two numbers easy to write for each other; **every immutable field** - that the page names all eleven class fields and states the Syncer's count and the total; and **every required field of a per-class block**, which is what an FDE asks a customer for",
 		Run:   runTables,
 	})
 }

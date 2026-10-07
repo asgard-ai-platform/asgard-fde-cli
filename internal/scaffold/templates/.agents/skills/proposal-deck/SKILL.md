@@ -388,9 +388,12 @@ list and the customer is the only person who can change it, by finding an API.
 The allowlist row has a rule of its own: ask their network team for the
 allowlist, not for "a VPN or an allowlist or a jump host". Asgard is hosted and
 the agent runs in a sandbox in that cloud, so there is nothing of ours to place
-on their network and the other two options do not apply. A slide offering three
+on their network. A VPN does not apply, and a jump host is not an alternative to
+the allowlist: when one is used, the allowlist goes on it instead. A slide offering three
 invites their network team to pick the wrong one, and that is discovered a week
-later. `../asgard-platform/wiki/operations.md` has the addresses; hand them over in the meeting.
+later. The slide asks whether the change can be made; the addresses are sent
+afterwards, directly to whoever makes it, read from
+`../asgard-platform/wiki/operations.md` at the time.
 
 A clumsy name used consistently is better than two names for one thing. If a
 phrase here is wrong for a customer's industry, change it once and use the

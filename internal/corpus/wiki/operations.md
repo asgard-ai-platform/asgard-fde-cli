@@ -21,12 +21,24 @@ So there is one thing to ask for:
 
     they add Asgard's outbound addresses to their allowlist
 
-Do not offer a VPN, a bastion or a jump host as alternatives. Those connect two
+Do not offer a VPN, a bastion or a jump host as alternatives. A VPN connects two
 networks; here a hosted service calls in from fixed addresses. If you present
 three options, their network team may pick the one that suits their habits and
 spend a week finding out it does not apply. If their policy requires a VPN, how
 they implement the allowlist is their decision; it does not change what we need
 from them.
+
+An SSH bastion changes which machine the allowlist is on, not whether one is
+needed. A DataConnector of class postgres, mysql, mssql, oracle, hana or trino
+can set `spec.sshTunnel`: the platform opens an SSH connection to a bastion the
+customer already runs, and the bastion opens the connection to the database
+from its own network. Use it when the database has no address reachable from
+outside and the customer already has a bastion that does. Then the four
+addresses go on the bastion's SSH port instead of the database's port, and the
+connection needs the bastion's host, port, user, a password or a private key,
+and its host key so the platform can verify it. Without `hostKey` the
+bastion's identity is not checked. athena, salesforce and netsuite refuse
+`sshTunnel`.
 
 The customer does the work. We supply the addresses; they own the change, the
 approval and the schedule.
@@ -211,9 +223,15 @@ Connectivity and vocabulary produce no CRs, so there is no extract for them.
 asgard-core `478cf5d6` `internal/bpoperator/reconciler/sl_reconciler.go`; the four addresses against
 asgard-docs `95a27895` `docs/help-community/other/vpn-white-list-ip.mdx`; the
 Environment id reaching a chart against
-xxentria-asgard-kube `967407c` `.asgard-pipeline.yaml` and its Workflow labels.
+xxentria-asgard-kube `967407c` `.asgard-pipeline.yaml` and its Workflow labels;
+`sshTunnel`, the classes that take it and the three that refuse it against
+asgard-kube `42e8722` `crd/asgard-ai.com_dataconnectors.yaml` and against
+asgard-core `001bbf69` `internal/bpcontroller/dataconnector/`.
 
 **Unchecked:** the addresses are the documentation's, and the egress
 configuration behind them is in none of the repositories here. That Asgard
 always needs the customer to open the path inward is the FDE team's account of
-every engagement so far and no document states it.
+every engagement so far and no document states it. That the SSH connection
+to a bastion leaves from the same four addresses, and that production runs an
+asgard-core release carrying `sshTunnel`, is per the platform team; no
+repository here states either.

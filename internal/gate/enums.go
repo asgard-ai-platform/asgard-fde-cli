@@ -7,8 +7,8 @@ import (
 )
 
 // Enum values the CRDs accept, extracted from the kubebuilder validation
-// markers in asgard-kube `pkg/apis/asgard/v1alpha1/types.go` at cbd8d70 on
-// 2026-09-03, keyed by json field name.
+// markers in asgard-kube `pkg/apis/asgard/v1alpha1/types.go` at 42e8722 on
+// 2026-10-07, keyed by json field name.
 //
 // **Some field names are deliberately absent**: `type`, `format`, `alias` and
 // `status` each carry a different enum in different places, and the union of
@@ -28,7 +28,7 @@ import (
 //
 // `go run ./hack tables` holds this table against the generated CRDs. Run it
 // after regenerating, and when asgard-kube moves.
-const enumsRead = "2026-09-11, asgard-kube cbd8d70"
+const enumsRead = "2026-10-07, asgard-kube 42e8722"
 
 var crdEnums = map[string][]string{
 	"agentClass":                {"managed"},                                                                                    // 1 declaration(s)
@@ -58,6 +58,7 @@ var crdEnums = map[string][]string{
 	"sslMode":                   {"disable", "require", "verify-ca", "verify-full"},                                             // 1 declaration(s)
 	"storageStatus":             {"Provisioning", "Ready"},                                                                      // 1 declaration(s)
 	"syncerClass":               {"bot", "database", "dropbox", "ftp", "git", "google-drive", "onedrive", "sftp", "smb", "web"}, // 1 declaration(s)
+	"toolsetClass":              {"mcp-server", "workflow-tooling"},                                                             // 1 declaration(s)
 	"transcriptionModelClass":   {"aoai", "builtin", "gemini", "openai"},                                                        // 1 declaration(s)
 	"triggerClass":              {"cron"},                                                                                       // 1 declaration(s)
 }
