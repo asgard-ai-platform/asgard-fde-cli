@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/sandbox"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/sandbox"
 )
 
 // The Workbench assistant runs this CLI inside a sandbox on the platform, as

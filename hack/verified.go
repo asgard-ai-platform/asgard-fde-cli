@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/hack/internal/src"
+	"github.com/asgard-ai-platform/asgard-fde-cli/hack/internal/src"
 )
 
 func init() {

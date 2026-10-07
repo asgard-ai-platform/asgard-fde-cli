@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/hack/internal/src"
+	"github.com/asgard-ai-platform/asgard-fde-cli/hack/internal/src"
 )
 
 // **Every decision still has the document that carries it.**

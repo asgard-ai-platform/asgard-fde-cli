@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/platform"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/platform"
 )
 
 // TestWriteObjectStatus covers the distinction the flag exists for: an object

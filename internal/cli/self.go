@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli"
+	"github.com/asgard-ai-platform/asgard-fde-cli"
 )
 
 // goStrings returns every string literal in this repository's Go source, keyed

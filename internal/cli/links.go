@@ -7,9 +7,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/auth"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/binding"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/gitrepo"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/auth"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/binding"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/gitrepo"
 )
 
 // newLinksCmd prints the URLs of the systems this checkout is bound to.

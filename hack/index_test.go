@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/kb"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/kb"
 )
 
 // The index renderer is tested against bodies built here rather than against

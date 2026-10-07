@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/auth"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/auth"
 )
 
 // Every command that files something carries the same table, so an agent that

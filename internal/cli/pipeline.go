@@ -9,9 +9,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/binding"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/pipelineconfig"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/platform"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/binding"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/pipelineconfig"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/platform"
 )
 
 // Every subcommand here that changes something prints one line to stderr first,

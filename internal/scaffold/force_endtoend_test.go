@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/generate"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/scaffold"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/generate"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/scaffold"
 )
 
 // **`--force` must leave a repository that still renders.**

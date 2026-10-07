@@ -11,8 +11,8 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/auth"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/gitrepo"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/auth"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/gitrepo"
 )
 
 // `asgard-cli init` is the one command in this tool written for a person.

@@ -25,8 +25,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/auth"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/version"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/auth"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/version"
 )
 
 // timeout bounds one API call.

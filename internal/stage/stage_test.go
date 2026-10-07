@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/repo"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/repo"
 )
 
 // **The living-spec directory is a fact on disk, not a constant.** An

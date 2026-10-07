@@ -1,4 +1,4 @@
-module github.com/asgard-ai-partners/asgard-fde-cli
+module github.com/asgard-ai-platform/asgard-fde-cli
 
 go 1.26.1
 

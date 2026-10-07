@@ -32,7 +32,7 @@ import (
 // downloadBase is the release whose assets carry no version in their names, so
 // one URL keeps working across releases. `.github/workflows/release.yml`
 // publishes those copies and `install.sh` takes the same ones.
-const downloadBase = "https://github.com/asgard-ai-partners/asgard-fde-cli/releases/latest/download"
+const downloadBase = "https://github.com/asgard-ai-platform/asgard-fde-cli/releases/latest/download"
 
 // firstRunLeash is how long the new binary gets to answer before this gives up
 // on it.

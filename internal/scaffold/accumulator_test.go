@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/pipelineconfig"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/pipelineconfig"
 )
 
 // **`--force` means "discard local edits to the skeleton", and some files stop

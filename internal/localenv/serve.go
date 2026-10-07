@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/browser"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/browser"
 )
 
 // Options is one run of the editor.

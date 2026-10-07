@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/platform"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/platform"
 )
 
 // The message this replaces named two causes - no pattern matched, or the

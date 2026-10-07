@@ -6,12 +6,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/brief"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/kb"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/needs"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/stage"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/usecase"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/wiki"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/brief"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/kb"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/needs"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/stage"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/usecase"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/wiki"
 )
 
 // corpusSkillDir is where the platform corpus is written in a repository.

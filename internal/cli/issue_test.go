@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/feedback"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/feedback"
 )
 
 // The discovery section closes every report, so a defect report can carry a

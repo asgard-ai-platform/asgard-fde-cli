@@ -5,13 +5,13 @@ import (
 	"io"
 	"slices"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/pipelineconfig"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/pipelineconfig"
 
 	"github.com/spf13/cobra"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/repo"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/scaffold"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/stage"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/repo"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/scaffold"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/stage"
 )
 
 func newProjectCmd() *cobra.Command {

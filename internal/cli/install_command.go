@@ -16,11 +16,11 @@ func installCommand() string {
 	// what makes an install made this way one that `update` can replace.
 	switch runtime.GOOS {
 	case "darwin", "linux":
-		return "curl -fsSL https://raw.githubusercontent.com/asgard-ai-partners/asgard-fde-cli/main/install.sh | sh"
+		return "curl -fsSL https://raw.githubusercontent.com/asgard-ai-platform/asgard-fde-cli/main/install.sh | sh"
 	case "windows":
-		return "irm https://raw.githubusercontent.com/asgard-ai-partners/asgard-fde-cli/main/install.ps1 | iex"
+		return "irm https://raw.githubusercontent.com/asgard-ai-platform/asgard-fde-cli/main/install.ps1 | iex"
 	}
-	return "see https://github.com/asgard-ai-partners/asgard-fde-cli/releases/latest"
+	return "see https://github.com/asgard-ai-platform/asgard-fde-cli/releases/latest"
 }
 
 // upgradeCommand is what THIS installation should run to move to the newest

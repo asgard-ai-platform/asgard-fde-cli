@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/binding"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/pipelineconfig"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/stage"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/binding"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/pipelineconfig"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/stage"
 )
 
 // loadRepo finds the customer repository from the working directory.

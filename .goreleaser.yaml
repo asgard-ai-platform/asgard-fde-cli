@@ -25,9 +25,9 @@ builds:
       - -trimpath
     ldflags:
       - -s -w
-      - -X github.com/asgard-ai-partners/asgard-fde-cli/internal/version.version={{ .Version }}
-      - -X github.com/asgard-ai-partners/asgard-fde-cli/internal/version.commit={{ .FullCommit }}
-      - -X github.com/asgard-ai-partners/asgard-fde-cli/internal/version.date={{ .CommitDate }}
+      - -X github.com/asgard-ai-platform/asgard-fde-cli/internal/version.version={{ .Version }}
+      - -X github.com/asgard-ai-platform/asgard-fde-cli/internal/version.commit={{ .FullCommit }}
+      - -X github.com/asgard-ai-platform/asgard-fde-cli/internal/version.date={{ .CommitDate }}
     mod_timestamp: "{{ .CommitTimestamp }}"
 
 # **One binary for both Macs.** A tar.gz per architecture makes the person
@@ -62,7 +62,7 @@ nfpms:
     ids: [asgard-cli]
     package_name: asgard-cli
     vendor: Asgard AI Partners
-    homepage: https://github.com/asgard-ai-partners/asgard-fde-cli
+    homepage: https://github.com/asgard-ai-platform/asgard-fde-cli
     maintainer: Asgard AI Partners <service@asgard-ai.com>
     description: Command line tool for Asgard FDE.
     license: Proprietary
@@ -123,14 +123,14 @@ release:
     below and gets the first-run scan over with:
 
     ```bash
-    curl -fsSL https://raw.githubusercontent.com/asgard-ai-partners/asgard-fde-cli/main/install.sh | sh
+    curl -fsSL https://raw.githubusercontent.com/asgard-ai-platform/asgard-fde-cli/main/install.sh | sh
     ```
 
     By hand, or on another platform - the URL carries no version, so it keeps
     working:
 
     ```bash
-    curl -fsSL https://github.com/asgard-ai-partners/asgard-fde-cli/releases/latest/download/asgard-cli_darwin_all.tar.gz \
+    curl -fsSL https://github.com/asgard-ai-platform/asgard-fde-cli/releases/latest/download/asgard-cli_darwin_all.tar.gz \
       | tar xz asgard-cli
     sudo install -m 0755 asgard-cli /usr/local/bin/asgard-cli
     asgard-cli doctor
@@ -162,7 +162,7 @@ release:
     ### Or from source, if you already build Go
 
     ```bash
-    go install github.com/asgard-ai-partners/asgard-fde-cli/cmd/asgard-cli@{{ .Tag }}
+    go install github.com/asgard-ai-platform/asgard-fde-cli/cmd/asgard-cli@{{ .Tag }}
     ```
 
-    {{ if .PreviousTag }}**Full diff**: https://github.com/asgard-ai-partners/asgard-fde-cli/compare/{{ .PreviousTag }}...{{ .Tag }}{{ end }}
+    {{ if .PreviousTag }}**Full diff**: https://github.com/asgard-ai-platform/asgard-fde-cli/compare/{{ .PreviousTag }}...{{ .Tag }}{{ end }}

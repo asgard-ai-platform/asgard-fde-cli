@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/cli"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/cli"
 )
 
 func main() {

@@ -2,11 +2,11 @@ package gate
 
 import (
 	"fmt"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/pipelineconfig"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/pipelineconfig"
 	"sort"
 	"strings"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/render"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/render"
 )
 
 // CredentialRefs checks that every credential reference points at an object

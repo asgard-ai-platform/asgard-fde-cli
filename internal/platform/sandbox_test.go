@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/auth"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/auth"
 )
 
 type recorded struct {

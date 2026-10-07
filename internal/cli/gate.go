@@ -14,19 +14,19 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/auth"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/binding"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/check"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/gate"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/gitrepo"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/pipelineconfig"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/platform"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/render"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/repo"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/scaffold"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/skills"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/tool"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/version"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/auth"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/binding"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/check"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/gate"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/gitrepo"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/pipelineconfig"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/platform"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/render"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/repo"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/scaffold"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/skills"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/tool"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/version"
 )
 
 // `asgard-cli gate` is the one command to run after changing anything.

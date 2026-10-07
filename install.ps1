@@ -1,6 +1,6 @@
 # One-command install for Windows.
 #
-#   irm https://raw.githubusercontent.com/asgard-ai-partners/asgard-fde-cli/main/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/asgard-ai-platform/asgard-fde-cli/main/install.ps1 | iex
 #
 # The Windows half of install.sh, and it makes the same two decisions.
 #
@@ -17,7 +17,7 @@
 
 $ErrorActionPreference = 'Stop'
 
-$repo = 'asgard-ai-partners/asgard-fde-cli'
+$repo = 'asgard-ai-platform/asgard-fde-cli'
 $base = "https://github.com/$repo/releases/latest/download"
 
 $arch = switch ($env:PROCESSOR_ARCHITECTURE) {

@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/browser"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/browser"
 )
 
 // callbackPath is the one path the loopback server answers on.

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/auth"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/auth"
 )
 
 // Every call says which client is making it, and the one that matters is three

@@ -17,10 +17,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/localenv"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/pipelineconfig"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/repo"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/work"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/localenv"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/pipelineconfig"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/repo"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/work"
 )
 
 // Level separates a problem that fails the gate from one that is only worth

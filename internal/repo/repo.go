@@ -20,8 +20,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/binding"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/pipelineconfig"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/binding"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/pipelineconfig"
 )
 
 // SpecSlug is the directory under `docs/` that holds the living spec.
