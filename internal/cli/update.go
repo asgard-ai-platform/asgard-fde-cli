@@ -10,9 +10,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/auth"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/selfupdate"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/version"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/auth"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/selfupdate"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/version"
 )
 
 func newUpdateCmd() *cobra.Command {
@@ -210,7 +210,7 @@ func upgradeWith(owner string) string {
 	case "Homebrew":
 		return "brew upgrade asgard-cli"
 	case "go install":
-		return "go install github.com/asgard-ai-partners/asgard-fde-cli/cmd/asgard-cli@latest"
+		return "go install github.com/asgard-ai-platform/asgard-fde-cli/cmd/asgard-cli@latest"
 	case "Nix":
 		return "update it the way the rest of your profile is updated"
 	case "dpkg":
@@ -233,7 +233,7 @@ func packageAsset(format string) string {
 }
 
 func packageURL(format string) string {
-	return "https://github.com/asgard-ai-partners/asgard-fde-cli/releases/latest/download/" + packageAsset(format)
+	return "https://github.com/asgard-ai-platform/asgard-fde-cli/releases/latest/download/" + packageAsset(format)
 }
 
 // notWritable says why the target cannot be replaced from here, or "".

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/hack/internal/src"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/kb"
+	"github.com/asgard-ai-platform/asgard-fde-cli/hack/internal/src"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/kb"
 )
 
 // addIn is the dedupe: a document that names one target twice is one entry,

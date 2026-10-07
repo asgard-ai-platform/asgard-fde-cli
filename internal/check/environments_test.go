@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/pipelineconfig"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/pipelineconfig"
 )
 
 // rel is one declared release, named and triggered.

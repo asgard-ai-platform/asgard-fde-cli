@@ -12,7 +12,7 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/sandbox"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/sandbox"
 )
 
 // Open asks the desktop to open a URL.

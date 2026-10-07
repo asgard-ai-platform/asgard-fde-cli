@@ -15,7 +15,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/sandbox"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/sandbox"
 )
 
 // fakeCDP is a browser with one visible tab that records what it was told.

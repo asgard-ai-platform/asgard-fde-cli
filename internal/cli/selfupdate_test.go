@@ -11,7 +11,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/selfupdate"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/selfupdate"
 )
 
 // The background check asks on an ordinary command and stays out of the way of

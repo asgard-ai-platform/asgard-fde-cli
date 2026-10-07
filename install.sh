@@ -1,7 +1,7 @@
 #!/bin/sh
 # One-command install for macOS and Linux.
 #
-#   curl -fsSL https://raw.githubusercontent.com/asgard-ai-partners/asgard-fde-cli/main/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/asgard-ai-platform/asgard-fde-cli/main/install.sh | sh
 #
 # **It verifies what it downloaded and it warms the first run.** Neither is
 # decoration. The binaries are ad-hoc signed and not notarized, so macOS scans
@@ -18,7 +18,7 @@
 # manager, so an install made here is one that can update itself afterwards.
 set -eu
 
-repo=asgard-ai-partners/asgard-fde-cli
+repo=asgard-ai-platform/asgard-fde-cli
 base="https://github.com/$repo/releases/latest/download"
 
 os=$(uname -s)

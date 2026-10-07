@@ -39,7 +39,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/pipelineconfig"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/pipelineconfig"
 )
 
 // FileName is the binding's name, beside the declaration it belongs to.

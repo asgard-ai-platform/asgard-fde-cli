@@ -58,7 +58,7 @@ const FileName = "update-check.json"
 // ask for, or a user who simply does not want one.
 const EnvDisable = "ASGARD_NO_UPDATE_CHECK"
 
-const latestURL = "https://api.github.com/repos/asgard-ai-partners/asgard-fde-cli/releases/latest"
+const latestURL = "https://api.github.com/repos/asgard-ai-platform/asgard-fde-cli/releases/latest"
 
 // Record is what the last check concluded.
 type Record struct {

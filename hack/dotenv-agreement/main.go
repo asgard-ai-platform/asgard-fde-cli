@@ -22,7 +22,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/localenv"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/localenv"
 )
 
 // cases are raw right-hand sides and what they must decode to.

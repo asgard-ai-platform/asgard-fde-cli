@@ -9,13 +9,13 @@ Asgard FDE 的命令列工具（`asgard-cli`）。
 macOS 或 Linux 上一行指令：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/asgard-ai-partners/asgard-fde-cli/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/asgard-ai-platform/asgard-fde-cli/main/install.sh | sh
 ```
 
 Windows 上，在 PowerShell 裡：
 
 ```powershell
-irm https://raw.githubusercontent.com/asgard-ai-partners/asgard-fde-cli/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/asgard-ai-platform/asgard-fde-cli/main/install.ps1 | iex
 ```
 
 `install.ps1` 是 Windows 版，做的事一樣：對著 release 自己的 checksums 驗過、裝到 `%LOCALAPPDATA%` 底下、把那個路徑加進使用者的 PATH。裝在使用者自己擁有的地方不需要提權，之後 `asgard-cli update` 也因此能就地換掉它。
@@ -30,7 +30,7 @@ Linux 上也刻意裝到 `/usr/local/bin`。`.deb` 和 `.rpm` 裝到 `/usr/bin`�
 `/releases/latest/download/<檔名>` 解析到最新的 release：
 
 ```bash
-curl -fsSL https://github.com/asgard-ai-partners/asgard-fde-cli/releases/latest/download/asgard-cli_darwin_all.tar.gz \
+curl -fsSL https://github.com/asgard-ai-platform/asgard-fde-cli/releases/latest/download/asgard-cli_darwin_all.tar.gz \
   | tar xz asgard-cli
 sudo install -m 0755 asgard-cli /usr/local/bin/asgard-cli
 asgard-cli doctor          # 告訴你 helm 在不在 PATH 上
@@ -43,7 +43,7 @@ asgard-cli doctor          # 告訴你 helm 在不在 PATH 上
 想讓它自己判斷平台，或是要特定版本而不是最新的：
 
 ```bash
-repo=asgard-ai-partners/asgard-fde-cli
+repo=asgard-ai-platform/asgard-fde-cli
 os=$(uname -s | tr '[:upper:]' '[:lower:]')
 arch=$(uname -m | sed 's/x86_64/amd64/; s/aarch64/arm64/')
 # 一個 binary 同時服務兩種 Mac；其他平台是分架構的。
@@ -61,7 +61,7 @@ Debian / Ubuntu 用 `.deb` 一行就好；RPM 與 Alpine 用同一個 release �
 
 ```bash
 arch=$(dpkg --print-architecture)      # amd64 或 arm64
-curl -fLO https://github.com/asgard-ai-partners/asgard-fde-cli/releases/latest/download/asgard-cli_linux_${arch}.deb
+curl -fLO https://github.com/asgard-ai-platform/asgard-fde-cli/releases/latest/download/asgard-cli_linux_${arch}.deb
 sudo dpkg -i asgard-cli_linux_${arch}.deb
 ```
 
@@ -83,7 +83,7 @@ xattr -d com.apple.quarantine ./asgard-cli   # 只有瀏覽器下載的才需要
 如果你本來就會編 Go，module 直接可用：
 
 ```bash
-go install github.com/asgard-ai-partners/asgard-fde-cli/cmd/asgard-cli@latest
+go install github.com/asgard-ai-platform/asgard-fde-cli/cmd/asgard-cli@latest
 ```
 
 `asgard-cli version` 報的是 release 編進去的值；不帶 ldflags 的 `go build` 會退回 module 與 VCS metadata，不會宣稱一個它沒有的版號。

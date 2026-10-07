@@ -14,7 +14,7 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/pipelineconfig"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/pipelineconfig"
 	"io/fs"
 	"maps"
 	"os"
@@ -25,8 +25,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/repo"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/version"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/repo"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/version"
 )
 
 // The tree is embedded with all: so that dot-prefixed paths (.agents, .github,

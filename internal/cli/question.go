@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/stage"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/work"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/stage"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/work"
 )
 
 func newQuestionCmd() *cobra.Command {

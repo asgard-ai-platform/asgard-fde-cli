@@ -14,14 +14,14 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/brief"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/generate"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/kb"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/needs"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/scaffold"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/stage"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/usecase"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/wiki"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/brief"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/generate"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/kb"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/needs"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/scaffold"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/stage"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/usecase"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/wiki"
 )
 
 // The instructions in this material are spread across every part of the corpus
@@ -1364,7 +1364,7 @@ var ourFiles = regexp.MustCompile(`(?:^|[^A-Za-z0-9_./-])((?:source|hack|interna
 // to tell provenance from a dead pointer.
 var knownRepos = []string{
 	"asgard-fde-cli", "asgard-core", "asgard-kube", "asgard-docs",
-	"asgard-ai-partners", "asgard-ai-platform", "workflow-service",
+	"asgard-ai-platform", "workflow-service",
 }
 
 // checkPaths reports a landed document naming a file only this repository has,

@@ -9,14 +9,14 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/hack/internal/src"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/brief"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/kb"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/needs"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/scaffold"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/stage"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/usecase"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/wiki"
+	"github.com/asgard-ai-platform/asgard-fde-cli/hack/internal/src"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/brief"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/kb"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/needs"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/scaffold"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/stage"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/usecase"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/wiki"
 )
 
 func init() {

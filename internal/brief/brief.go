@@ -25,7 +25,7 @@ import (
 
 	"testing/fstest"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/kb"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/kb"
 )
 
 // Item is one thing that gets got wrong, and where the right version lives.

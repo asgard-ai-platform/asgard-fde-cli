@@ -9,13 +9,13 @@ Command line tool for Asgard FDE (`asgard-cli`).
 On macOS or Linux:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/asgard-ai-partners/asgard-fde-cli/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/asgard-ai-platform/asgard-fde-cli/main/install.sh | sh
 ```
 
 On Windows, in PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/asgard-ai-partners/asgard-fde-cli/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/asgard-ai-platform/asgard-fde-cli/main/install.ps1 | iex
 ```
 
 `install.ps1` is the Windows half and makes the same decisions: it verifies the
@@ -43,7 +43,7 @@ The URL carries no version, so it keeps working across releases. GitHub
 resolves `/releases/latest/download/<name>` to the newest:
 
 ```bash
-curl -fsSL https://github.com/asgard-ai-partners/asgard-fde-cli/releases/latest/download/asgard-cli_darwin_all.tar.gz \
+curl -fsSL https://github.com/asgard-ai-platform/asgard-fde-cli/releases/latest/download/asgard-cli_darwin_all.tar.gz \
   | tar xz asgard-cli
 sudo install -m 0755 asgard-cli /usr/local/bin/asgard-cli
 asgard-cli doctor          # says whether helm is on PATH
@@ -58,7 +58,7 @@ On Debian or Ubuntu the `.deb` is one command; RPM and Alpine hosts take the
 
 ```bash
 arch=$(dpkg --print-architecture)      # amd64 or arm64
-curl -fLO https://github.com/asgard-ai-partners/asgard-fde-cli/releases/latest/download/asgard-cli_linux_${arch}.deb
+curl -fLO https://github.com/asgard-ai-platform/asgard-fde-cli/releases/latest/download/asgard-cli_linux_${arch}.deb
 sudo dpkg -i asgard-cli_linux_${arch}.deb
 ```
 
@@ -71,7 +71,7 @@ To have the platform detected for you, or to take a specific release rather
 than the newest:
 
 ```bash
-repo=asgard-ai-partners/asgard-fde-cli
+repo=asgard-ai-platform/asgard-fde-cli
 os=$(uname -s | tr '[:upper:]' '[:lower:]')
 arch=$(uname -m | sed 's/x86_64/amd64/; s/aarch64/arm64/')
 # One binary serves both Macs; every other platform is per-architecture.
@@ -107,7 +107,7 @@ Install the tool before somebody needs it rather than during a meeting.
 If you already build Go, the module works directly:
 
 ```bash
-go install github.com/asgard-ai-partners/asgard-fde-cli/cmd/asgard-cli@latest
+go install github.com/asgard-ai-platform/asgard-fde-cli/cmd/asgard-cli@latest
 ```
 
 `asgard-cli version` reports what a release built; a `go build` with no ldflags

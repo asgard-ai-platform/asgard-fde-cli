@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/hack/internal/src"
+	"github.com/asgard-ai-platform/asgard-fde-cli/hack/internal/src"
 )
 
 // The constraint keys internal/gate pins. A property carrying any of them is

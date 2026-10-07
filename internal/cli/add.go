@@ -7,10 +7,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/generate"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/pipelineconfig"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/render"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/repo"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/generate"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/pipelineconfig"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/render"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/repo"
 )
 
 // corpusDir is where `asgard-cli init` writes the material, and where the

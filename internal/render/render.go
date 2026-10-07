@@ -27,8 +27,8 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/pipelineconfig"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/tool"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/pipelineconfig"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/tool"
 )
 
 // Placeholder is the stand-in for a value the platform injects at run time.

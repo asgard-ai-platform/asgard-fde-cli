@@ -18,8 +18,8 @@ package wiki
 import (
 	"strings"
 
-	corpusfs "github.com/asgard-ai-partners/asgard-fde-cli/internal/corpus"
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/kb"
+	corpusfs "github.com/asgard-ai-platform/asgard-fde-cli/internal/corpus"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/kb"
 )
 
 // Page is one wiki page. It is kb.Doc under a name that reads at the call site.

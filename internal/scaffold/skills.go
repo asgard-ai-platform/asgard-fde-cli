@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/kb"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/kb"
 )
 
 // Skill is one design-time skill the scaffold writes into a customer repo.

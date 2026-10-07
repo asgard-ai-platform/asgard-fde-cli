@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/asgard-ai-partners/asgard-fde-cli/internal/tool"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/tool"
 )
 
 func newDoctorCmd() *cobra.Command {
