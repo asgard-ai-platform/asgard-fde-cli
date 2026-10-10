@@ -157,6 +157,10 @@ spec:
   normal outcome when there is no real aggregate the business asks for; do not mechanically add
   `count` to every cube, and do not read "optional" as permission to leave the key out.
 - `joins` is required the same way. A layer with no joins writes `joins: []`.
+- A join's `cube` is a `cubes[].name` in the same layer and its `dimensions` are dimensions of
+  that cube. Regenerating the cubes can leave a hand-written join naming neither, and the CRD
+  accepts it; run `asgard-cli verify` after every regeneration. What it costs and what a
+  dimension cap has to keep is in `../asgard-platform/usecase/semantic-layer.md`.
 - Nothing in this repository narrows a layer once it is mounted on an Agent. `allowedCubes`
   is not a field on `SemanticLayer` - it exists on `Agent.spec.managed.semanticLayers[]`, and the
   platform honours it, but `gate` R4 refuses an Agent that sets it, on the standing decision that

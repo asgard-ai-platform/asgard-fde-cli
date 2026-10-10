@@ -969,7 +969,7 @@ is one of the files it reports on.
 | `skills` | the reference material here still describes the server this repo deploys to |
 | `lint` | `values.yaml` defaults every `.Values.*` the chart itself owns. It supplies the reserved `asgard` block and nothing else — linting with no `-f` at all fails on every chart that reads `.Values.asgard.*`, which a chart must not declare |
 | `render` | each release renders |
-| `verify` | the rendered CRs against each other: dangling references, both halves of every entrypoint, display annotations, workflow-set labels, the agent-split invariants |
+| `verify` | the rendered CRs against each other: dangling references between CRs and inside a SemanticLayer (a join's cube and dimensions, `primaryKeyDimensions`), both halves of every entrypoint, display annotations, workflow-set labels, the agent-split invariants |
 
 The individual commands (`asgard-cli check`, `asgard-cli verify`) still exist and are what to
 reach for when one step fails and you want only that one.
