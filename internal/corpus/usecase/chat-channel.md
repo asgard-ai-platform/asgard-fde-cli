@@ -31,11 +31,9 @@ LINE and Telegram webhook handlers),
 asgard-core `internal/edgeserver/helper/kube.go` (how a `secretKeyRef` resolves),
 asgard-core `internal/bpoperator/reconciler/bp_reconciler.go` and
 asgard-core `cmd/bpoperator/main.go` (the connector Deployment, only for `discord` and
-`slack`, image from `BP_CONNECTOR_IMAGE`). Against every BotProvider in the
-reference deployments (unitech-e-asgard-kube `44e71a2`, xxentria-asgard-kube
-`967407c`, finance-ai-asgard-kube `d062197`, buy123-asgard-kube `4dab85d`,
-asgard-freyr-kube `8f6d6c1`, asgard-auto-post-kube `62ccbe0`,
-asgard-industry-demo-generator `718cc0e`): every one is `generic`. Against
+`slack`, image from `BP_CONNECTOR_IMAGE`). Against every BotProvider in every
+deployment the extracts were written from, including
+asgard-industry-demo-generator `718cc0e`: every one is `generic`. Against
 asgard-js-sdk `56ad14e` `packages/react/src/utils/selectors.ts` for where
 `embedConfig` is read.
 

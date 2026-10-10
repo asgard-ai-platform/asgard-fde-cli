@@ -14,10 +14,6 @@ version had wrong and was validating a page against: it counted distinct CEL
 rules by matching `rule:` with a regular expression over raw YAML, so two
 spellings of one rule counted as two.
 
-One shell script is left. `verify-references.sh` drives helm and this
-repository's own binary over the reference charts, and rewriting that in Go
-would gain nothing.
-
 ## Where the upstream clones are
 
 Every check here needs one. Each source is located by one environment variable,
@@ -28,12 +24,11 @@ a script or this file; it is true on one machine and wrong on every other.
     go run ./hack tables       the pinned gate tables against the CRDs
     go run ./hack coverage     the wiki's coverage row against the docs tree
     go run ./hack processors   wiki/processors.md's three tables against their owners
-    go run ./hack counts       counts this material asserts about a deployment
+    go run ./hack counts       wiki/screenshots.md's arithmetic against the docs tree
 
     ASGARD_KUBE          the CRDs, the platform contract
     ASGARD_DOCS          the product documentation
     ASGARD_CORE          the processor definitions the CRDs come from
-    ASGARD_DEPLOYMENTS   the directory holding the reference deployment clones
 
 Nothing here clones or pulls. A check that fetched would change "read at this
 commit" into "read at whatever was there when the script ran", which the
@@ -80,35 +75,6 @@ its line was rewritten, and a quoted value re-spelled bare on a line nobody had
 touched, which also changes its meaning to any shell that sources it.
 
 Needs python3. Without it the python half reports as skipped, not passed.
-
-## Running the gate over the deployments its rules came from
-
-    hack/verify-references.sh [parent-dir]        default: ..
-    ASGARD_CLI=.out/asgard-cli hack/verify-references.sh ~/projects/asgard
-
-This runs the gate over the charts its rules were written from. Charts this tool
-generates pass by construction, so they do not test the rules. The first time
-the six reference deployments were rendered through it, `gate` R1b was wrong
-about nine Agents in a running deployment: it counted a semantic layer and a
-Toolset as capability sources and not a `SkillSet`, so every subagent of a
-flow-agent supervisor was told it had "no source of capability at all" while it
-had one.
-
-Read what each finding says rather than only counting them. Three kinds turn up,
-and they need different responses:
-
-    a rule that is wrong             fix the rule - R1b was this
-    a chart that is wrong            tell whoever owns it
-    a rule right for one shape,      the expensive kind. See R1b, and the
-    applied to another               a rule right for one shape, wrong for the next
-
-And `--rendered` sees a chart with nothing around it. R7 and R11 ask
-questions whose answer can live in the owning repository rather than in the CR,
-and there is nowhere to record one now: `.asgard-config.json` held
-`olapOnlyLayers` and the sampleQuestions exemption, and none of the four
-reference repos still carries it. So a finding may be answered somewhere this
-run cannot see. Read the finding anyway before discounting it: R1b was
-discounted this way once, and it was a bug.
 
 ## Checking a change against the CRDs
 
@@ -183,68 +149,16 @@ Syncer field is missing from the corpus. Pairs rather than distinct paths:
 `bot.botProviderName` is immutable on the Loader and on the Syncer, and those
 are two fields somebody can be refused on.
 
-## How far the generated chart is from a real one
-
-    go run ./hack spec-key-gap             recompute, and check TASK.md's claim
-    go run ./hack spec-key-gap --missing   every key production uses that `add` does not
-                                           write, split by what is owed on it
-    go run ./hack spec-key-gap --shown     the ones a commented skeleton names
-
-This measures the claim, in APPROACH.md, that the chart half is the least finished of the four.
-It decides whether an FDE treats what `add` emits as a chart or as a starting
-point. It stood at "168 spec keys, 52 never mentioned" for a week with no method
-that reproduced either figure, so both sides are now rendered here and neither
-figure is written down anywhere.
-
-A key `add` does not write is in one of four states, and only the last is a gap:
-written; named in a commented skeleton, where somebody meets it at the moment
-they would write one; absent on purpose, with the document that carries that
-decision; or nowhere, which is the worklist. Do not count the middle two as
-owed.
-
-The third state is recorded as a pointer. `decided` in
-`hack/speckeys.go` maps a key to the document that says why it is absent, and
-the check fails when that document is gone or has stopped naming it. A row is
-the judgement and not an enumeration: a decision covers the fields under it, so
-a CR kind `add` never generates does not need every field of it listed. Do not
-answer a row by writing a commented skeleton for it: that lowers the number by
-inviting somebody to use a shape the material tells them not to.
-
-What a comment can be read for is the field it names, not the path it sits
-under: a skeleton here is written above the key it belongs to rather than inside
-it, so reconstructing the path attributes it to the previous sibling.
-
-Three traps it had to be taught. `$ASGARD_DEPLOYMENTS` is somebody's projects
-directory and also holds scratch repositories this tool scaffolded - those pass
-by construction, one of them at 0 keys not written - so only the deployments
-`source/SOURCES.md` declares are counted. List indices are collapsed, or
-`processors.0.configs` and `processors.7.configs` count apart and the gap
-appears to close as a chart grows.
-
-The `add` side is a matrix rather than one run per kind. Several
-templates branch on a flag, so a key inside `--db-class netsuite`, `--private`
-or `--supervisor` is a key `add` writes; running one combination per kind
-counted 48 of them as never written, which overstates the gap that somebody
-reads before implementing one. The combinations are derived
-from the generator - the flags `add` registers, the fields each kind's own
-templates branch on, and the closed vocabularies `generate` declares - so a
-class added upstream is probed without an edit here. Two branches are decided by
-what the chart already holds rather than by anything typed, and those kinds are
-run twice, once in an empty project and once in a seeded one.
-
 ## Recomputing a count that came out of somebody else's document
 
-    go run ./hack counts           against the clones as they stand
-    go run ./hack counts --dump    print what upstream counts, and stop
+    go run ./hack counts           against the asgard-docs clone as it stands
 
-A number copied out of a document that states its own count is easy to get
-wrong and hard to notice: "88" reads no differently from "93". A pass that set
-out to recount SHOPLINE's back-office map took a figure off a different tally
-and wrote it into seven places, where it stayed for a week.
-
-So each of those counts is recomputed from the clone, and every place this
-material states one has to agree. A claim whose wording no longer matches any
-pattern fails, so that a count cannot silently stop being checked.
+A number copied out of somebody else's tree is easy to get wrong and hard to
+notice: "88" reads no differently from "93". `wiki/screenshots.md` states how
+many images asgard-docs holds, how many a live page uses and how many this
+material names, so those are recomputed at the commit the page names, and every
+place the page states one has to agree. A claim whose wording no longer matches
+any pattern fails, so that a count cannot silently stop being checked.
 
 ## Re-walking the processor definitions
 

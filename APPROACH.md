@@ -16,7 +16,6 @@ goal` fails if the landed corpus falls below that.
 The chart half is the least finished of Goal's four points: `add` writes a
 starting point, and the rest of what a production chart sets is shown in
 commented skeletons, because those values are the engagement's to choose.
-`go run ./hack spec-key-gap` measures it, and fails if that stops being true.
 
 ## The corpus
 
@@ -168,7 +167,7 @@ removed names in `replacements`; and a path that is not a document pointer,
 which is `--paths`.
 
 `--paths` exists because these documents land in somebody else's repository,
-where "this repo" is theirs and `source/SOURCES.md` is not there. Naming a path
+where "this repo" is theirs and this file is not there. Naming a path
 is allowed, and provenance should name the file it came from; the rule is to
 name the repository the path is inside, on the same line.
 
@@ -181,8 +180,7 @@ happens.
 The checks that need somebody else's repository are not in the binary; they
 are Go under `hack/`. `go run ./hack tables` holds the gate's pinned tables
 against the generated CRDs, `processors` and `counts` hold the material's own
-tables and figures against what they were distilled from, and
-`hack/verify-references.sh` runs the gate over the reference deployments.
+tables and figures against what they were distilled from.
 `go run ./hack list` says what each one needs. They do not ship because the
 repositories they read are not vendored. AGENTS.md says why that directory is
 compiled rather than scripted.

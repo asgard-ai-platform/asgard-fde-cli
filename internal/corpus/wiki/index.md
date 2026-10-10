@@ -32,7 +32,7 @@ description: every wiki page grouped by the question it answers - start here whe
 | [`api`](../wiki/api.md) | the endpoint and its actions, the SSE sequence, the integration patterns, the SDK |
 | [`crd-rules`](../wiki/crd-rules.md) | the validations helm lint does not run, and the one the schema cannot express |
 | [`platform-unknowns`](../wiki/platform-unknowns.md) | what no source answers, and who to ask |
-| [`coverage`](../wiki/coverage.md) | how many deployments each CR shape was read from - which extracts rest on a sample of one |
+| [`coverage`](../wiki/coverage.md) | which CR shapes were read from a single deployment, or from none - the extracts that rest on a thin sample |
 | [`tool-description-and-skill`](../wiki/tool-description-and-skill.md) | a tool's description and a runtime skill reach the model in one context - which of the two owns a fact when both could hold it |
 
 ## In practice
@@ -138,15 +138,15 @@ The sources this material is actually built from:
 | asgard-kube `crd/` | the contract | read per page, per field, and dated on the page |
 | asgard-kube `pkg/apis/` | the Go types the CRDs are generated from, with the reasoning as comments | read for the validation rules - `../wiki/crd-rules.md`. 134KB of declarations; what has been taken is the behavioural comments, not the field list |
 | [asgard-core](https://github.com/asgard-ai-platform/asgard-core) `internal/constants.go` | the processor definitions the CRD is generated from | walked at `623ceb5`. Every processor's required keys, defaults and declared outputs are in `../wiki/processors.md`, and that table is held against the literal mechanically |
-| asgard-freyr-skills | runtime skills, incl. the SHOPLINE pair | `../usecase/skill-layers.md`, `../usecase/browser-operation.md` and `../wiki/taiwan-channels.md`. The eighth reference repository, and the only one with no CRs |
-| the reference deployments | every shape the extracts describe | `../wiki/coverage.md` counts the charts per deployment and says why |
+| a deployment's runtime skills repository | runtime skills, incl. the SHOPLINE pair | `../usecase/skill-layers.md`, `../usecase/browser-operation.md` and `../wiki/taiwan-channels.md`. The only source with no CRs |
+| the deployments the extracts were written from | every shape the extracts describe | read before this tool generated charts, and not named here. `../wiki/coverage.md` says which shapes rest on one of them |
 
 Deployment coverage cannot be measured from this material. An extract names no
 customer and no deployment - it says "seen in a deployment whose..." - so
-nothing here can be counted against the charts it came from. That inventory is
-run separately, over the charts, and its result is
-[`coverage`](../wiki/coverage.md) - how many deployments each CR shape was actually read
-from.
+nothing here can be counted against the charts it came from. That inventory was
+taken over the charts themselves, and its result is
+[`coverage`](../wiki/coverage.md) - which CR shapes were read from a single
+deployment, or from none.
 
 ## Deliberately not covered
 

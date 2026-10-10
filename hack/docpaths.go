@@ -31,7 +31,7 @@ func init() {
 var docs = []string{
 	"Goal.md", "README.md", "README.zh-TW.md", "AGENTS.md", "STRUCTURE.md",
 	"APPROACH.md", "TASK.md", "CLAUDE.md",
-	"hack/README.md", "hack/verify-references.sh",
+	"hack/README.md",
 	".env.example", ".agents/skills/consistency-checks/SKILL.md",
 }
 

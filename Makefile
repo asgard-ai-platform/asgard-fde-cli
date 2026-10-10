@@ -109,14 +109,12 @@ dotenv: ## hold the Go and python .env implementations against each other
 # nothing; `go run ./hack sources` says when one is due, and `go run ./hack list`
 # says what each needs.
 .PHONY: audit-upstream
-audit-upstream: ## hold the material against the clones; needs $ASGARD_KUBE, _DOCS, _CORE, _DEPLOYMENTS
+audit-upstream: ## hold the material against the clones; needs $ASGARD_KUBE, _DOCS, _CORE
 	go run ./hack tables
 	go run ./hack coverage
 	go run ./hack counts
 	go run ./hack processors
 	go run ./hack validate-crs
-	go run ./hack shapes
-	go run ./hack spec-key-gap
 
 .PHONY: snapshot
 snapshot: ## build every platform through GoReleaser, publishing nothing

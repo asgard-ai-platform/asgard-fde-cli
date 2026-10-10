@@ -209,8 +209,7 @@ func Of(s Shape, in Inputs) Estimate {
 	// platform lays the graph out itself, so a chart written now writes none and
 	// an estimate that adds one per Workflow is high by exactly that many. The
 	// older deployments still carry theirs; reading one is not a reason to write
-	// one. `.agents/skills/asgard-platform/wiki/workflow.md` owns the change and
-	// `source/SOURCES.md` dates it.
+	// one. `.agents/skills/asgard-platform/wiki/workflow.md` owns the change.
 
 	total := 0
 	for k, v := range crs {

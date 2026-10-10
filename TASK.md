@@ -21,5 +21,5 @@ Every document names what it has not been held against:
 
     asgard-cli audit-material --unchecked
 
-How far the sources have moved is reported by `go run ./hack sources`,
-`go run ./hack sources --extracts` and `go run ./hack coverage --drift`.
+How far the sources have moved is reported by `go run ./hack sources` and
+`go run ./hack coverage --drift`.
