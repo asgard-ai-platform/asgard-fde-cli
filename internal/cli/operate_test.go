@@ -23,6 +23,8 @@ type operateFake struct {
 	triggers []string // "path project-header"
 	// after is what a trigger appends to that path's history.
 	after platform.SyncerExecution
+	// busy makes a trigger answer 409, as a Syncer with a run going does.
+	busy bool
 }
 
 const operateManifest = `{"success":true,"data":{"helm_revision":3,"helm_status":"deployed","objects":[
@@ -52,6 +54,9 @@ func (f *operateFake) server(t *testing.T) *httptest.Server {
 			_, _ = io.WriteString(w, `{"success":true,"data":{"syncer_id":"kb-docs","source_set_id":"kb"}}`)
 		case p == "/v1/syncer/skills-git":
 			_, _ = io.WriteString(w, `{"success":true,"data":{"syncer_id":"skills-git","source_set_id":"skills-ss","resource_tags":{"managed-by":"skill-set"}}}`)
+		case strings.HasSuffix(p, "/trigger") && r.Method == http.MethodPost && f.busy:
+			w.WriteHeader(http.StatusConflict)
+			_, _ = io.WriteString(w, `{"success":false,"message":"Syncer job still running"}`)
 		case strings.HasSuffix(p, "/trigger") && r.Method == http.MethodPost:
 			f.triggers = append(f.triggers, p+" "+r.Header.Get(platform.ProjectHeader))
 			hist := strings.TrimSuffix(p, "/trigger") + "/executions"
@@ -242,5 +247,18 @@ func TestWaitForNewRun(t *testing.T) {
 		func(ctx context.Context) error { return ctx.Err() })
 	if err != nil || !got.TimedOut || got.Run != nil {
 		t.Fatalf("cancelled: %+v %v", got, err)
+	}
+}
+
+// A trigger refused because a run is going says where to look at that run.
+func TestOperateSyncWhileARunIsGoing(t *testing.T) {
+	f := &operateFake{busy: true}
+	sandboxEnv(t, f.server(t).URL)
+	t.Chdir(t.TempDir())
+
+	_, _, err := runCLI(t, "", "operate", "skill-set", "sync", "support-skills", "--project", "App")
+	if err == nil || !strings.Contains(err.Error(), "Syncer job still running") ||
+		!strings.Contains(err.Error(), "asgard-cli operate skill-set executions support-skills --project App") {
+		t.Fatalf("busy: %v", err)
 	}
 }

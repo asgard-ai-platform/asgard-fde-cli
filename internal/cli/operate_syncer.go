@@ -2,8 +2,10 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"sort"
 	"time"
 
@@ -207,6 +209,12 @@ func runSync(cmd *cobra.Command, pc *platformContext, f *operateFlags, scope *op
 
 	actingOn(cmd, pc.Session)
 	if err := trigger(ctx); err != nil {
+		// A run already going is the one refusal with a next step: the run
+		// somebody wanted is probably the one in progress.
+		var apiErr *platform.APIError
+		if errors.As(err, &apiErr) && apiErr.Status == http.StatusConflict {
+			return fmt.Errorf("%w\nA run is already going, and a Syncer runs one at a time. See where it is:\n\n    %s", err, next)
+		}
 		return err
 	}
 	out, errOut := cmd.OutOrStdout(), cmd.ErrOrStderr()
