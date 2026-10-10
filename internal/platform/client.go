@@ -185,6 +185,20 @@ func NotFound(err error) bool {
 	return errors.As(err, &apiErr) && apiErr.Status == http.StatusNotFound
 }
 
+// Conflict reports whether err is a 409: what the call would create is
+// already there.
+func Conflict(err error) bool {
+	var apiErr *APIError
+	return errors.As(err, &apiErr) && apiErr.Status == http.StatusConflict
+}
+
+// BadRequest reports whether err is a 400: the platform understood the call
+// and refused what it asked for.
+func BadRequest(err error) bool {
+	var apiErr *APIError
+	return errors.As(err, &apiErr) && apiErr.Status == http.StatusBadRequest
+}
+
 // Unauthorized reports whether err is the platform refusing the session.
 func Unauthorized(err error) bool {
 	var apiErr *APIError

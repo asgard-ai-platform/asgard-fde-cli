@@ -762,6 +762,9 @@ asgard-cli operate source-set reindex <name> --release <r>        # 現在重建
 asgard-cli operate source-set index-runs <name> --release <r>     # 它的每次重建；index-logs 讀其中一次
 asgard-cli operate oauth-credential authorize <name> --release <r> # chart 做不到的授權
 asgard-cli operate oauth-credential status <name> --release <r> --wait 10m
+asgard-cli operate source-set ls <name> docs/ --release <r>      # 一個 drive 的檔案；另有 stat、cat、put、mkdir、rm、mv、cp
+asgard-cli operate source-set put <name> ./faq.pdf docs/faq.pdf --release <r>
+asgard-cli operate skill-set ls <name> skills/ --release <r>     # SkillSet 的檔案，同一組指令
 ```
 
 Trigger 的 invocation 與 context index 的重建都是一段和 agent 的對話；agent 停下來問問題時，那次 invocation 仍然記為 succeeded。所以 `runs` 與 `index-runs` 會把 agent 自己的判斷印在狀態旁邊。

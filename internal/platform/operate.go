@@ -152,6 +152,10 @@ func operateErrorText(e *APIError, msg string) (string, bool) {
 	}
 	var needs string
 	switch {
+	case strings.HasPrefix(e.Path, "/v1/source-set/") && strings.Contains(e.Path, "/volume/"):
+		needs = "every route to a SourceSet's files takes source-set/put, reading them included"
+	case strings.HasPrefix(e.Path, "/v1/skill-set/") && strings.Contains(e.Path, "/volume/"):
+		needs = "every route to a SkillSet's files takes skill-set/put, reading them included"
 	case strings.HasPrefix(e.Path, "/v1/source-set/") && strings.Contains(e.Path, "/context-index"):
 		needs = "every context-index route takes source-set/put, reading its refreshes included"
 	case strings.HasPrefix(e.Path, "/v1/trigger/"):

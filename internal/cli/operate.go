@@ -36,6 +36,7 @@ their own history rather than in the pipeline run that deployed them.
     asgard-cli operate trigger runs <name> --release <r>        its invocations, and their logs
     asgard-cli operate source-set reindex <name> --release <r>  a context index refresh, now
     asgard-cli operate oauth-credential authorize <name>        the grant a chart cannot make
+    asgard-cli operate source-set ls|cat|put <name> ...         a drive's files, as the Console shows them
 
 Only what IaC cannot do is here. A CR's spec, its labels, whether it is
 published or suspended - those are the chart's, and changing one here would be

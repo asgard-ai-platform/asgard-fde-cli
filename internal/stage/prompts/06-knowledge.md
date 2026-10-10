@@ -66,7 +66,8 @@ graph points at - tell it that in the prompt, or it will crawl the whole Drive.
     on the database block, and both query and batchSize are required. A flag
     written one level up is an unknown field the apiserver drops in silence,
     leaving a Syncer that re-reads the whole table every run.
-  - After deploying, someone has to upload the manual documents and let the
+  - After deploying, the manual documents have to be uploaded
+    (`asgard-cli operate source-set put`, into a folder no Syncer writes) and the
     Syncers and the index run once (`asgard-cli operate syncer sync`, then
     `asgard-cli operate source-set reindex`). Until then the knowledge answers are poor.
     Say so in the chart README before any demo.

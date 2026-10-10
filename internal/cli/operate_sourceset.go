@@ -10,15 +10,24 @@ import (
 	"github.com/asgard-ai-platform/asgard-fde-cli/internal/platform"
 )
 
+// The group a SourceSet's context-index commands are listed under.
+const operateGroupIndex = "index"
+
 func newOperateSourceSetCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "source-set",
-		Short: "Refresh a SourceSet's context index now, and read what its refreshes did",
-		Long: `Refresh a SourceSet's context index now, and read what its refreshes did.
+		Short: "Read and write a SourceSet's files, and refresh its context index now",
+		Long: `Read and write a SourceSet's files, and refresh its context index now.
 
+    asgard-cli operate source-set ls <name> [path] --release <r>
+    asgard-cli operate source-set put <name> <local-file> <path> --release <r>
     asgard-cli operate source-set reindex <name> --release <r> [--wait 15m]
     asgard-cli operate source-set index-runs <name> --release <r>
-    asgard-cli operate source-set index-logs <name> <invocation> --release <r>
+
+The files are what the Console's Files tab shows: what the Syncers wrote, and
+what somebody uploaded. Looking at them is how to tell a Syncer that ran from
+one that wrote what was expected, and uploading is how a document nobody can
+sync - a PDF handed over in a meeting - gets in.
 
 A SourceSet with a contextIndex gets a Trigger the platform derives for it, and
 each refresh of the index is one invocation of that Trigger: an indexing agent
@@ -33,7 +42,9 @@ written.`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error { return cmd.Help() },
 	}
-	cmd.AddCommand(newOperateReindexCmd(), newOperateIndexRunsCmd(), newOperateIndexLogsCmd())
+	cmd.AddGroup(&cobra.Group{ID: operateGroupIndex, Title: "Context index - its refreshes:"})
+	addTo(cmd, operateGroupIndex, newOperateReindexCmd(), newOperateIndexRunsCmd(), newOperateIndexLogsCmd())
+	addVolumeCmds(cmd, sourceSetFiles)
 	return cmd
 }
 
