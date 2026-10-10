@@ -138,8 +138,11 @@ locally, and why the local gate checks a different class of thing.
     rollback - do not read "the deploy failed" as "nothing changed".
   - Anything the platform created before helm did needs a one-time adoption, or
     helm refuses with invalid ownership metadata.
-  - Record what still needs a human: uploading documents, triggering the first
-    index run, pointing a front end at the new endpoint.
+  - Start what otherwise waits for its schedule: the first context index
+    refresh (`asgard-cli operate source-set reindex`, after the Syncers), and
+    one fire of each Trigger to check it (`asgard-cli operate trigger fire`).
+  - Record what still needs a human: uploading documents, pointing a front end
+    at the new endpoint.
 
 ## Then close the loop
 

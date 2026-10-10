@@ -309,7 +309,9 @@ Documents nobody can sync automatically - the PDFs, the spreadsheet of FAQs -
 have to be uploaded after deploy, and the Syncers and index have to run once.
 Until then the knowledge answers are poor. Put it in the chart README as a
 post-deploy step. A Syncer the deploy does not fire is run with
-`asgard-cli operate syncer sync <syncer> --release <release> --wait <duration>`.
+`asgard-cli operate syncer sync <syncer> --release <release> --wait <duration>`,
+and once the Syncers have finished, the first index refresh with
+`asgard-cli operate source-set reindex <source-set> --release <release> --wait <duration>`.
 
 ## Verify
 

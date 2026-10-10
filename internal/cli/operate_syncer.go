@@ -234,14 +234,7 @@ func runSync(cmd *cobra.Command, pc *platformContext, f *operateFlags, scope *op
 	fmt.Fprintf(errOut, "started a run of %s; waiting up to %s for it to finish\n", what, wait)
 	waitCtx, cancel := context.WithTimeout(ctx, wait)
 	defer cancel()
-	got, err := waitForNewRun(waitCtx, before, list, func(ctx context.Context) error {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-time.After(runPollInterval):
-			return nil
-		}
-	})
+	got, err := waitForNewRun(waitCtx, before, list, pollSleep)
 	if err != nil {
 		return err
 	}

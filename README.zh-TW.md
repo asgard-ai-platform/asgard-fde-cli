@@ -755,7 +755,14 @@ asgard-cli operate syncer sync <name> --release <r> --wait 10m   # 現在跑一�
 asgard-cli operate syncer executions <name> --release <r>        # 它每一次執行的結果
 asgard-cli operate skill-set sync <name> --release <r>           # SkillSet 的 Syncer，經由 SkillSet 觸發
 asgard-cli operate skill-set executions <name> --project <x>     # 沒有 checkout 時
+asgard-cli operate trigger fire <name> --release <r> --wait 5m    # 現在觸發一次 Trigger
+asgard-cli operate trigger runs <name> --release <r>              # 它的 invocation，以及 agent 自己的判斷
+asgard-cli operate trigger logs <name> <invocation> --release <r>
+asgard-cli operate source-set reindex <name> --release <r>        # 現在重建一次 context index
+asgard-cli operate source-set index-runs <name> --release <r>     # 它的每次重建；index-logs 讀其中一次
 ```
+
+Trigger 的 invocation 與 context index 的重建都是一段和 agent 的對話；agent 停下來問問題時，那次 invocation 仍然記為 succeeded。所以 `runs` 與 `index-runs` 會把 agent 自己的判斷印在狀態旁邊。
 
 這裡只放 IaC 做不到的事。`operate` 底下沒有任何指令會修改、發佈、暫停或列出 CR：那些屬於 chart，而 `pipeline manifest` 已經能讀回 release 部署了什麼。
 

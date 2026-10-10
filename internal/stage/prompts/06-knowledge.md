@@ -67,7 +67,8 @@ graph points at - tell it that in the prompt, or it will crawl the whole Drive.
     written one level up is an unknown field the apiserver drops in silence,
     leaving a Syncer that re-reads the whole table every run.
   - After deploying, someone has to upload the manual documents and let the
-    Syncers and the index run once. Until then the knowledge answers are poor.
+    Syncers and the index run once (`asgard-cli operate syncer sync`, then
+    `asgard-cli operate source-set reindex`). Until then the knowledge answers are poor.
     Say so in the chart README before any demo.
 
 Done when: the Drive syncs, or you have decided the customer has no unstructured
