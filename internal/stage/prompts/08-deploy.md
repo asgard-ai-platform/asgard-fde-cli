@@ -31,7 +31,10 @@ is a value anybody fetches and pastes.
 Whether the rollout waits on a Syncer is a property of the chart. Apply
 triggers the Syncers this release deployed that carry
 `asgard-ai.com/auto-fire-on-rollout: "true"`, and waits for them on one shared
-budget. A chart is running today with zero of them.
+budget. A chart is running today with zero of them. A Syncer left out of that
+because its first run outlasts the budget is run after the deploy with
+`asgard-cli operate syncer sync`, and what any Syncer's runs did is
+`asgard-cli operate syncer executions`.
 
 A repository this tool writes has no CD workflow of its own, and no cluster
 credential to run one with. The platform runs the rollout, and there is no

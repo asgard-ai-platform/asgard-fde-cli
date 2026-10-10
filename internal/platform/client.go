@@ -124,6 +124,9 @@ func (e *APIError) Error() string {
 	if text, ok := workbenchErrorText(e, msg); ok {
 		return text
 	}
+	if text, ok := operateErrorText(e, msg); ok {
+		return text
+	}
 	switch e.Status {
 	case http.StatusUnauthorized:
 		return fmt.Sprintf("the platform rejected the session (%d %s); run `asgard-cli login`", e.Status, msg)

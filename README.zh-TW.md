@@ -746,6 +746,21 @@ asgard-cli audit-log dictionary          # raw key 背後的顯示名
 
 每一列只有 raw key；沒有成功／失敗這個維度（事件是具名的）；資料最多延遲約 20 分鐘。
 
+### `operate`
+
+操作並讀回某個 release 已經部署到叢集上的 CR。上面那些指令都停在 CR 部署完成的那一刻；剩下的是它們的行為，這是 chart 表達不了、成功的 pipeline run 也不會回報的。
+
+```bash
+asgard-cli operate syncer sync <name> --release <r> --wait 10m   # 現在跑一次，並等結果
+asgard-cli operate syncer executions <name> --release <r>        # 它每一次執行的結果
+asgard-cli operate skill-set sync <name> --release <r>           # SkillSet 的 Syncer，經由 SkillSet 觸發
+asgard-cli operate skill-set executions <name> --project <x>     # 沒有 checkout 時
+```
+
+這裡只放 IaC 做不到的事。`operate` 底下沒有任何指令會修改、發佈、暫停或列出 CR：那些屬於 chart，而 `pipeline manifest` 已經能讀回 release 部署了什麼。
+
+CR 用渲染後的 `metadata.name` 指定。`--release` 會拿這個名字對照該 release 部署的內容，並提供這些路由所需的平台 Project；`--project` 接受 id、名稱或 namespace，用在沒有 checkout 的時候。Project id 不等於 namespace，所以兩者必須擇一，而且都不會被猜。
+
 ## 發佈
 
 發佈由 [GoReleaser](https://goreleaser.com) 驅動。推一個 tag 觸發 `.github/workflows/release.yml`：

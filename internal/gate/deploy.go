@@ -56,7 +56,7 @@ func Deployability(docs []Doc, opts Options) Result {
 			opts.ProjectOr(), opts.ProjectOr())
 	}
 
-	// A suspended Syncer that never opts in to auto-fire NEVER RUNS. The two
+	// A suspended Syncer that never opts in to auto-fire NEVER RUNS on its own. The two
 	// labels read nothing of each other: syncer-suspend stops the scheduler, and
 	// the runner fires only what carries auto-fire-on-rollout. Every other check
 	// passes - the chart renders, the apiserver accepts the CR, the run succeeds
@@ -79,7 +79,7 @@ func Deployability(docs []Doc, opts Options) Result {
 	}
 	if len(unfired) > 0 {
 		sort.Strings(unfired)
-		warnf("%s suspended with no asgard-ai.com/auto-fire-on-rollout, so nothing ever runs them. "+
+		warnf("%s suspended with no asgard-ai.com/auto-fire-on-rollout, so nothing runs them on their own. "+
 			"syncer-suspend stops the scheduler, the rollout fires only the Syncers that opt in, and neither "+
 			"label reads the other - so the CR applies, the run succeeds, and the skills resolve to zero. "+
 			"Add the label, or clear syncer-suspend and let the schedule run it",

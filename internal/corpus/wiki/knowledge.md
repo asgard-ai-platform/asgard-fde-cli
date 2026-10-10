@@ -106,9 +106,10 @@ What fires it on a deploy is a second, opt-in label,
 `asgard-ai.com/auto-fire-on-rollout: "true"`: the platform's apply step fires
 the Syncers of the release that carry it and waits for them. Only that runner
 reads the label; the Syncer module ignores it, and neither label reads the
-other. A suspended Syncer with no auto-fire label never runs. The symptom is an
-empty drive or an agent with zero skills, while the gate passes, the run
-succeeds and no error is reported.
+other. A suspended Syncer with no auto-fire label never runs unless somebody
+starts it by hand (`asgard-cli operate syncer sync`, which a suspended Syncer
+accepts). The symptom is an empty drive or an agent with zero skills, while the
+gate passes, the run succeeds and no error is reported.
 
 Firing on deploy used to be the default, opted out of with
 `asgard-ai.com/syncer-cd-trigger: "false"`. The platform does not read that
@@ -255,6 +256,8 @@ CRs and backup name, the Knowledge Base `aliasName` and the Indexer's required
 fields against asgard-kube `3da0365` `pkg/apis/asgard/v1alpha1/types.go`; the
 `-ci` suffix and the suspend label being read by the Syncer reconciler against
 asgard-core `478cf5d6` `internal/constants.go` and `internal/bpoperator/reconciler/syn_reconciler.go`;
+that a manual trigger creates a Job from the CronJob whether or not it is
+suspended against asgard-core `7346d2e5` `internal/bpcontroller/server/syn_controller.go` (`TriggerSyncer`);
 the git sync's clear-then-copy against
 asgard-syncer `8d278689` `internal/syncer/git.go` (`GitSyncer.Run`, `clearDir`),
 the unsuspended schedule against asgard-freyr-kube `8f6d6c1`

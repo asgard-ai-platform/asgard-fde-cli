@@ -353,7 +353,7 @@ deployment schedules its skills Syncers instead.
 The platform's apply step fires only the Syncers of this release that carry
 `auto-fire-on-rollout`, and firing works fine against a suspended CronJob.
 
-A suspended Syncer with no auto-fire label never runs at all. Nothing
+A suspended Syncer with no auto-fire label never runs on its own. Nothing
 reports it: the chart renders, the apiserver accepts it, the gate is green, the
 run succeeds, and the agent has zero skills. `asgard-cli add skillset` writes
 both labels; a Syncer written by hand is where this goes wrong.
@@ -403,4 +403,10 @@ asgard-cli pipeline runs log <run-id> apply
 Its syncers section lists what was fired. No section, or zero Syncers opted in,
 means the auto-fire label is missing. `kubectl get job` is not a check: the Job
 is deleted an hour after it finishes, and the CronJob's last-schedule column
-stays empty for a fired run.
+stays empty for a fired run. The Syncer's own history keeps the outcome after
+the Job is gone, and is read through the SkillSet:
+
+```bash
+asgard-cli operate skill-set executions <skill-set> --release <release>
+asgard-cli operate skill-set sync <skill-set> --release <release> --wait <duration>
+```

@@ -1096,6 +1096,29 @@ asgard-cli audit-log dictionary          # the names behind the raw keys
 Rows carry raw keys only, there is no success/failure dimension (events are
 named), and the data lags by up to about 20 minutes.
 
+### `operate`
+
+Run and read back the CRs a release has already put on the cluster. Everything
+above ends when the CRs are deployed; what is left is their behaviour, which a
+chart cannot say and a succeeded pipeline run does not report.
+
+```bash
+asgard-cli operate syncer sync <name> --release <r> --wait 10m   # run it now, and wait for the outcome
+asgard-cli operate syncer executions <name> --release <r>        # what its runs did
+asgard-cli operate skill-set sync <name> --release <r>           # a SkillSet's Syncer, through the SkillSet
+asgard-cli operate skill-set executions <name> --project <x>     # outside a checkout
+```
+
+Only what IaC cannot do is here. Nothing under `operate` edits, publishes,
+suspends or lists a CR: those belong to the chart, and `pipeline manifest`
+already reads back what a release has.
+
+A CR is named by its rendered `metadata.name`. `--release` checks the name
+against what that release deployed and supplies the platform Project the routes
+are scoped by; `--project` takes an id, name or namespace for use without a
+checkout. The project id is not the namespace, which is why one of the two is
+required and neither is guessed.
+
 ## Releasing
 
 Releases are driven by [GoReleaser](https://goreleaser.com). Pushing a tag triggers
