@@ -277,6 +277,7 @@ func (x *xref) checkKind(d Doc) {
 		for _, ref := range strList(d.Spec["toolsetNames"]) {
 			x.ref(fmt.Sprintf("SemanticLayer/%s.toolsetNames", d.Name), "Toolset", ref)
 		}
+		x.checkSemanticLayer(d)
 	case "SkillSet":
 		x.checkSkillSet(d)
 	case "Syncer":
@@ -294,6 +295,69 @@ func (x *xref) checkKind(d Doc) {
 			"KnowledgeBase", digStr(d.Spec, "knowledgeBaseName"))
 		x.ref(fmt.Sprintf("Loader/%s.database.dataConnectorName", d.Name),
 			"DataConnector", digStr(d.Spec, "database", "dataConnectorName"))
+	}
+}
+
+// checkSemanticLayer resolves the names a layer uses inside its own spec: each
+// join's cube and dimensions, and each cube's primaryKeyDimensions. A join names
+// a cube by `cubes[].name`, not by `sqlTable`, which is how asgard-core matches
+// it. The CRD only checks that a join's two dimension lists are the same length,
+// so a dry run accepts a join to a cube the layer does not declare, and at
+// runtime the model is handed a relationship it cannot traverse - or, under an
+// Agent's allowedCubes, the join is dropped - with no error either way.
+//
+// Cubes are often generated and joins hand-written, so regenerating the cubes,
+// or capping how many dimensions a cube keeps, breaks a join without touching
+// it.
+func (x *xref) checkSemanticLayer(d Doc) {
+	dims := map[string]map[string]bool{}
+	for _, c := range digList(d.Spec, "cubes") {
+		cube := mapOf(c)
+		name := digStr(cube, "name")
+		if name == "" {
+			continue
+		}
+		set := map[string]bool{}
+		for _, dim := range digList(cube, "dimensions") {
+			if n := digStr(mapOf(dim), "name"); n != "" {
+				set[n] = true
+			}
+		}
+		dims[name] = set
+	}
+
+	for _, c := range digList(d.Spec, "cubes") {
+		cube := mapOf(c)
+		name := digStr(cube, "name")
+		for _, pk := range strList(cube["primaryKeyDimensions"]) {
+			if !dims[name][pk] {
+				x.errf("SemanticLayer/%s.cubes[%s].primaryKeyDimensions: cube %s has no dimension %q (it has: %s) - add the dimension or drop it from primaryKeyDimensions",
+					d.Name, name, name, pk, sorted(dims[name]))
+			}
+		}
+	}
+
+	for _, j := range digList(d.Spec, "joins") {
+		join := mapOf(j)
+		for _, side := range []string{"from", "to"} {
+			ref := mapOf(join[side])
+			cube := digStr(ref, "cube")
+			if cube == "" {
+				continue
+			}
+			where := fmt.Sprintf("SemanticLayer/%s.joins[%s].%s", d.Name, digStr(join, "name"), side)
+			declared, ok := dims[cube]
+			if !ok {
+				x.errf("%s.cube: no cube named %q in this layer - declare the cube in cubes[] or drop the join", where, cube)
+				continue
+			}
+			for _, dim := range strList(ref["dimensions"]) {
+				if !declared[dim] {
+					x.errf("%s.dimensions: cube %s has no dimension %q (it has: %s) - declare the dimension on the cube or drop the join",
+						where, cube, dim, sorted(declared))
+				}
+			}
+		}
 	}
 }
 

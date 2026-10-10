@@ -132,9 +132,11 @@ What it runs, in order:
            every chart that reads .Values.asgard.*, which a chart must not
            declare and the platform always injects
   render   each release renders, with placeholder platform values
-  verify   the rendered CRs against each other: dangling references, both
-           halves of every entrypoint, missing display annotations, the
-           workflow-set labels, the agent-split invariants
+  verify   the rendered CRs against each other: dangling references between
+           CRs and inside a SemanticLayer (a join's cube and dimensions,
+           primaryKeyDimensions), both halves of every entrypoint, missing
+           display annotations, the workflow-set labels, the agent-split
+           invariants
 
 A skip is not a pass, and the two are printed differently.
 

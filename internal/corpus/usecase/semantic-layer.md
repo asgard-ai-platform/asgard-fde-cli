@@ -18,6 +18,9 @@ enum, `drillMembers`' minimum item count and the rule that `count` is the type
 taking no `sql` - and against every measure in the reference charts that sets
 `filters`, `format` or `drillMembers`. What the agent is handed from a layer
 against asgard-core `478cf5d6` `internal/processor/domaintools/domaintools.go`.
+How a join names its cubes against asgard-core `f7fd5f4e`, the same file, and
+asgard-kube `0765c58`, whose only rule on a join is the equal length of its two
+`dimensions` lists.
 
 **Unchecked:** the modelling guidance - cube granularity, what belongs in `instruction`. Only the customer's database can show whether it holds.
 
@@ -222,6 +225,18 @@ with a join query before writing a `joins` entry:
 
     select count(*) from a join b on a.sno = b.sno;
     select count(distinct sno) from b;
+
+A join names its cubes by `cubes[].name`, not by `sqlTable`, and each entry in
+its `dimensions` by the `name` of a dimension on that cube. The CRD checks only
+that the two `dimensions` lists are the same length, so a join to a cube or a
+dimension the layer does not declare applies cleanly, and the agent is handed a
+relationship it cannot traverse, with no error anywhere. When the cubes are
+generated and the joins are hand-written, this breaks without anyone editing
+the join: a table that drops out of the generator's selection, or a cap on
+dimensions per cube that keeps the top-ranked columns, leaves the join pointing
+at nothing. A column a join uses has to survive any such cap, whatever else the
+ranking weighs. `asgard-cli verify` reports every join that does not resolve,
+and every `primaryKeyDimensions` entry that names no dimension of its cube.
 
 Business rules that are not in the column names go in `instruction`, so the
 traps above are recorded in the layer that owns them.

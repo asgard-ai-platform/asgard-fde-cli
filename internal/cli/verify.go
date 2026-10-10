@@ -32,6 +32,10 @@ server-side dry run all pass:
     without which it applies cleanly and appears with no name
   - every reference between CRs resolves, both halves of it: an entrypoint is
     (workflow, entry), and a wrong entry is as dead as a wrong workflow
+  - inside a SemanticLayer, every name resolves: each join's cube is one of
+    the layer's cubes[].name, each join dimension is declared on that cube,
+    and each primaryKeyDimensions entry is a dimension of its own cube. The
+    CRD checks only that a join's two dimension lists are the same length
   - a Workflow has its full set of workflow-set labels, and each set has exactly
     one main; a Trigger's workflow-set-id matches its entrypoint Workflow's, or
     its editor opens blank. The other label an editor needs,

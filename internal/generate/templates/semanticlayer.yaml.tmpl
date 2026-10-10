@@ -50,7 +50,9 @@ spec:
       sqlTable: <schema>.<table>
       title: TODO
       description: TODO
-      primaryKeyDimensions: [<pk>]
+      # Each entry is the name of a dimension below; `asgard-cli verify` fails
+      # one that names no dimension of this cube.
+      primaryKeyDimensions: [<Column>]
       dimensions:
         # name is the column the sql selects, never a re-cased alias.
         - name: <Column>
@@ -114,9 +116,11 @@ spec:
   # Required, as measures is: a single-cube layer still has to
   # say `joins: []` rather than leave the key out.
   #
-  # Every field of an entry is required, and each `cube` is a cube's own `name`
-  # as spelled above. The CRD checks the two `dimensions` lists are the same
-  # length, so a composite key is written out on both sides.
+  # Every field of an entry is required, each `cube` is a cube's own `name`
+  # as spelled above, and each entry in `dimensions` is a dimension `name` on
+  # that cube. The CRD checks only that the two `dimensions` lists are the same
+  # length, so a composite key is written out on both sides; `asgard-cli verify`
+  # fails a join whose cube or dimension this layer does not declare.
   #
   # Verify the relationship with a join query before writing an entry. Foreign
   # keys are often absent in older business systems, so a relationship inferred
