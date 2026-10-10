@@ -46,7 +46,7 @@ server-side dry run all pass:
   - the CRDs' conditional CEL rules that a render can be held against: exactly
     one of a set of sibling fields (a credential that is neither a literal nor a
     reference, or both; a class block missing or doubled), and a discriminator
-    that implies its block. 27 of the 69 ` + "`" + `XValidation` + "`" + ` markers are
+    that implies its block. 27 of the 76 ` + "`" + `XValidation` + "`" + ` markers are
     ` + "`" + `self == oldSelf` + "`" + ` and cannot be seen in a render; these are the rest. A
     marker is not a rule: one on a struct several kinds embed is emitted into
     each of their CRDs, which is why the enforced count is far higher

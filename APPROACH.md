@@ -332,7 +332,7 @@ It does not reproduce the platform's checks. Whether a CR is admitted is the
 apiserver's decision and no client is issued cluster credentials, so a copy of
 those rules here would drift, and would still miss the two that matter: a field
 the CRD silently prunes, and a rejection only the apiserver produces. 28 of
-the CRDs' 227 enforced CEL rules are `self == oldSelf`, comparing a proposal
+the CRDs' 234 enforced CEL rules are `self == oldSelf`, comparing a proposal
 against the object already on the cluster, and a render is one object with no
 history. (A marker in the Go types and a rule on the cluster are different
 questions with different answers; `internal/corpus/wiki/crd-rules.md` has both,
