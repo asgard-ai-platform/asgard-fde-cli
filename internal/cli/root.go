@@ -106,6 +106,11 @@ because it runs before there is an agent. The material init writes is what
 teaches an agent what a workspace is. Connecting the checkout to a platform
 comes after, guided by that agent.
 
+OPERATING - once a release has put the CRs on the cluster, what is left is
+their behaviour rather than their shape: run a Syncer now, read whether its
+runs succeeded. "asgard-cli operate" holds those, and only what a chart cannot
+say - nothing under it edits a CR.
+
 Which workspace and which pipeline are the only two facts a repository cannot
 supply about itself, so they are the only two it records. Neither is ever
 guessed, even from a list of one.
@@ -194,6 +199,7 @@ Run "asgard-cli <command> --help" for details on an individual command.`,
 		&cobra.Group{ID: groupBuild, Title: "Build - write the repository and the CRs in it:"},
 		&cobra.Group{ID: groupCheck, Title: "Check - everything this machine can check:"},
 		&cobra.Group{ID: groupDeploy, Title: "Deploy - the platform, and what it knows:"},
+		&cobra.Group{ID: groupOperate, Title: "Operate - what a release has deployed, while it runs:"},
 	)
 
 	addTo(cmd, groupAsk,
@@ -231,6 +237,9 @@ Run "asgard-cli <command> --help" for details on an individual command.`,
 		newPipelineCmd(),
 		newSkillCmd(),
 	)
+	addTo(cmd, groupOperate,
+		newOperateCmd(),
+	)
 
 	// Ungrouped, and they belong there. `version` and `update` answer a
 	// question about the binary rather than about an engagement, and
@@ -257,7 +266,7 @@ Run "asgard-cli <command> --help" for details on an individual command.`,
 //
 // They are the questions somebody arrives with, in the order they arrive:
 // what is this platform, how do I write the repository, is what I wrote sound,
-// and get it deployed. A command that fits none of them is a command whose
+// get it deployed, and run what was deployed. A command that fits none of them is a command whose
 // place in the tool has not been decided.
 //
 // **The first group is nearly empty and its heading says why.** Most of the
@@ -270,6 +279,10 @@ const (
 	groupBuild  = "build"
 	groupCheck  = "check"
 	groupDeploy = "deploy"
+	// groupOperate holds one command, and its subcommands hold the rest: a
+	// top-level name is what every future command competes for, so a kind
+	// operated on after deploy is named under `operate` rather than here.
+	groupOperate = "operate"
 )
 
 // addTo registers commands into a group.

@@ -205,7 +205,7 @@ why the index goes after the Syncers rather than with them, for the hour a
 deployment actually puts between the two, for the `-ci` suffix the derived CRs
 take (look for it on a cluster when the index is not running), and for
 `syncer-suspend` against `auto-fire-on-rollout`: a suspended Syncer with no
-auto-fire label never runs at all, while the gate is green and the run
+auto-fire label never runs on its own, while the gate is green and the run
 succeeded.
 
 `../usecase/skill-set.md` has what those two labels look like on a Syncer
@@ -308,7 +308,8 @@ questions about knowledge has no reason to be able to change it.
 Documents nobody can sync automatically - the PDFs, the spreadsheet of FAQs -
 have to be uploaded after deploy, and the Syncers and index have to run once.
 Until then the knowledge answers are poor. Put it in the chart README as a
-post-deploy step.
+post-deploy step. A Syncer the deploy does not fire is run with
+`asgard-cli operate syncer sync <syncer> --release <release> --wait <duration>`.
 
 ## Verify
 
@@ -327,4 +328,9 @@ asgard-cli pipeline runs log <run-id> apply
 ```
 
 Its syncers section lists what the deploy fired. No section, or zero Syncers
-opted in, means the auto-fire label is missing.
+opted in, means the auto-fire label is missing. What each run did is in the
+Syncer's own history, whoever started it:
+
+```bash
+asgard-cli operate syncer executions <syncer> --release <release>
+```
