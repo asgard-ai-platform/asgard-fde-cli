@@ -144,6 +144,10 @@ locally, and why the local gate checks a different class of thing.
   - Start what otherwise waits for its schedule: the first context index
     refresh (`asgard-cli operate source-set reindex`, after the Syncers), and
     one fire of each Trigger to check it (`asgard-cli operate trigger fire`).
+  - Ask each Agent a question the request is about, in its preview
+    (`asgard-cli operate chat send agent/<name> "<question>"`), and reset the
+    preview when done (`asgard-cli operate chat reset agent/<name>`): a preview
+    holds a sandbox until it is reset or idles out.
   - Upload the documents nobody can sync, once they have been handed over
     (`asgard-cli operate source-set put`, into a folder no Syncer writes).
   - Record what still needs a human: a document not handed over yet, pointing a

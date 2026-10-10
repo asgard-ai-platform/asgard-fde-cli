@@ -23,11 +23,3 @@ Every document names what it has not been held against:
 
 How far the sources have moved is reported by `go run ./hack sources`,
 `go run ./hack sources --extracts` and `go run ./hack coverage --drift`.
-
-## `asgard-cli operate`: the rest of the runtime surface
-
-What a deployed CR does at runtime, where IaC cannot reach. Everything under
-`asgard-cli operate` except conversations exists. Still to come:
-
-  - chat: an Agent's and a workflow set's preview, and a Trigger's or a
-    context index's conversation, over the platform's SSE relay

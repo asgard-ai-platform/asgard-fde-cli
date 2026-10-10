@@ -51,6 +51,9 @@ func triggerSource(pc *platformContext, f *operateFlags, scope *operateScope, na
 		logsCmd: func(inv string) string {
 			return fmt.Sprintf("asgard-cli operate trigger logs %s %s %s", name, inv, f.scopeFlag())
 		},
+		chatCmd: func(inv string) string {
+			return fmt.Sprintf("asgard-cli operate chat replay trigger/%s --invocation %s %s", name, inv, f.scopeFlag())
+		},
 	}, nil
 }
 

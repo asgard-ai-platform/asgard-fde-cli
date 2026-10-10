@@ -313,7 +313,9 @@ asgard-cli operate trigger logs <trigger> <invocation> --release <release>
 Check the result of that run before trusting the schedule. An invocation that
 succeeded with the agent's verdict NEEDS_INPUT stopped to ask a question rather
 than finishing; `asgard-cli operate trigger runs` shows the verdict beside the
-status.
+status, and the question is read and answered in that invocation's
+conversation (`asgard-cli operate chat replay trigger/<trigger> --invocation <id>`,
+then `asgard-cli operate chat send` with the answer).
 
 Read the run's output and confirm the cursor advanced to what you expect. On a
 cold start it should have sent nothing.

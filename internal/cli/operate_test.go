@@ -42,6 +42,11 @@ type operateFake struct {
 	// what each PUT carried in its file field.
 	volume  []string
 	uploads []string
+	// chatStream is what a chat send answers; channelExists makes the
+	// metadata route answer 200; sent records each send's body.
+	chatStream    string
+	channelExists bool
+	sent          []string
 }
 
 const operateManifest = `{"success":true,"data":{"helm_revision":3,"helm_status":"deployed","objects":[
@@ -52,7 +57,8 @@ const operateManifest = `{"success":true,"data":{"helm_revision":3,"helm_status"
 {"kind":"Trigger","name":"daily-report","namespace":"proj-ns","found":true,"yaml":"metadata:\n  name: daily-report\nspec: {}\n"},
 {"kind":"SourceSet","name":"kb","namespace":"proj-ns","found":true,"yaml":"metadata:\n  name: kb\nspec:\n  contextIndex:\n    prompt: x\n"},
 {"kind":"SourceSet","name":"plain","namespace":"proj-ns","found":true,"yaml":"metadata:\n  name: plain\nspec: {}\n"},
-{"kind":"OAuthCredential","name":"gdrive","namespace":"proj-ns","found":true,"yaml":"metadata:\n  name: gdrive\nspec: {}\n"}
+{"kind":"OAuthCredential","name":"gdrive","namespace":"proj-ns","found":true,"yaml":"metadata:\n  name: gdrive\nspec: {}\n"},
+{"kind":"Agent","name":"support","namespace":"proj-ns","found":true,"yaml":"metadata:\n  name: support\nspec: {}\n"}
 ]}}`
 
 func (f *operateFake) server(t *testing.T) *httptest.Server {
@@ -76,6 +82,22 @@ func (f *operateFake) server(t *testing.T) *httptest.Server {
 			_, _ = io.WriteString(w, `{"success":true,"data":{"syncer_id":"kb-docs","source_set_id":"kb"}}`)
 		case p == "/v1/syncer/skills-git":
 			_, _ = io.WriteString(w, `{"success":true,"data":{"syncer_id":"skills-git","source_set_id":"skills-ss","resource_tags":{"managed-by":"skill-set"}}}`)
+		case p == "/v1/auth/me":
+			_, _ = io.WriteString(w, `{"success":true,"data":{"user_id":"u"}}`)
+		case p == "/v1/agent/support":
+			_, _ = io.WriteString(w, `{"success":true,"data":{"managed":{"alias_name":"support-bot"}}}`)
+		case strings.HasSuffix(p, "/chat/channel/metadata"):
+			if !f.channelExists {
+				w.WriteHeader(http.StatusNotFound)
+				_, _ = io.WriteString(w, `{"success":false,"message":"channel not found"}`)
+				return
+			}
+			_, _ = io.WriteString(w, `{"success":true,"data":{"runState":"IDLE"}}`)
+		case strings.HasSuffix(p, "/chat/message/sse") && r.Method == http.MethodPost:
+			body, _ := io.ReadAll(r.Body)
+			f.sent = append(f.sent, string(body))
+			w.Header().Set("Content-Type", "text/event-stream")
+			_, _ = io.WriteString(w, f.chatStream)
 		case strings.Contains(p, "/volume/"):
 			f.volume = append(f.volume, r.Method+" "+p+"?"+r.URL.RawQuery+" "+r.Header.Get(platform.ProjectHeader))
 			switch {
@@ -610,5 +632,99 @@ func TestOperateVolumeMvConflictNamesOverwrite(t *testing.T) {
 	_, _, err := runCLI(t, "", "operate", "source-set", "mv", "kb", "a.md", "b.md", "--project", "proj-uuid")
 	if err == nil || !strings.Contains(err.Error(), "b.md is already there; --overwrite replaces it") {
 		t.Fatalf("mv onto existing: %v", err)
+	}
+}
+
+func sseFrame(id, typ, data string) string {
+	return "id: " + id + "\nevent: " + typ + "\ndata: " + data + "\n\n"
+}
+
+// The first turn of an Agent preview goes as "@<alias> <text>" on the
+// Console's channel for this account, and the reply streams to stdout.
+func TestOperateChatSendAgentFirstTurn(t *testing.T) {
+	f := &operateFake{chatStream: sseFrame("1", "asgard.run.init", `{}`) +
+		sseFrame("2", "asgard.message.delta", `{"fact":{"messageDelta":{"message":{"messageId":"m1","text":"Hel"}}}}`) +
+		sseFrame("3", "asgard.message.delta", `{"fact":{"messageDelta":{"message":{"messageId":"m1","text":"lo"}}}}`) +
+		sseFrame("4", "asgard.message.complete", `{"fact":{"messageComplete":{"message":{"messageId":"m1","text":"Hello"}}}}`) +
+		sseFrame("5", "asgard.run.done", `{}`)}
+	sandboxEnv(t, f.server(t).URL)
+	t.Chdir(t.TempDir())
+
+	out, errOut, err := runCLI(t, "", "operate", "chat", "send", "agent/support", "hi there", "--pipeline", "app", "--release", "dev")
+	if err != nil {
+		t.Fatalf("send: %v", err)
+	}
+	if out != "Hello\n" {
+		t.Errorf("out %q", out)
+	}
+	channel := platform.PreviewChannelID(platform.AgentPreviewScope("support", "u"))
+	if len(f.sent) != 1 || !strings.Contains(f.sent[0], `"text":"@support-bot hi there"`) || !strings.Contains(f.sent[0], channel) {
+		t.Errorf("sent %q", f.sent)
+	}
+	if !strings.Contains(errOut, "operate chat reset agent/support") {
+		t.Errorf("no way to release the sandbox: %q", errOut)
+	}
+
+	// A conversation that exists is continued as typed.
+	f.channelExists = true
+	if _, _, err := runCLI(t, "", "operate", "chat", "send", "agent/support", "again", "--pipeline", "app", "--release", "dev"); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(f.sent[1], `"text":"again"`) {
+		t.Errorf("second turn %q", f.sent[1])
+	}
+}
+
+func TestOperateChatSendReportsHowTheRunEnded(t *testing.T) {
+	f := &operateFake{channelExists: true}
+	sandboxEnv(t, f.server(t).URL)
+	t.Chdir(t.TempDir())
+	args := []string{"operate", "chat", "send", "agent/support", "go", "--project", "proj-uuid"}
+
+	f.chatStream = sseFrame("1", "asgard.run.error",
+		`{"fact":{"runError":{"error":{"message":"boom","location":{"workflowName":"wf","processorName":"call-api","processorType":"http-request"}}}}}`)
+	if _, _, err := runCLI(t, "", args...); err == nil || !strings.Contains(err.Error(), "workflow wf, processor call-api, http-request") {
+		t.Errorf("run error: %v", err)
+	}
+
+	f.chatStream = sseFrame("1", "asgard.tool_call.consent",
+		`{"fact":{"toolCallConsent":{"pendingCalls":[{"toolCallId":"tc-1","toolsetName":"ts-pos","toolName":"reply_store"}]}}}`) +
+		sseFrame("2", "asgard.run.done", `{}`)
+	if _, _, err := runCLI(t, "", args...); err == nil || !strings.Contains(err.Error(), "tc-1  ts-pos.reply_store") ||
+		!strings.Contains(err.Error(), "--consent tc-1=allow-once") {
+		t.Errorf("consent: %v", err)
+	}
+
+	// json passes every frame through, one per line, and fails silently.
+	out, _, err := runCLI(t, "", append(args, "--format", "json")...)
+	if !errors.Is(err, ErrSilent) || len(strings.Split(strings.TrimSpace(out), "\n")) != 2 {
+		t.Errorf("json: %v %q", err, out)
+	}
+}
+
+func TestOperateChatConsentTurn(t *testing.T) {
+	f := &operateFake{channelExists: true, chatStream: sseFrame("1", "asgard.run.done", `{}`)}
+	sandboxEnv(t, f.server(t).URL)
+	t.Chdir(t.TempDir())
+
+	if _, _, err := runCLI(t, "", "operate", "chat", "send", "agent/support", "--consent", "tc-1=deny", "--project", "proj-uuid"); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(f.sent[0], `"action":"RESPONSE_TOOL_CALL_CONSENT"`) || !strings.Contains(f.sent[0], `"result":"DENY_ONCE"`) {
+		t.Errorf("sent %q", f.sent)
+	}
+	for _, bad := range [][]string{
+		{"agent/support", "text", "--consent", "tc-1=deny"},
+		{"agent/support", "--consent", "tc-1=maybe"},
+		{"agent/support"},
+		{"trigger/daily-report", "hi"},
+		{"agent/support", "hi", "--invocation", "x"},
+		{"widget/x", "hi"},
+		{"trigger/daily-report", "hi", "--invocation", "x", "--effort", "high"},
+	} {
+		args := append([]string{"operate", "chat", "send"}, bad...)
+		if _, _, err := runCLI(t, "", append(args, "--project", "proj-uuid")...); err == nil {
+			t.Errorf("%v: no error", bad)
+		}
 	}
 }
