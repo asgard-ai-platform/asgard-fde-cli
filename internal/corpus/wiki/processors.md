@@ -580,7 +580,7 @@ from - is written for reading an older chart and stops at the four CRs.
   `docs/developer-reference/processor/model-llm-completion.mdx` and
   `model-stream-llm-completion.mdx`
 - The three states of `effort`, and that omitting it is not disabling it:
-  read off `buy123-asgard-kube` (since moved to xxtechec/infra-buy123-asgard-kube), which carries
+  read off a production deployment, which carries
   `defaultEffort: "disabled"` with the reasoning in its own values file and in
   `cm-gpt-4.1-mini.yaml`, and cites asgard-core `internal/processor/clidriver/options.go`.
   Confirmed there at `623ceb5`:

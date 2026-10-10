@@ -123,8 +123,8 @@ cannot use a tool that asks for consent. Not repeated here.
 
 **Checked:** `TriggerClass`, `TriggerCronSpec` and `TriggerSpec.Message`
 against asgard-kube `3da0365` `pkg/apis/asgard/v1alpha1/types.go` and
-`crd/asgard-ai.com_triggers.yaml`; the Trigger shape against the `Trigger` CRs
-in unitech-e-asgard-kube `44e71a2`; the form fields against asgard-docs
+`crd/asgard-ai.com_triggers.yaml`; the Trigger shape against the one `Trigger`
+the extracts were written from (`../wiki/coverage.md`); the form fields against asgard-docs
 `95a27895` `docs/product-suite/odin/features/automation-trigger.mdx`.
 
 **Unchecked:** the Trigger and API forms themselves, which only a Console

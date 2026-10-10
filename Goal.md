@@ -97,5 +97,5 @@ Format](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowl
 
 兩份獨立的設計、兩種完全不同的題材,都把「過期」留在規格外面。**那不是巧合:格式
 設計得出來,過期設計不出來** —— 它只能靠記下「這一條是對著哪個版本讀的」,然後有
-東西去比對那個版本有沒有動。`source/SOURCES.md` 和
+東西去比對那個版本有沒有動。每條出處標記上記下的 commit 和
 `go run ./hack sources` 就是那件事,而它們是這個工具唯一沒有前例可抄的部分。

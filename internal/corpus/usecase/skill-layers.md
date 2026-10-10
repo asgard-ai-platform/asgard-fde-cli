@@ -13,7 +13,7 @@ another one.
 Capability is mostly skills; two of its agents also bind a read-only order and
 inventory SemanticLayer.
 
-**Checked:** against asgard-freyr-skills `2ff0e1e` - the declared
+**Checked:** against that deployment's skills repository, which is not named here - the declared
 `skill-layer` of every one, the dependency the README states, the write gates,
 the target-store check in `shopline/access.md` and the four-level exploration policy.
 

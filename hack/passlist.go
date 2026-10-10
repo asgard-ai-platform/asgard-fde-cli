@@ -36,13 +36,11 @@ var notAVerdict = map[string]bool{
 
 var goSteps = []string{"go build", "go vet", "gofmt", "go test"}
 
-// **One shell script is left, and it stays one.** What it does is drive helm and
-// this repository's own binary over the reference charts, and rewriting that in
-// Go buys nothing. Everything else moved - AGENTS.md has why a check that is not
-// compiled is a check nobody runs until it is wrong.
-var scriptNeeds = map[string]string{
-	"verify-references.sh": "the clones",
-}
+// **What a script in this directory needs, which is nothing today.** A check
+// goes in as Go - AGENTS.md has why a check that is not compiled is a check
+// nobody runs until it is wrong - so a script added here has to be one that
+// drives other programs, and has to say what it needs before `pass` will list it.
+var scriptNeeds = map[string]string{}
 
 func hackScripts(root string) []string {
 	entries, _ := os.ReadDir(filepath.Join(root, "hack"))
