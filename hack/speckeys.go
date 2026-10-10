@@ -540,6 +540,12 @@ func production(base, root string) (map[string]map[string]bool, error) {
 	known := toSet(referenceDeployments(doc))
 	out := map[string]map[string]bool{}
 	_ = filepath.Walk(base, func(p string, fi os.FileInfo, err error) error {
+		// A clone is a checkout directly under base; one further down is a
+		// worktree or a clone inside a clone, and its charts are not this
+		// deployment's.
+		if err == nil && p != base && filepath.Dir(p) != base && nestedCheckout(fi, p) {
+			return filepath.SkipDir
+		}
 		if err != nil || !fi.IsDir() || filepath.Base(p) != "app" {
 			return nil
 		}

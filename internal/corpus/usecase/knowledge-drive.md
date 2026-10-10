@@ -15,6 +15,8 @@ against asgard-kube `cbd8d70` for the `web` class block - its
 two required fields and the exactly-one-of over `urls` and `siteMapUrl` - and
 against that deployment's own web Syncer, which is the second of the two.
 How `contextIndex.prompt` reaches the indexer against asgard-core `478cf5d6` `internal/bpoperator/reconciler/ss_context_index_prompt.go`.
+`contextIndex.includePaths` - its path rules, and that narrowing keeps what a
+wider index built - against asgard-kube `3f9f6c8` `pkg/apis/asgard/v1alpha1/types.go`.
 
 **Unchecked:** whether the three things listed for `contextIndex.prompt` are the ones that improve a given graph. That shows only against the customer's own files.
 
@@ -101,6 +103,8 @@ spec:
     prompt: |-
       <domain knowledge only - this is appended to the platform's own indexing
       instructions. e.g. newest partition wins per product_id>
+    # includePaths:          # only when a Syncer brings in more than the
+    #   - website/           # knowledge; absent indexes the whole Drive
 ---
 apiVersion: asgard-ai.com/v1alpha1
 kind: Syncer
@@ -293,6 +297,17 @@ values list or stand up a second Syncer in sitemap mode; do not raise
 
 `contextIndex.prompt` is appended to the platform's own indexing
 instructions, so only domain knowledge belongs there.
+
+`contextIndex.includePaths` narrows the index to some folders of the Drive;
+absent or empty, the whole Drive is indexed. It is for a Syncer that brings in
+far more than the knowledge - a whole git repository when only its `docs/`
+matters. Each entry is a folder written like a `destinationPath`
+(`repos/handbook/docs/`): relative, ending in `/`, no `.` or `..` segment, and
+not under `.context-index/`. Names are literal, never globs, and entries are a
+union. A folder that does not exist yet is not an error; it adds nothing until
+something lands in it. Narrowing never removes what a wider index already
+holds: to start over, remove `contextIndex` and set it again, which sets the old
+graph aside and builds from scratch.
 
 ## Querying it
 

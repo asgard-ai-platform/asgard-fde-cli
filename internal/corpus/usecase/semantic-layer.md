@@ -11,7 +11,8 @@ most.
 **Seen in:** deployments with one layer per source system; the largest single
 layer runs to hundreds of cubes.
 
-**Checked:** against every SemanticLayer CR in three deployments -
+**Checked:** the mssql TLS fields and when they apply against asgard-kube
+`3f9f6c8` `pkg/apis/asgard/v1alpha1/types.go`; against every SemanticLayer CR in three deployments -
 `completionModelName` is present on all of them - and the CRD; against
 asgard-kube `cbd8d70` for the `Measure` block - the `format`
 enum, `drillMembers`' minimum item count and the rule that `count` is the type
@@ -176,6 +177,16 @@ platform, one group per connector.
 The password is only ever a `secretKeyRef`.
 
 ## Fields that are not obvious
+
+An mssql DataConnector has `tlsMinVersion` and `tlsMaxVersion`, and both stay
+unset unless one symptom is present: an old SQL Server (2012 on an old Windows
+Schannel) whose connection test fails with `TLS Handshake failed: cannot read
+handshake packet: EOF` while the host, port and credentials are known to be
+right. Then `tlsMinVersion: "1.0"` and `tlsMaxVersion: "1.1"`. They do not fix a
+login failure (error 18456), a timeout or a firewall, and setting them for those
+only weakens the connection; a cap left in place after the server is upgraded,
+or set on a server that accepts only TLS 1.2, breaks it. `tlsMaxVersion`
+requires `tlsMinVersion`.
 
 `completionModelName` is required on a SemanticLayer, unlike an Agent. Take
 it from a chart value rather than writing a model name into the template.

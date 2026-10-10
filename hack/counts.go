@@ -90,6 +90,9 @@ func tokenIn(word string) func(string) int {
 	return func(path string) int {
 		n := 0
 		_ = filepath.Walk(path, func(p string, fi os.FileInfo, err error) error {
+			if err == nil && p != path && nestedCheckout(fi, p) {
+				return filepath.SkipDir
+			}
 			if err != nil || fi.IsDir() {
 				return nil
 			}
@@ -116,6 +119,9 @@ func tokenIn(word string) func(string) int {
 func nullishIn(path string) int {
 	n := 0
 	_ = filepath.Walk(path, func(p string, fi os.FileInfo, err error) error {
+		if err == nil && p != path && nestedCheckout(fi, p) {
+			return filepath.SkipDir
+		}
 		if err != nil || fi.IsDir() {
 			return nil
 		}
@@ -140,6 +146,9 @@ func nullishIn(path string) int {
 func chartsIn(path string) int {
 	n := 0
 	_ = filepath.Walk(path, func(p string, fi os.FileInfo, err error) error {
+		if err == nil && p != path && nestedCheckout(fi, p) {
+			return filepath.SkipDir
+		}
 		if err != nil || fi.IsDir() || filepath.Base(p) != "Chart.yaml" {
 			return nil
 		}
@@ -188,6 +197,9 @@ func expressionValues(path string) (total, arrow, decl int) {
 	key := regexp.MustCompile(`^(\s*)-?\s*expression:\s*(.*)$`)
 	declRe := regexp.MustCompile(`\b(?:const|let)\b`)
 	_ = filepath.Walk(path, func(p string, fi os.FileInfo, err error) error {
+		if err == nil && p != path && nestedCheckout(fi, p) {
+			return filepath.SkipDir
+		}
 		if err != nil || fi.IsDir() {
 			return nil
 		}
