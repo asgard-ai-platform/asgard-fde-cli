@@ -336,3 +336,83 @@ func (c *Client) ContextIndexInvocations(ctx context.Context, project, sourceSet
 	})
 	return out, paging, err
 }
+
+// OAuthCredential is a grant to a third-party service - a Google Drive, a
+// OneDrive - that a Syncer or a sandbox reads a token from. The CR declares
+// which provider; the token exists only once a person has signed in to the
+// service and consented, which no chart can do.
+type OAuthCredential struct {
+	ProjectID    string                       `json:"project_id"`
+	ID           string                       `json:"oauth_credential_id"`
+	ProviderID   string                       `json:"provider_id"`
+	Name         string                       `json:"credential_name"`
+	RefreshToken OAuthCredentialRefreshPolicy `json:"refresh_token"`
+	Status       OAuthCredentialStatus        `json:"status"`
+}
+
+// OAuthCredentialRefreshPolicy is whether the platform renews the token
+// before it expires, and how far ahead.
+type OAuthCredentialRefreshPolicy struct {
+	AheadSeconds int32 `json:"ahead_seconds"`
+	AutoRefresh  bool  `json:"auto_refresh"`
+}
+
+// OAuthCredentialStatus is what the reconciler last made of the credential.
+type OAuthCredentialStatus struct {
+	// Phase is one of the OAuthPhase* values.
+	Phase         string `json:"phase"`
+	Message       string `json:"message,omitempty"`
+	LastUpdatedAt string `json:"last_updated_at"`
+	ExpiresAt     string `json:"expires_at"`
+	// SyncedSecretVersion is the version of the Secret holding the token that
+	// the phase was decided from. A new grant writes a new Secret, so this
+	// changes on every grant, including one over a credential already READY.
+	SyncedSecretVersion string `json:"synced_secret_version"`
+}
+
+// The phases an OAuthCredential reports. PENDING is also where a credential
+// sits that nobody has granted yet.
+const (
+	OAuthPhasePending    = "PENDING"
+	OAuthPhaseReady      = "READY"
+	OAuthPhaseRefreshing = "REFRESHING"
+	OAuthPhaseFailed     = "FAILED"
+	OAuthPhaseExpired    = "EXPIRED"
+)
+
+// GetOAuthCredential reads one credential. The id is the CR's name.
+func (c *Client) GetOAuthCredential(ctx context.Context, project, credential string) (*OAuthCredential, error) {
+	var out OAuthCredential
+	err := c.do(ctx, request{
+		method:  http.MethodGet,
+		path:    "/v1/integration/oauth/credentials/" + url.PathEscape(credential),
+		project: project,
+		out:     &out,
+	})
+	return &out, err
+}
+
+// AuthorizeOAuthCredential starts a grant and returns the URL a person opens
+// to complete it. The URL is on the platform's edge server, works once, and
+// expires a quarter of an hour after it is issued; nothing in it is tied to
+// the session that asked for it.
+//
+// It is not marked as a side effect: it changes nothing until somebody
+// completes the grant in a browser, and the caller that sees that happen
+// notes it then.
+func (c *Client) AuthorizeOAuthCredential(ctx context.Context, project, credential string) (string, error) {
+	var out struct {
+		AuthorizationURL string `json:"authorization_url"`
+	}
+	err := c.do(ctx, request{
+		method:  http.MethodPost,
+		path:    "/v1/integration/oauth/credentials/" + url.PathEscape(credential) + "/authorize",
+		project: project,
+		body:    struct{}{},
+		out:     &out,
+	})
+	if err == nil && out.AuthorizationURL == "" {
+		return "", fmt.Errorf("the platform started a grant for %s and returned no URL to complete it at", credential)
+	}
+	return out.AuthorizationURL, err
+}

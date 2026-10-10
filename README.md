@@ -1112,6 +1112,8 @@ asgard-cli operate trigger runs <name> --release <r>              # its invocati
 asgard-cli operate trigger logs <name> <invocation> --release <r>
 asgard-cli operate source-set reindex <name> --release <r>        # a context index refresh, now
 asgard-cli operate source-set index-runs <name> --release <r>     # its refreshes; index-logs reads one
+asgard-cli operate oauth-credential authorize <name> --release <r> # the grant a chart cannot make
+asgard-cli operate oauth-credential status <name> --release <r> --wait 10m
 ```
 
 A Trigger's invocation and a context index's refresh are conversations with an

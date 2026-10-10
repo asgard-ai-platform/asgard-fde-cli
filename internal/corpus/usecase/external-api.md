@@ -82,7 +82,9 @@ environment is a closed list the reconciler builds, and every secret in it is
 the platform's own - the browser and editor passwords, out of a Secret the
 operator manages. `credentialMounts` is not a general mount: its only field is
 `oAuthCredentialName`, it resolves an `OAuthCredential`, and the token lands in
-the directory as `access_token` and nothing else. `extraDirectories` names
+the directory as `access_token` and nothing else. That credential holds a token
+only after somebody has completed its grant, which a chart cannot do
+(`asgard-cli operate oauth-credential authorize`). `extraDirectories` names
 directories to create and carries no content. A `hook` is an expression stored
 in the CR spec, so a key written by one is a key baked into the chart, which
 `../usecase/conventions.md` refuses.
