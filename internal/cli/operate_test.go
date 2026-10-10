@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -37,6 +38,10 @@ type operateFake struct {
 	oauth      []platform.OAuthCredentialStatus
 	oauthReads int
 	authorizes int
+	// volume records every volume call as "METHOD path?query", and uploads
+	// what each PUT carried in its file field.
+	volume  []string
+	uploads []string
 }
 
 const operateManifest = `{"success":true,"data":{"helm_revision":3,"helm_status":"deployed","objects":[
@@ -71,6 +76,24 @@ func (f *operateFake) server(t *testing.T) *httptest.Server {
 			_, _ = io.WriteString(w, `{"success":true,"data":{"syncer_id":"kb-docs","source_set_id":"kb"}}`)
 		case p == "/v1/syncer/skills-git":
 			_, _ = io.WriteString(w, `{"success":true,"data":{"syncer_id":"skills-git","source_set_id":"skills-ss","resource_tags":{"managed-by":"skill-set"}}}`)
+		case strings.Contains(p, "/volume/"):
+			f.volume = append(f.volume, r.Method+" "+p+"?"+r.URL.RawQuery+" "+r.Header.Get(platform.ProjectHeader))
+			switch {
+			case strings.HasSuffix(p, "/list"):
+				_, _ = io.WriteString(w, `{"success":true,"data":{"entries":[{"name":"b.md","sizeBytes":3},{"name":"z","isDir":true},{"name":"a.md","sizeBytes":1}],"paging":{"total":3}}}`)
+			case strings.HasSuffix(p, "/file") && r.Method == http.MethodPut:
+				file, _, err := r.FormFile("file")
+				if err == nil {
+					body, _ := io.ReadAll(file)
+					f.uploads = append(f.uploads, string(body))
+				}
+				_, _ = io.WriteString(w, `{"success":true,"data":{"bytesWritten":5}}`)
+			case strings.HasSuffix(p, "/move"):
+				w.WriteHeader(http.StatusConflict)
+				_, _ = io.WriteString(w, `{"success":false,"message":"the destination already exists"}`)
+			default:
+				_, _ = io.WriteString(w, `{"success":true,"message":"ok"}`)
+			}
 		case p == "/v1/integration/oauth/credentials/gdrive/authorize" && r.Method == http.MethodPost:
 			f.authorizes++
 			_, _ = io.WriteString(w, `{"success":true,"data":{"authorization_url":"https://edge.example/ns/proj-ns/oauth-credential/gdrive/authorize?flow_token=t1"}}`)
@@ -491,5 +514,101 @@ func TestNewGrant(t *testing.T) {
 		if got := newGrant(c.before, c.after); got != c.want {
 			t.Errorf("newGrant(%+v, %+v) = %v", c.before.Status, c.after.Status, got)
 		}
+	}
+}
+
+func TestVolumePath(t *testing.T) {
+	for in, want := range map[string]string{"/docs/": "docs", "docs/a.md": "docs/a.md", "a": "a"} {
+		if got, err := volumePath(in, false); err != nil || got != want {
+			t.Errorf("volumePath(%q) = %q, %v", in, got, err)
+		}
+	}
+	for _, bad := range []string{"", "/", "a//b", "a/../b", "./a"} {
+		if _, err := volumePath(bad, false); err == nil {
+			t.Errorf("volumePath(%q) passed", bad)
+		}
+	}
+	if got, err := volumePath("/", true); err != nil || got != "" {
+		t.Errorf("root for ls: %q %v", got, err)
+	}
+}
+
+// A listing goes to the SourceSet's volume with the path cleaned, scoped by
+// the release's project, and prints folders first.
+func TestOperateVolumeLs(t *testing.T) {
+	f := &operateFake{}
+	sandboxEnv(t, f.server(t).URL)
+	t.Chdir(t.TempDir())
+
+	out, _, err := runCLI(t, "", "operate", "source-set", "ls", "kb", "/docs/", "--pipeline", "app", "--release", "dev")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(f.volume) != 1 || f.volume[0] != "GET /v1/source-set/kb/volume/list?page=0&page_size=1000&path=docs proj-uuid" {
+		t.Errorf("calls %q", f.volume)
+	}
+	if !(strings.Index(out, "z/") < strings.Index(out, "a.md") && strings.Index(out, "a.md") < strings.Index(out, "b.md")) {
+		t.Errorf("not folders first, then by name: %q", out)
+	}
+	if _, _, err := runCLI(t, "", "operate", "source-set", "ls", "nope", "--pipeline", "app", "--release", "dev"); err == nil ||
+		!strings.Contains(err.Error(), "kb, plain") {
+		t.Errorf("unknown SourceSet: %v", err)
+	}
+}
+
+func TestOperateVolumePut(t *testing.T) {
+	f := &operateFake{}
+	sandboxEnv(t, f.server(t).URL)
+	dir := t.TempDir()
+	t.Chdir(dir)
+	if err := os.WriteFile("faq.md", []byte("hello"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, _, err := runCLI(t, "", "operate", "skill-set", "put", "support-skills", "faq.md", "skills/faq/SKILL.md",
+		"--project", "proj-uuid", "--create-only", "--mode", "644"); err != nil {
+		t.Fatal(err)
+	}
+	if len(f.volume) != 1 || f.volume[0] != "PUT /v1/skill-set/support-skills/volume/file?create_only=true&mode=420&path=skills%2Ffaq%2FSKILL.md proj-uuid" {
+		t.Errorf("calls %q", f.volume)
+	}
+	if len(f.uploads) != 1 || f.uploads[0] != "hello" {
+		t.Errorf("uploaded %q", f.uploads)
+	}
+	if _, _, err := runCLI(t, "", "operate", "skill-set", "put", "support-skills", "faq.md", "x", "--project", "proj-uuid", "--mode", "999"); err == nil {
+		t.Errorf("--mode 999 passed")
+	}
+}
+
+// -r asks first, and with no terminal it needs --yes; nothing is sent until then.
+func TestOperateVolumeRmRecursive(t *testing.T) {
+	f := &operateFake{}
+	sandboxEnv(t, f.server(t).URL)
+	t.Chdir(t.TempDir())
+
+	_, _, err := runCLI(t, "", "operate", "source-set", "rm", "kb", "old", "-r", "--project", "proj-uuid")
+	if err == nil || !strings.Contains(err.Error(), "pass --yes") || len(f.volume) != 0 {
+		t.Fatalf("rm -r without --yes: %v %q", err, f.volume)
+	}
+	if _, _, err := runCLI(t, "", "operate", "source-set", "rm", "kb", "old", "-r", "--yes", "--project", "proj-uuid"); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := runCLI(t, "", "operate", "source-set", "rm", "kb", "old/a.md", "--project", "proj-uuid"); err != nil {
+		t.Fatal(err)
+	}
+	if len(f.volume) != 2 || !strings.HasPrefix(f.volume[0], "DELETE /v1/source-set/kb/volume/all?path=old ") ||
+		!strings.HasPrefix(f.volume[1], "DELETE /v1/source-set/kb/volume/item?path=old%2Fa.md ") {
+		t.Errorf("calls %q", f.volume)
+	}
+}
+
+func TestOperateVolumeMvConflictNamesOverwrite(t *testing.T) {
+	f := &operateFake{}
+	sandboxEnv(t, f.server(t).URL)
+	t.Chdir(t.TempDir())
+
+	_, _, err := runCLI(t, "", "operate", "source-set", "mv", "kb", "a.md", "b.md", "--project", "proj-uuid")
+	if err == nil || !strings.Contains(err.Error(), "b.md is already there; --overwrite replaces it") {
+		t.Fatalf("mv onto existing: %v", err)
 	}
 }

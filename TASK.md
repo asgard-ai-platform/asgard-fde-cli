@@ -26,11 +26,8 @@ How far the sources have moved is reported by `go run ./hack sources`,
 
 ## `asgard-cli operate`: the rest of the runtime surface
 
-What a deployed CR does at runtime, where IaC cannot reach. `operate syncer`
-and `operate skill-set sync|executions`, `operate trigger`, the context
-index half of `operate source-set` and `operate oauth-credential` exist. Still
-to come, each its own change:
+What a deployed CR does at runtime, where IaC cannot reach. Everything under
+`asgard-cli operate` except conversations exists. Still to come:
 
-  - source-set and skill-set volume files
   - chat: an Agent's and a workflow set's preview, and a Trigger's or a
     context index's conversation, over the platform's SSE relay

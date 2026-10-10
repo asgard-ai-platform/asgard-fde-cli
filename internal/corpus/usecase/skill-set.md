@@ -123,8 +123,10 @@ D183-6 for the requirement.
 **Unchecked:** the mechanism. A Syncer runs as a CronJob of a separate
 `asgard-syncer` image with the SourceSet's whole volume mounted
 (asgard-core `478cf5d6` `internal/bpoperator/reconciler/syn_reconciler.go`), and that image's source is
-in neither asgard-kube nor asgard-core, so nothing here confirms how a synced
-path treats a file it did not write - one deployment's chart comment is the whole of the
+in neither asgard-kube nor asgard-core. For a git Syncer the answer is known: it
+empties its destinationPath before every copy (`../wiki/knowledge.md` cites
+asgard-syncer for it), so a file it did not write there is gone after its next
+run. For the other classes one deployment's chart comment is the whole of the
 evidence. Treat it as a constraint that deployment hit rather than a documented
 platform rule, and if a customer's design depends on writing into a synced
 store, ask the platform team rather than this page.
@@ -392,7 +394,12 @@ a declared member, that a SourceSet backs at most one SkillSet, and that
 
 Neither catches the "one skill directory per searchPath" rule, because it is not
 visible in the CRs. It shows up only as an agent with fewer skills than expected,
-so check the resolved skills after the first sync.
+so check the resolved skills after the first sync, by listing what the sync
+wrote under each searchPath:
+
+```bash
+asgard-cli operate skill-set ls <skill-set> <searchPath> --release <release>
+```
 
 After a deploy, confirm the fire in the apply step's log:
 

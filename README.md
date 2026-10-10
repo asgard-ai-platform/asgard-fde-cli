@@ -1114,6 +1114,9 @@ asgard-cli operate source-set reindex <name> --release <r>        # a context in
 asgard-cli operate source-set index-runs <name> --release <r>     # its refreshes; index-logs reads one
 asgard-cli operate oauth-credential authorize <name> --release <r> # the grant a chart cannot make
 asgard-cli operate oauth-credential status <name> --release <r> --wait 10m
+asgard-cli operate source-set ls <name> docs/ --release <r>      # a drive's files; stat, cat, put, mkdir, rm, mv, cp
+asgard-cli operate source-set put <name> ./faq.pdf docs/faq.pdf --release <r>
+asgard-cli operate skill-set ls <name> skills/ --release <r>     # the same for a SkillSet's files
 ```
 
 A Trigger's invocation and a context index's refresh are conversations with an

@@ -10,14 +10,19 @@ import (
 	"github.com/asgard-ai-platform/asgard-fde-cli/internal/platform"
 )
 
+// The group a SkillSet's sync commands are listed under.
+const operateGroupSync = "sync"
+
 func newOperateSkillSetCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "skill-set",
-		Short: "Run the Syncer that fills a SkillSet, and read what its runs did",
-		Long: `Run the Syncer that fills a SkillSet, and read what its runs did.
+		Short: "Run the Syncer that fills a SkillSet, and read its files",
+		Long: `Run the Syncer that fills a SkillSet, read what its runs did, and read its
+files.
 
     asgard-cli operate skill-set sync <name> --release <r> [--wait 5m]
     asgard-cli operate skill-set executions <name> --release <r>
+    asgard-cli operate skill-set ls <name> [path] --release <r>
 
 A SkillSet's SourceSet and Syncer carry asgard-ai.com/managed-by: skill-set,
 and the platform hides both from its drive routes: their runs are reached
@@ -31,7 +36,9 @@ that finishes repairs it.`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error { return cmd.Help() },
 	}
-	cmd.AddCommand(newOperateSkillSetSyncCmd(), newOperateSkillSetExecutionsCmd())
+	cmd.AddGroup(&cobra.Group{ID: operateGroupSync, Title: "Sync - the Syncer that fills it:"})
+	addTo(cmd, operateGroupSync, newOperateSkillSetSyncCmd(), newOperateSkillSetExecutionsCmd())
+	addVolumeCmds(cmd, skillSetFiles)
 	return cmd
 }
 

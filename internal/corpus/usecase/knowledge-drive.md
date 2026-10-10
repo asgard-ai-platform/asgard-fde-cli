@@ -306,7 +306,9 @@ questions about knowledge has no reason to be able to change it.
 ## The manual step that has to be written down
 
 Documents nobody can sync automatically - the PDFs, the spreadsheet of FAQs -
-have to be uploaded after deploy, and the Syncers and index have to run once.
+have to be uploaded after deploy (`asgard-cli operate source-set put <source-set>
+<local-file> docs/<name> --release <release>`, into a folder no Syncer writes),
+and the Syncers and index have to run once.
 Until then the knowledge answers are poor. Put it in the chart README as a
 post-deploy step. A Syncer the deploy does not fire is run with
 `asgard-cli operate syncer sync <syncer> --release <release> --wait <duration>`,
