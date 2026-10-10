@@ -178,8 +178,13 @@ removed and only cron is left. See [`automation.md`](../wiki/automation.md).
 
 `../usecase/semantic-layer.md` has the DataConnector fields - coordinates in
 a platform variable, password always a secretKeyRef. Connection has no extract of
-its own, because OAuth authorisation happens in the UI rather than being declared
-in a chart.
+its own. A chart can declare the `OAuthCredential` a Syncer names, but not the
+grant: a token exists only once somebody signs in to the service and consents.
+Until then the credential is PENDING and the Syncer fails at runtime while
+every check before it passes. The grant is a post-deploy step, started with
+`asgard-cli operate oauth-credential authorize <name> --release <release>`;
+whoever signs in decides whose data the Syncer reads, and the platform does not
+check which account it was.
 
 ## Sources
 
@@ -203,7 +208,7 @@ enums, the immutability rules, the ExactlyOneOf validations, the required
 deployments that declare their own model; against asgard-core `478cf5d6`
 asgard-core `internal/constants.go` for the `preset-*` names and the
 `preset-fast` effort guard, and asgard-core `internal/processor/component/model_router_client.go` for
-the model router's URL shape; against `asgard-router`'s README;
+the model router's URL shape; that an OAuthCredential stays PENDING until a grant writes its Secret against asgard-core `7346d2e5` `internal/bpoperator/reconciler/oac_reconciler.go`; against `asgard-router`'s README;
 against every `CompletionModel` CR in those three deployments held against every
 reference to a model name in the same charts.
 

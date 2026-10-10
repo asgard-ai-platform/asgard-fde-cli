@@ -760,6 +760,8 @@ asgard-cli operate trigger runs <name> --release <r>              # 它的 invoc
 asgard-cli operate trigger logs <name> <invocation> --release <r>
 asgard-cli operate source-set reindex <name> --release <r>        # 現在重建一次 context index
 asgard-cli operate source-set index-runs <name> --release <r>     # 它的每次重建；index-logs 讀其中一次
+asgard-cli operate oauth-credential authorize <name> --release <r> # chart 做不到的授權
+asgard-cli operate oauth-credential status <name> --release <r> --wait 10m
 ```
 
 Trigger 的 invocation 與 context index 的重建都是一段和 agent 的對話；agent 停下來問問題時，那次 invocation 仍然記為 succeeded。所以 `runs` 與 `index-runs` 會把 agent 自己的判斷印在狀態旁邊。

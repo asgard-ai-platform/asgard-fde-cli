@@ -33,6 +33,10 @@ type operateFake struct {
 	nextInvocation platform.Invocation
 	// queries and logPaths record what was asked for.
 	queries, logPaths []string
+	// oauth is each read of the credential in turn; the last one repeats.
+	oauth      []platform.OAuthCredentialStatus
+	oauthReads int
+	authorizes int
 }
 
 const operateManifest = `{"success":true,"data":{"helm_revision":3,"helm_status":"deployed","objects":[
@@ -42,7 +46,8 @@ const operateManifest = `{"success":true,"data":{"helm_revision":3,"helm_status"
 {"kind":"Syncer","name":"gone","namespace":"proj-ns","found":false},
 {"kind":"Trigger","name":"daily-report","namespace":"proj-ns","found":true,"yaml":"metadata:\n  name: daily-report\nspec: {}\n"},
 {"kind":"SourceSet","name":"kb","namespace":"proj-ns","found":true,"yaml":"metadata:\n  name: kb\nspec:\n  contextIndex:\n    prompt: x\n"},
-{"kind":"SourceSet","name":"plain","namespace":"proj-ns","found":true,"yaml":"metadata:\n  name: plain\nspec: {}\n"}
+{"kind":"SourceSet","name":"plain","namespace":"proj-ns","found":true,"yaml":"metadata:\n  name: plain\nspec: {}\n"},
+{"kind":"OAuthCredential","name":"gdrive","namespace":"proj-ns","found":true,"yaml":"metadata:\n  name: gdrive\nspec: {}\n"}
 ]}}`
 
 func (f *operateFake) server(t *testing.T) *httptest.Server {
@@ -66,6 +71,14 @@ func (f *operateFake) server(t *testing.T) *httptest.Server {
 			_, _ = io.WriteString(w, `{"success":true,"data":{"syncer_id":"kb-docs","source_set_id":"kb"}}`)
 		case p == "/v1/syncer/skills-git":
 			_, _ = io.WriteString(w, `{"success":true,"data":{"syncer_id":"skills-git","source_set_id":"skills-ss","resource_tags":{"managed-by":"skill-set"}}}`)
+		case p == "/v1/integration/oauth/credentials/gdrive/authorize" && r.Method == http.MethodPost:
+			f.authorizes++
+			_, _ = io.WriteString(w, `{"success":true,"data":{"authorization_url":"https://edge.example/ns/proj-ns/oauth-credential/gdrive/authorize?flow_token=t1"}}`)
+		case p == "/v1/integration/oauth/credentials/gdrive":
+			st := f.oauth[min(f.oauthReads, len(f.oauth)-1)]
+			f.oauthReads++
+			body, _ := json.Marshal(platform.OAuthCredential{ID: "gdrive", ProviderID: "preset-google-drive-syncer", Status: st})
+			_, _ = io.WriteString(w, `{"success":true,"data":`+string(body)+`}`)
 		case (strings.HasSuffix(p, "/force")) && r.Method == http.MethodPost:
 			f.triggers = append(f.triggers, p+" "+r.Header.Get(platform.ProjectHeader))
 			list := strings.TrimSuffix(p, "/force") + "/invocations"
@@ -404,5 +417,79 @@ func TestWaitForNewInvocation(t *testing.T) {
 		func(context.Context) error { return nil })
 	if err != nil || timedOut || got.InvocationID != "b" || calls != 2 {
 		t.Fatalf("got %+v %v %v after %d calls", got, timedOut, err, calls)
+	}
+}
+
+// In the sandbox the link is for the member, so it is printed and nothing
+// waits, even when --wait is given.
+func TestOperateOAuthAuthorizeInTheSandboxHandsTheLinkOver(t *testing.T) {
+	f := &operateFake{oauth: []platform.OAuthCredentialStatus{{Phase: platform.OAuthPhasePending}}}
+	sandboxEnv(t, f.server(t).URL)
+	t.Chdir(t.TempDir())
+
+	out, _, err := runCLI(t, "", "operate", "oauth-credential", "authorize", "gdrive", "--pipeline", "app", "--release", "dev", "--wait", "5m")
+	if err != nil {
+		t.Fatalf("authorize: %v", err)
+	}
+	if !strings.Contains(out, "Give the member this link") || !strings.Contains(out, "flow_token=t1") ||
+		!strings.Contains(out, "It was PENDING before this") ||
+		!strings.Contains(out, "operate oauth-credential status gdrive --release dev --pipeline app --wait 10m") {
+		t.Errorf("out %q", out)
+	}
+	if f.authorizes != 1 || f.oauthReads != 1 {
+		t.Errorf("authorizes %d, reads %d: it waited", f.authorizes, f.oauthReads)
+	}
+}
+
+func TestOperateOAuthStatus(t *testing.T) {
+	f := &operateFake{oauth: []platform.OAuthCredentialStatus{{Phase: platform.OAuthPhaseExpired, Message: "credential is expired"}}}
+	sandboxEnv(t, f.server(t).URL)
+	t.Chdir(t.TempDir())
+
+	out, _, err := runCLI(t, "", "operate", "oauth-credential", "status", "gdrive", "--project", "proj-uuid")
+	if err == nil || !strings.Contains(err.Error(), "is EXPIRED") || !strings.Contains(err.Error(), "oauth-credential authorize gdrive --project proj-uuid") {
+		t.Fatalf("expired: %v", err)
+	}
+	if !strings.Contains(out, "credential is expired") {
+		t.Errorf("out %q", out)
+	}
+}
+
+func TestOperateOAuthStatusWaitsForReady(t *testing.T) {
+	f := &operateFake{oauth: []platform.OAuthCredentialStatus{{Phase: platform.OAuthPhasePending}, {Phase: platform.OAuthPhaseReady, SyncedSecretVersion: "7"}}}
+	sandboxEnv(t, f.server(t).URL)
+	t.Chdir(t.TempDir())
+
+	out, _, err := runCLI(t, "", "operate", "oauth-credential", "status", "gdrive", "--project", "proj-uuid", "--wait", "30s", "--format", "json")
+	if err != nil {
+		t.Fatalf("status --wait: %v", err)
+	}
+	var c platform.OAuthCredential
+	if json.Unmarshal([]byte(out), &c) != nil || c.Status.Phase != platform.OAuthPhaseReady || f.oauthReads != 2 {
+		t.Errorf("out %q after %d reads", out, f.oauthReads)
+	}
+}
+
+// A grant over a credential already READY is new only once the Secret behind
+// it changes; a FAILED that was already there is not a new failure.
+func TestNewGrant(t *testing.T) {
+	cred := func(phase, version, msg string) *platform.OAuthCredential {
+		return &platform.OAuthCredential{Status: platform.OAuthCredentialStatus{Phase: phase, SyncedSecretVersion: version, Message: msg}}
+	}
+	for _, c := range []struct {
+		before, after *platform.OAuthCredential
+		want          bool
+	}{
+		{cred("READY", "1", ""), cred("READY", "1", ""), false},
+		{cred("READY", "1", ""), cred("PENDING", "1", ""), false},
+		{cred("READY", "1", ""), cred("READY", "2", ""), true},
+		{cred("EXPIRED", "", ""), cred("READY", "", ""), true},
+		{cred("FAILED", "1", "x"), cred("FAILED", "1", "x"), false},
+		{cred("FAILED", "1", "x"), cred("FAILED", "1", "y"), true},
+		{cred("PENDING", "", ""), cred("FAILED", "", "x"), true},
+	} {
+		if got := newGrant(c.before, c.after); got != c.want {
+			t.Errorf("newGrant(%+v, %+v) = %v", c.before.Status, c.after.Status, got)
+		}
 	}
 }

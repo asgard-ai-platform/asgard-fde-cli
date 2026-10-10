@@ -138,6 +138,9 @@ locally, and why the local gate checks a different class of thing.
     rollback - do not read "the deploy failed" as "nothing changed".
   - Anything the platform created before helm did needs a one-time adoption, or
     helm refuses with invalid ownership metadata.
+  - Grant every OAuthCredential the release deployed, before the Syncers
+    that read it run (`asgard-cli operate oauth-credential authorize`). The
+    person who signs in has to be the account whose data it is for.
   - Start what otherwise waits for its schedule: the first context index
     refresh (`asgard-cli operate source-set reindex`, after the Syncers), and
     one fire of each Trigger to check it (`asgard-cli operate trigger fire`).
