@@ -7,9 +7,11 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/asgard-ai-platform/asgard-fde-cli/internal/platform"
 )
@@ -25,18 +27,28 @@ type operateFake struct {
 	after platform.SyncerExecution
 	// busy makes a trigger answer 409, as a Syncer with a run going does.
 	busy bool
+	// invocations is each invocation list path's rows, newest first; a fire
+	// or a reindex puts nextInvocation in front.
+	invocations    map[string][]platform.Invocation
+	nextInvocation platform.Invocation
+	// queries and logPaths record what was asked for.
+	queries, logPaths []string
 }
 
 const operateManifest = `{"success":true,"data":{"helm_revision":3,"helm_status":"deployed","objects":[
 {"kind":"Syncer","name":"kb-docs","namespace":"proj-ns","found":true,"yaml":"metadata:\n  name: kb-docs\nspec:\n  sourceSetName: kb\n"},
 {"kind":"Syncer","name":"skills-git","namespace":"proj-ns","found":true,"yaml":"metadata:\n  name: skills-git\n  labels:\n    asgard-ai.com/managed-by: skill-set\nspec:\n  sourceSetName: skills-ss\n"},
 {"kind":"SkillSet","name":"support-skills","namespace":"proj-ns","found":true,"yaml":"metadata:\n  name: support-skills\nspec:\n  sourceSetName: skills-ss\n"},
-{"kind":"Syncer","name":"gone","namespace":"proj-ns","found":false}
+{"kind":"Syncer","name":"gone","namespace":"proj-ns","found":false},
+{"kind":"Trigger","name":"daily-report","namespace":"proj-ns","found":true,"yaml":"metadata:\n  name: daily-report\nspec: {}\n"},
+{"kind":"SourceSet","name":"kb","namespace":"proj-ns","found":true,"yaml":"metadata:\n  name: kb\nspec:\n  contextIndex:\n    prompt: x\n"},
+{"kind":"SourceSet","name":"plain","namespace":"proj-ns","found":true,"yaml":"metadata:\n  name: plain\nspec: {}\n"}
 ]}}`
 
 func (f *operateFake) server(t *testing.T) *httptest.Server {
 	t.Helper()
 	f.runs = map[string][]platform.SyncerExecution{}
+	f.invocations = map[string][]platform.Invocation{}
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		f.mu.Lock()
 		defer f.mu.Unlock()
@@ -54,6 +66,18 @@ func (f *operateFake) server(t *testing.T) *httptest.Server {
 			_, _ = io.WriteString(w, `{"success":true,"data":{"syncer_id":"kb-docs","source_set_id":"kb"}}`)
 		case p == "/v1/syncer/skills-git":
 			_, _ = io.WriteString(w, `{"success":true,"data":{"syncer_id":"skills-git","source_set_id":"skills-ss","resource_tags":{"managed-by":"skill-set"}}}`)
+		case (strings.HasSuffix(p, "/force")) && r.Method == http.MethodPost:
+			f.triggers = append(f.triggers, p+" "+r.Header.Get(platform.ProjectHeader))
+			list := strings.TrimSuffix(p, "/force") + "/invocations"
+			f.invocations[list] = append([]platform.Invocation{f.nextInvocation}, f.invocations[list]...)
+			_, _ = io.WriteString(w, `{"success":true,"message":"started"}`)
+		case strings.HasSuffix(p, "/logs"):
+			f.logPaths = append(f.logPaths, p)
+			_, _ = io.WriteString(w, `{"success":true,"data":[{"entry":{"timestamp":"2026-10-10T08:00:00Z","level":"info","message":"first\n\nsecond"},"total":1}]}`)
+		case strings.HasSuffix(p, "/invocations"):
+			f.queries = append(f.queries, r.URL.RawQuery)
+			body, _ := json.Marshal(f.invocations[p])
+			_, _ = io.WriteString(w, `{"success":true,"data":`+string(body)+`,"paging":{"total":`+strconv.Itoa(len(f.invocations[p]))+`}}`)
 		case strings.HasSuffix(p, "/trigger") && r.Method == http.MethodPost && f.busy:
 			w.WriteHeader(http.StatusConflict)
 			_, _ = io.WriteString(w, `{"success":false,"message":"Syncer job still running"}`)
@@ -260,5 +284,125 @@ func TestOperateSyncWhileARunIsGoing(t *testing.T) {
 	if err == nil || !strings.Contains(err.Error(), "Syncer job still running") ||
 		!strings.Contains(err.Error(), "asgard-cli operate skill-set executions support-skills --project App") {
 		t.Fatalf("busy: %v", err)
+	}
+}
+
+func strp(s string) *string { return &s }
+
+// A fire with a wait reports the invocation that was not there before, and
+// says when the agent stopped to ask rather than finished.
+func TestOperateTriggerFireWaitsForTheNewInvocation(t *testing.T) {
+	done := time.Date(2026, 10, 10, 8, 1, 0, 0, time.UTC)
+	f := &operateFake{nextInvocation: platform.Invocation{InvocationID: "inv-new", Status: platform.InvocationSucceeded,
+		InvokedAt: done.Add(-time.Minute), CompletedAt: &done,
+		Channel: &platform.InvocationChannel{RunState: "IDLE", ConversationStatus: platform.ChannelNeedsInput, Title: "Weekly"}}}
+	sandboxEnv(t, f.server(t).URL)
+	t.Chdir(t.TempDir())
+	f.invocations["/v1/trigger/daily-report/invocations"] = []platform.Invocation{
+		{InvocationID: "inv-old", Status: platform.InvocationSucceeded, InvokedAt: done.Add(-24 * time.Hour)}}
+
+	out, _, err := runCLI(t, "", "operate", "trigger", "fire", "daily-report", "--pipeline", "app", "--release", "dev", "--wait", "30s")
+	if err != nil {
+		t.Fatalf("fire --wait: %v", err)
+	}
+	if !strings.Contains(out, "inv-new") || strings.Contains(out, "inv-old") ||
+		!strings.Contains(out, "IDLE NEEDS_INPUT") || !strings.Contains(out, "stopped to ask") {
+		t.Errorf("out %q", out)
+	}
+	if f.triggers[0] != "/v1/trigger/daily-report/force proj-uuid" {
+		t.Errorf("triggers %q", f.triggers)
+	}
+}
+
+func TestOperateTriggerFireFailedNamesTheLog(t *testing.T) {
+	f := &operateFake{nextInvocation: platform.Invocation{InvocationID: "inv-bad", Status: platform.InvocationFailed,
+		InvokedAt: time.Now(), ErrorMessage: strp("agent not found\nstack")}}
+	sandboxEnv(t, f.server(t).URL)
+	t.Chdir(t.TempDir())
+
+	_, _, err := runCLI(t, "", "operate", "trigger", "fire", "daily-report", "--project", "proj-ns", "--wait", "30s")
+	if err == nil || !strings.Contains(err.Error(), "agent not found ...") ||
+		!strings.Contains(err.Error(), "asgard-cli operate trigger logs daily-report inv-bad --project proj-ns") {
+		t.Fatalf("failed fire: %v", err)
+	}
+}
+
+func TestOperateReindexNeedsAContextIndex(t *testing.T) {
+	f := &operateFake{}
+	sandboxEnv(t, f.server(t).URL)
+	t.Chdir(t.TempDir())
+
+	_, _, err := runCLI(t, "", "operate", "source-set", "reindex", "plain", "--pipeline", "app", "--release", "dev")
+	if err == nil || !strings.Contains(err.Error(), "has no contextIndex") || len(f.triggers) != 0 {
+		t.Fatalf("plain: %v %q", err, f.triggers)
+	}
+	if _, _, err := runCLI(t, "", "operate", "source-set", "reindex", "kb", "--pipeline", "app", "--release", "dev"); err != nil {
+		t.Fatalf("kb: %v", err)
+	}
+	if f.triggers[0] != "/v1/source-set/kb/context-index/force proj-uuid" {
+		t.Errorf("triggers %q", f.triggers)
+	}
+}
+
+// A refresh's log is read through the Trigger the platform reports for it.
+func TestOperateIndexLogsGoThroughTheDerivedTrigger(t *testing.T) {
+	f := &operateFake{}
+	sandboxEnv(t, f.server(t).URL)
+	t.Chdir(t.TempDir())
+	f.invocations["/v1/source-set/kb/context-index/invocations"] = []platform.Invocation{
+		{InvocationID: "inv-1", TriggerID: "kb-derived", Status: platform.InvocationSucceeded}}
+
+	out, _, err := runCLI(t, "", "operate", "source-set", "index-logs", "kb", "inv-1", "--project", "proj-uuid")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(f.logPaths) != 1 || f.logPaths[0] != "/v1/trigger/kb-derived/invocations/inv-1/logs" {
+		t.Errorf("log paths %q", f.logPaths)
+	}
+	if !strings.Contains(out, "info  first\n\n    second") {
+		t.Errorf("out %q", out)
+	}
+}
+
+func TestOperateRunsFilters(t *testing.T) {
+	f := &operateFake{}
+	sandboxEnv(t, f.server(t).URL)
+	t.Chdir(t.TempDir())
+
+	for _, bad := range [][]string{{"--status", "done"}, {"--limit", "101"}, {"--limit", "0"}} {
+		args := append([]string{"operate", "trigger", "runs", "daily-report", "--project", "proj-uuid"}, bad...)
+		if _, _, err := runCLI(t, "", args...); err == nil {
+			t.Errorf("%v: no error", bad)
+		}
+	}
+	out, _, err := runCLI(t, "", "operate", "trigger", "runs", "daily-report", "--project", "proj-uuid", "--status", "failed", "--limit", "5")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(f.queries) != 1 || f.queries[0] != "page=0&size=5&status=failed" {
+		t.Errorf("queries %q", f.queries)
+	}
+	if !strings.Contains(out, "no invocations in state failed") {
+		t.Errorf("out %q", out)
+	}
+}
+
+// An invocation whose conversation is still running is not finished, even
+// once the trigger's run reports succeeded.
+func TestWaitForNewInvocation(t *testing.T) {
+	calls := 0
+	list := func(context.Context) ([]platform.Invocation, error) {
+		calls++
+		inv := platform.Invocation{InvocationID: "b", Status: platform.InvocationSucceeded,
+			Channel: &platform.InvocationChannel{RunState: platform.ChannelRunning}}
+		if calls >= 2 {
+			inv.Channel.RunState = "IDLE"
+		}
+		return []platform.Invocation{inv, {InvocationID: "a", Status: platform.InvocationRunning}}, nil
+	}
+	got, timedOut, err := waitForNewInvocation(context.Background(), []platform.Invocation{{InvocationID: "a"}}, list,
+		func(context.Context) error { return nil })
+	if err != nil || timedOut || got.InvocationID != "b" || calls != 2 {
+		t.Fatalf("got %+v %v %v after %d calls", got, timedOut, err, calls)
 	}
 }

@@ -1107,7 +1107,17 @@ asgard-cli operate syncer sync <name> --release <r> --wait 10m   # run it now, a
 asgard-cli operate syncer executions <name> --release <r>        # what its runs did
 asgard-cli operate skill-set sync <name> --release <r>           # a SkillSet's Syncer, through the SkillSet
 asgard-cli operate skill-set executions <name> --project <x>     # outside a checkout
+asgard-cli operate trigger fire <name> --release <r> --wait 5m    # a Trigger's invocation, now
+asgard-cli operate trigger runs <name> --release <r>              # its invocations, and the agent's verdict
+asgard-cli operate trigger logs <name> <invocation> --release <r>
+asgard-cli operate source-set reindex <name> --release <r>        # a context index refresh, now
+asgard-cli operate source-set index-runs <name> --release <r>     # its refreshes; index-logs reads one
 ```
+
+A Trigger's invocation and a context index's refresh are conversations with an
+agent, and an agent that stops to ask a question ends its invocation as
+succeeded. `runs` and `index-runs` print the agent's own verdict beside the
+status for that reason.
 
 Only what IaC cannot do is here. Nothing under `operate` edits, publishes,
 suspends or lists a CR: those belong to the chart, and `pipeline manifest`

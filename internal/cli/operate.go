@@ -25,12 +25,16 @@ func newOperateCmd() *cobra.Command {
 
 Everything else in this tool ends when the CRs are on the cluster. What is
 left after that is not a CR's shape but its behaviour: a Syncer has to run
-before the agent behind it has anything to read, and whether it ran is in the
-Syncer's own history rather than in the pipeline run that deployed it.
+before the agent behind it has anything to read, a Trigger is tested by firing
+it rather than by waiting for its cron, and whether any of them ran is in
+their own history rather than in the pipeline run that deployed them.
 
-    asgard-cli operate syncer sync <name> --release <r>        run it now
-    asgard-cli operate syncer executions <name> --release <r>  what its runs did
-    asgard-cli operate skill-set sync <name> --release <r>     the same, for a SkillSet
+    asgard-cli operate syncer sync <name> --release <r>         run it now
+    asgard-cli operate syncer executions <name> --release <r>   what its runs did
+    asgard-cli operate skill-set sync <name> --release <r>      the same, for a SkillSet
+    asgard-cli operate trigger fire <name> --release <r>        a Trigger's invocation, now
+    asgard-cli operate trigger runs <name> --release <r>        its invocations, and their logs
+    asgard-cli operate source-set reindex <name> --release <r>  a context index refresh, now
 
 Only what IaC cannot do is here. A CR's spec, its labels, whether it is
 published or suspended - those are the chart's, and changing one here would be
@@ -63,6 +67,8 @@ help. A refusal says which permission it was.`,
 	addTo(cmd, operateGroupResources,
 		newOperateSyncerCmd(),
 		newOperateSkillSetCmd(),
+		newOperateSourceSetCmd(),
+		newOperateTriggerCmd(),
 	)
 	return cmd
 }

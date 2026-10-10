@@ -18,7 +18,7 @@ Scheduled work. A cron that starts an agent run rather than a pipeline.
 against records in another, and mails whoever asked for them through the
 customer's own mail endpoint.
 
-**Checked:** against a cron Trigger and its entrypoint Workflow, and the CRD; the cron section against asgard-kube `cbd8d70`, which has no pattern on `schedule`. How state is saved and handed to the next run against asgard-core `478cf5d6` - `internal/bpcontroller/server/bp_controller.go`, `internal/processor/helper/clidriver_run.go` and `internal/constants.go`.
+**Checked:** against a cron Trigger and its entrypoint Workflow, and the CRD; the cron section against asgard-kube `cbd8d70`, which has no pattern on `schedule`. How state is saved and handed to the next run against asgard-core `478cf5d6` - `internal/bpcontroller/server/bp_controller.go`, `internal/processor/helper/clidriver_run.go` and `internal/constants.go`. That a fire makes its Job from the derived CronJob's own template, so it runs what the schedule would, against asgard-core `7346d2e5` `internal/bpcontroller/server/bp_controller.go` (`TriggerCronBasedTrigger`).
 
 **Unchecked:** the cursor rules and the prompt guidance. They are one deployment's design, and there is no second Trigger to hold them against.
 
@@ -302,9 +302,18 @@ asgard-cli verify <project>
 The xref check resolves the entrypoint's `(workflow, entry)` pair and enforces
 the Trigger's own two labels.
 
-A client has no cluster credential, so the derived CronJob cannot be run by
-hand from here. Set the first scheduled time soon after the deploy, and check
-the result of that run before trusting the schedule.
+Fire it once after the deploy rather than waiting for the schedule. A fire runs
+what the schedule would, cursor included:
+
+```bash
+asgard-cli operate trigger fire <trigger> --release <release> --wait 5m
+asgard-cli operate trigger logs <trigger> <invocation> --release <release>
+```
+
+Check the result of that run before trusting the schedule. An invocation that
+succeeded with the agent's verdict NEEDS_INPUT stopped to ask a question rather
+than finishing; `asgard-cli operate trigger runs` shows the verdict beside the
+status.
 
 Read the run's output and confirm the cursor advanced to what you expect. On a
 cold start it should have sent nothing.

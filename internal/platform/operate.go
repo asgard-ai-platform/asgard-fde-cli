@@ -2,10 +2,13 @@ package platform
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
+	"time"
 )
 
 // The calls `asgard-cli operate` makes: running and reading back the CRs a
@@ -149,6 +152,10 @@ func operateErrorText(e *APIError, msg string) (string, bool) {
 	}
 	var needs string
 	switch {
+	case strings.HasPrefix(e.Path, "/v1/source-set/") && strings.Contains(e.Path, "/context-index"):
+		needs = "every context-index route takes source-set/put, reading its refreshes included"
+	case strings.HasPrefix(e.Path, "/v1/trigger/"):
+		needs = "running a Trigger now takes workflow/put, and reading its invocations and their logs takes project-resource/read"
 	case strings.HasPrefix(e.Path, "/v1/skill-set/"):
 		needs = "running a SkillSet's sync takes skill-set/put, and reading its runs takes project-resource/read"
 	case strings.HasPrefix(e.Path, "/v1/source-set/"), strings.HasPrefix(e.Path, "/v1/syncer/"):
@@ -158,4 +165,174 @@ func operateErrorText(e *APIError, msg string) (string, bool) {
 	}
 	return fmt.Sprintf("not allowed (%d %s); this is the member's role in the project, decided in Asgard Console: %s",
 		e.Status, msg, needs), true
+}
+
+// Invocation is one run of a Trigger: the moment it fired, and the
+// conversation it opened with the agent it addresses. A context index's
+// refreshes are invocations of the Trigger the platform derives for it.
+//
+// Status is the wrong signal on its own. An agent that stops to ask a
+// question ends its run as succeeded, the same as one that finished, and only
+// Channel.ConversationStatus tells the two apart.
+type Invocation struct {
+	InvocationID  string             `json:"invocation_id"`
+	Namespace     string             `json:"namespace"`
+	TriggerID     string             `json:"trigger_id"`
+	Status        string             `json:"status"`
+	InputPayload  json.RawMessage    `json:"input_payload"`
+	OutputPayload json.RawMessage    `json:"output_payload"`
+	BlobCount     int32              `json:"blob_count"`
+	ErrorMessage  *string            `json:"error_message"`
+	InvokedAt     time.Time          `json:"invoked_at"`
+	CompletedAt   *time.Time         `json:"completed_at"`
+	Channel       *InvocationChannel `json:"channel,omitempty"`
+}
+
+// The states an invocation reports.
+const (
+	InvocationRunning   = "running"
+	InvocationSucceeded = "succeeded"
+	InvocationFailed    = "failed"
+)
+
+// InvocationChannel is the conversation behind an invocation, or nil when it
+// was never created or has been reaped.
+type InvocationChannel struct {
+	CustomChannelID string `json:"custom_channel_id"`
+	Title           string `json:"title"`
+	// RunState is IDLE, RUNNING or ERROR.
+	RunState string `json:"run_state"`
+	// ConversationStatus is the agent's own verdict, NEEDS_INPUT or COMPLETED,
+	// and empty when it has not given one. Empty is not done.
+	ConversationStatus string `json:"conversation_status"`
+	// LastActivityAt is unix milliseconds.
+	LastActivityAt int64 `json:"last_activity_at"`
+}
+
+// The run states and verdicts a conversation reports.
+const (
+	ChannelRunning    = "RUNNING"
+	ChannelNeedsInput = "NEEDS_INPUT"
+)
+
+// Finished reports whether an invocation and its conversation have both
+// stopped: the trigger's run is over and the agent is not still talking.
+func (i *Invocation) Finished() bool {
+	if i.Status == InvocationRunning {
+		return false
+	}
+	return i.Channel == nil || i.Channel.RunState != ChannelRunning
+}
+
+// InvocationLog is one line of an invocation's log.
+type InvocationLog struct {
+	Entry *InvocationLogEntry `json:"entry"`
+	Total int64               `json:"total"`
+}
+
+// InvocationLogEntry is what was logged. SSEEvent is set on the lines that
+// record a frame of the conversation.
+type InvocationLogEntry struct {
+	Timestamp time.Time       `json:"timestamp"`
+	Level     string          `json:"level"`
+	Message   string          `json:"message"`
+	SSEEvent  json.RawMessage `json:"sse_event,omitempty"`
+}
+
+// InvocationQuery narrows a list of invocations. Size is at most 100, which
+// the platform enforces.
+type InvocationQuery struct {
+	// Status is one of the Invocation* values, or empty for all.
+	Status string
+	Page   int64
+	Size   int64
+}
+
+func (q InvocationQuery) values() url.Values {
+	v := url.Values{}
+	if q.Status != "" {
+		v.Set("status", q.Status)
+	}
+	v.Set("page", strconv.FormatInt(q.Page, 10))
+	v.Set("size", strconv.FormatInt(q.Size, 10))
+	return v
+}
+
+// FireTrigger starts one run of a Trigger now, outside its schedule.
+//
+// The answer carries no invocation id; the new invocation shows up in
+// TriggerInvocations, newest first. A Trigger whose last run's Job is still
+// going is refused.
+func (c *Client) FireTrigger(ctx context.Context, project, trigger string) error {
+	return c.do(ctx, request{
+		method:     http.MethodPost,
+		path:       "/v1/trigger/" + url.PathEscape(trigger) + "/force",
+		project:    project,
+		sideEffect: true,
+	})
+}
+
+// TriggerInvocations lists a Trigger's invocations, newest first.
+func (c *Client) TriggerInvocations(ctx context.Context, project, trigger string, q InvocationQuery) ([]Invocation, Paging, error) {
+	var out []Invocation
+	var paging Paging
+	err := c.do(ctx, request{
+		method:  http.MethodGet,
+		path:    "/v1/trigger/" + url.PathEscape(trigger) + "/invocations",
+		query:   q.values(),
+		project: project,
+		out:     &out,
+		paging:  &paging,
+	})
+	return out, paging, err
+}
+
+// InvocationLogs reads an invocation's log. limit 0 leaves the count to the
+// platform.
+//
+// The route names the Trigger, and the platform reads the invocation by its
+// id alone; the Trigger is passed as the invocation reports it, so the path
+// stays right if the platform starts checking it.
+func (c *Client) InvocationLogs(ctx context.Context, project, trigger, invocation string, limit int64) ([]InvocationLog, error) {
+	q := url.Values{}
+	if limit > 0 {
+		q.Set("limit", strconv.FormatInt(limit, 10))
+	}
+	var out []InvocationLog
+	err := c.do(ctx, request{
+		method:  http.MethodGet,
+		path:    "/v1/trigger/" + url.PathEscape(trigger) + "/invocations/" + url.PathEscape(invocation) + "/logs",
+		query:   q,
+		project: project,
+		out:     &out,
+	})
+	return out, err
+}
+
+// ReindexContextIndex starts one refresh of a SourceSet's context index now.
+// Like FireTrigger it answers with no invocation id.
+func (c *Client) ReindexContextIndex(ctx context.Context, project, sourceSet string) error {
+	return c.do(ctx, request{
+		method:     http.MethodPost,
+		path:       "/v1/source-set/" + url.PathEscape(sourceSet) + "/context-index/force",
+		project:    project,
+		body:       struct{}{},
+		sideEffect: true,
+	})
+}
+
+// ContextIndexInvocations lists a SourceSet's context-index refreshes,
+// newest first. Each carries the derived Trigger's name as TriggerID.
+func (c *Client) ContextIndexInvocations(ctx context.Context, project, sourceSet string, q InvocationQuery) ([]Invocation, Paging, error) {
+	var out []Invocation
+	var paging Paging
+	err := c.do(ctx, request{
+		method:  http.MethodGet,
+		path:    "/v1/source-set/" + url.PathEscape(sourceSet) + "/context-index/invocations",
+		query:   q.values(),
+		project: project,
+		out:     &out,
+		paging:  &paging,
+	})
+	return out, paging, err
 }
