@@ -37,6 +37,7 @@ their own history rather than in the pipeline run that deployed them.
     asgard-cli operate source-set reindex <name> --release <r>  a context index refresh, now
     asgard-cli operate oauth-credential authorize <name>        the grant a chart cannot make
     asgard-cli operate source-set ls|cat|put <name> ...         a drive's files, as the Console shows them
+    asgard-cli operate chat send agent/<name> "<text>"          an Agent's preview, from here
 
 Only what IaC cannot do is here. A CR's spec, its labels, whether it is
 published or suspended - those are the chart's, and changing one here would be
@@ -73,6 +74,8 @@ help. A refusal says which permission it was.`,
 		newOperateTriggerCmd(),
 		newOperateOAuthCredentialCmd(),
 	)
+	cmd.AddGroup(&cobra.Group{ID: operateGroupConversation, Title: "Conversation - talk to what was deployed:"})
+	addTo(cmd, operateGroupConversation, newOperateChatCmd())
 	return cmd
 }
 

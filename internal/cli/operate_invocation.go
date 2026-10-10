@@ -28,9 +28,11 @@ type invocationSource struct {
 	// fire starts one run now.
 	fire func(context.Context) error
 	// runsCmd and logsCmd are the commands that read what fire started, for
-	// the messages that send somebody there. logsCmd takes the invocation id.
+	// the messages that send somebody there. logsCmd and chatCmd take the
+	// invocation id.
 	runsCmd string
 	logsCmd func(invocation string) string
+	chatCmd func(invocation string) string
 }
 
 // invocationFlags are the flags of the commands that list invocations.
@@ -211,7 +213,7 @@ func fireInvocation(cmd *cobra.Command, pc *platformContext, format string, wait
 	writeInvocations(out, []platform.Invocation{*got})
 	if got.Channel != nil && got.Channel.ConversationStatus == platform.ChannelNeedsInput {
 		fmt.Fprintf(out, "\nThe agent stopped to ask a question instead of finishing. The run counts as succeeded, and the\n"+
-			"question is waiting in the conversation, which the Console shows.\n")
+			"question is waiting in the conversation. Read it, and answer it:\n\n    %s\n", src.chatCmd(got.InvocationID))
 	}
 	return nil
 }

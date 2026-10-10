@@ -802,7 +802,8 @@ This matters most for a chart with no Syncer. ` + "`asgard-cli verify`" + ` warn
 that with no Syncer a succeeded run only means helm returned, and in a chart of
 a DataConnector and a SemanticLayer the DataConnector has no status to give at
 all. Presence is most of what can be checked here; the remaining verification
-is to open the product and ask the layer a question.
+is to ask the layer a question through an Agent that reads it, which
+"asgard-cli operate chat send agent/<name>" does from here.
 
 A release that has never deployed has no manifest, and says so.`,
 		Args: cobra.NoArgs,

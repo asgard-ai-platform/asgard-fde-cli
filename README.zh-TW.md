@@ -765,7 +765,12 @@ asgard-cli operate oauth-credential status <name> --release <r> --wait 10m
 asgard-cli operate source-set ls <name> docs/ --release <r>      # 一個 drive 的檔案；另有 stat、cat、put、mkdir、rm、mv、cp
 asgard-cli operate source-set put <name> ./faq.pdf docs/faq.pdf --release <r>
 asgard-cli operate skill-set ls <name> skills/ --release <r>     # SkillSet 的檔案，同一組指令
+asgard-cli operate chat send agent/<name> "<問題>" --release <r>   # 在這裡跑 Agent 的預覽
+asgard-cli operate chat replay trigger/<name> --invocation <id> --release <r>
+asgard-cli operate chat reset agent/<name> --release <r>        # 釋放預覽的 sandbox
 ```
+
+預覽的對話就是 Console 的那一段：channel id 依 agent 和登入帳號，用 Console 的同一套規則算出來，因為每個 channel 都會占用一個在最後一則訊息後仍存活一段時間的 sandbox。所以成員在 Console 的預覽和 `chat` 是同一段對話，`reset` 會同時清掉兩邊。
 
 Trigger 的 invocation 與 context index 的重建都是一段和 agent 的對話；agent 停下來問問題時，那次 invocation 仍然記為 succeeded。所以 `runs` 與 `index-runs` 會把 agent 自己的判斷印在狀態旁邊。
 

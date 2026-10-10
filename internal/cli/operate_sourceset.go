@@ -71,6 +71,9 @@ func contextIndexSource(pc *platformContext, f *operateFlags, scope *operateScop
 		logsCmd: func(inv string) string {
 			return fmt.Sprintf("asgard-cli operate source-set index-logs %s %s %s", name, inv, f.scopeFlag())
 		},
+		chatCmd: func(inv string) string {
+			return fmt.Sprintf("asgard-cli operate chat replay context-index/%s --invocation %s %s", name, inv, f.scopeFlag())
+		},
 	}, nil
 }
 

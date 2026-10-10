@@ -1117,7 +1117,15 @@ asgard-cli operate oauth-credential status <name> --release <r> --wait 10m
 asgard-cli operate source-set ls <name> docs/ --release <r>      # a drive's files; stat, cat, put, mkdir, rm, mv, cp
 asgard-cli operate source-set put <name> ./faq.pdf docs/faq.pdf --release <r>
 asgard-cli operate skill-set ls <name> skills/ --release <r>     # the same for a SkillSet's files
+asgard-cli operate chat send agent/<name> "<question>" --release <r>   # an Agent's preview, from here
+asgard-cli operate chat replay trigger/<name> --invocation <id> --release <r>
+asgard-cli operate chat reset agent/<name> --release <r>        # release the preview's sandbox
 ```
+
+A preview's conversation is the Console's: its channel id is derived from the
+agent and the signed-in account the way the Console derives it, because every
+channel holds a sandbox that outlives the last message. So the member's preview
+in the Console and `chat` are one conversation, and `reset` clears both.
 
 A Trigger's invocation and a context index's refresh are conversations with an
 agent, and an agent that stops to ask a question ends its invocation as

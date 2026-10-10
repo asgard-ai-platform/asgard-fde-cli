@@ -230,6 +230,10 @@ type Paging struct {
 // workspace one.
 const ProjectHeader = "x-asgard-project"
 
+// EnvironmentHeader names a project environment, for the few routes that find
+// something by the environment it was made for - a workflow set's preview.
+const EnvironmentHeader = "x-asgard-environment"
+
 // request is one call: method, path below the API root, optional query and
 // body, and where to put the decoded `data`.
 type request struct {
@@ -252,6 +256,9 @@ type request struct {
 	noWorkspace bool
 	// project sets the project header, for the routes scoped to one.
 	project string
+	// environment sets the environment header, for the routes that find
+	// something by the environment it was made for.
+	environment string
 	// sideEffect marks a call that changes something on the platform; a 2xx
 	// answer stamps EnvSideEffectFile. Marked per call rather than inferred
 	// from the method: some POSTs only read (an audit query, a repository
@@ -293,6 +300,9 @@ func (c *Client) do(ctx context.Context, req request) error {
 	}
 	if req.project != "" {
 		httpReq.Header.Set(ProjectHeader, req.project)
+	}
+	if req.environment != "" {
+		httpReq.Header.Set(EnvironmentHeader, req.environment)
 	}
 	if req.viaAssistant || c.assistant {
 		httpReq.Header.Set(ViaAssistantHeader, "true")

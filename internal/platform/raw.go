@@ -25,8 +25,11 @@ type rawRequest struct {
 	noTimeout bool
 	// sideEffect: as request.sideEffect.
 	sideEffect bool
-	// project: as request.project.
-	project string
+	// project and environment: as request's.
+	project     string
+	environment string
+	// lastEventID resumes a stream from a cursor it already delivered.
+	lastEventID string
 }
 
 // doRaw makes one call and returns the response for a 2xx, which the caller
@@ -48,6 +51,12 @@ func (c *Client) doRaw(ctx context.Context, req rawRequest) (*http.Response, err
 	httpReq.Header.Set(WorkspaceHeader, c.workspace)
 	if req.project != "" {
 		httpReq.Header.Set(ProjectHeader, req.project)
+	}
+	if req.environment != "" {
+		httpReq.Header.Set(EnvironmentHeader, req.environment)
+	}
+	if req.lastEventID != "" {
+		httpReq.Header.Set("Last-Event-ID", req.lastEventID)
 	}
 	if req.contentType != "" {
 		httpReq.Header.Set("Content-Type", req.contentType)
