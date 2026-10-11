@@ -195,6 +195,15 @@ That is a different failure from every other rule on this page:
                         plan, before anything is written
     this one            the CR is accepted, and the run fails when it is used
 
+A CEL refusal reads in the plan as the rule's own message behind the
+apiserver's, under `crd/dry-run-rejected`:
+
+    Toolset.asgard-ai.com "ts-x" is invalid: spec: Invalid value: "object":
+    mcpServerConfig is required when toolsetClass is mcp-server
+
+So the `message` beside each rule in the CRD is what a reader will see, and
+searching the CRDs for it finds the rule.
+
 So a blueprint carrying both, or neither, deploys green and breaks the first
 time somebody talks to the agent. It is the only rule here that needs a
 blueprint to be read by hand.
@@ -217,6 +226,9 @@ blueprint to be read by hand.
   records each refusal verbatim as `crd/dry-run-rejected`) and
   asgard-iac `internal/runner/transition.go` (`Decide`: an error-level finding ends the run
   `plan_failed`, with Review and Apply skipped)
+- How a CEL refusal reads in the plan: observed on the platform's dev cluster on
+  2026-10-11, in a run for the platform's own demo repository carrying one
+  `Toolset` of class `mcp-server` with no `mcpServerConfig`
 
-**Unchecked:** the wording of a CEL refusal as the plan shows it, which needs an
-apiserver that has refused one.
+**Unchecked:** whether a CEL rule on a nested field reads the same; the one
+refusal seen was on `spec` itself.
