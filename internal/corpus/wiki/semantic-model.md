@@ -88,9 +88,10 @@ shape. The argument turns on `allowedCubes` - the field that would narrow a moun
 layer, which sits on the binding rather than on the layer. Which binding
 depends on the path, and a reader who knows only one path may conclude no
 narrowing exists: on the Agent path it is the Agent's, and `verify` R4 refuses it there;
-on the flow-agent path it is `semanticLayer.allowedCubes` on the completion
-processor, which `../wiki/processors.md` owns. `../usecase/semantic-layer.md`
-refuses the Agent form along with the modelling itself.
+on the flow-agent path it is the `allowedCubes` of an entry in the completion
+processor's `semanticLayers`, which `../wiki/processors.md` owns.
+`../usecase/semantic-layer.md` advises against both, because the check refuses
+correct queries, and points at the database user's grants instead.
 Opening a write path is `../usecase/write-path.md`.
 
 ## Two join failures nothing local catches

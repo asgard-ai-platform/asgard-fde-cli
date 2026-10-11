@@ -73,7 +73,7 @@ var processorDefs = map[string]processorDef{
 //
 // The counterpart to W2 is what it deliberately does not check: a required key
 // that *does* have a default is left alone, because omitting it is legal. That
-// is where `semanticLayer.allowWrite` lives, defaulting to true, and no gate can
+// is where a layer's `allowWrite` lives, defaulting to true, and no gate can
 // tell a deliberate omission from a forgotten one - which is why the templates
 // write it out explicitly instead.
 func Processors(docs []Doc, opts Options) Result {
