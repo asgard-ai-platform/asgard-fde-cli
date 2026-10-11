@@ -14,10 +14,10 @@ not fit that API, and the path that shipped is one call with a static key; the
 mock-then-real rollout and the override list below are from the path that
 shipped.
 
-**Checked:** against unitech-e-asgard-kube `7db63d3`
-`projects/internal/chart/app/templates/workflow/wf-send-mail.yaml`, the two-call
-client-credentials version, and unitech-e-asgard-kube `44e71a2` for the same
-file, `values-dev.yaml` and `app/values.yaml` - the mock switch, and
+**Checked:** against a production deployment's chart, not named here, at two
+versions of `projects/internal/chart/app/templates/workflow/wf-send-mail.yaml`:
+the two-call client-credentials version, and the later one, read with
+`values-dev.yaml` and `app/values.yaml` - the mock switch, and
 `overrideRecipients`, a list. Against asgard-core `478cf5d6`:
 asgard-core `internal/processor/task/http_request.go` (which configs are headers, what
 `httpResponse` holds, and that a status of 400 or above takes `failure`) and

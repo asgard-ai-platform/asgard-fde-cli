@@ -102,11 +102,10 @@ gives what each one cannot catch, which the tool does not print.
 | `validate-crs` | whether the CR does what the page says it does |
 | `coverage` | whether the pages behind the numbers say anything true. It counts them. `--drift` names the pages that have moved and never says what changed in one |
 | `processors` | what a key means. The definitions say whether a processor takes dynamic config; that an extra key on `http-request` is an HTTP header is in the loop that reads it, and no table upstream states it |
-| `counts` | a count of something nobody upstream counts. It recomputes what a deployment's own documents state, and a number invented here has nothing to be held against |
-| `spec-key-gap` | whether a key `add` writes is written well. It compares key sets, so a field emitted with the wrong value counts as covered |
+| `counts` | a count of something nobody upstream counts. It recomputes the screenshot arithmetic off the asgard-docs tree, and a number invented here has nothing to be held against |
 | `pass-list` | whether any check passed. It holds that every check says what it needs and that the maintenance skill does not leak into a scaffolded tree, and a verdict is not in its reach |
 | `goal` | whether the material is any good. It asks whether the capability is there - the corpus lands, a grep finds things, a chart gets written, the issue route is printed - never whether what landed is right |
-| `sources` | whether a page is still true. It reports how far each clone is behind its remote, and with `--extracts` how far each extract's source chart has moved since its written-from commit - never what changed or whether it matters |
+| `sources` | whether a page is still true. It reports how far each clone is behind its remote - never what changed or whether it matters |
 | `doc-paths` | whether a document's prose is right. It resolves the paths, the Go symbols and whether every command in the tree is named in both READMEs, and says nothing about what the sentence around one claims |
 | `--unchecked` | nothing - it does not fail. It prints what every document says it has not been held against, which is where the blocked list comes from |
 | `--orphans`, `--crossref`, `--ask`, `--unmarked`, no flag | nothing - they do not fail. They are listings for a person |
@@ -155,8 +154,7 @@ claim rather than by document.
    scope. Every document names the surface it has not been held against, and
    that output tells you what a pass is for before you spend it.
 1. Run `go run ./hack sources` next. A reading held against a stale clone proves
-   nothing. `git -C <path> pull` before reading, and use `--extracts` to see
-   which extracts' source charts have moved since they were written.
+   nothing. `git -C <path> pull` before reading.
 2. Let `--drift` set the scope rather than the diff.
    `go run ./hack coverage --drift` lists every cited page that has moved since
    the commit the citing document names. That reduces "the wiki against

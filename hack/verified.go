@@ -58,11 +58,10 @@ const (
 	classKube   inputClass = "kube"   // the asgard-kube clone, at its commit
 	classCore   inputClass = "core"
 	classDocsUp inputClass = "docs-upstream"
-	classDeploy inputClass = "deployments"
 )
 
-// The gate is not only `hack/`. These are the rest of it: the audit flags that
-// fail, and the script that renders the reference charts.
+// The gate is not only `hack/`. This is the rest of it: the audit flags that
+// fail.
 //
 // **A pass that skips half the gate and says nothing is the lie this whole
 // mechanism exists to avoid.** The audits are the expensive half over the
@@ -73,8 +72,6 @@ const (
 // a third party's outage is not this repository's failure, and its answer is
 // not a function of anything in this list.
 var gateAudits = []string{"links", "commands", "bare", "paths", "unverified"}
-
-const referencesScript = "hack/verify-references.sh"
 
 // reads says which classes each check's answer depends on.
 //
@@ -88,14 +85,12 @@ var reads = map[string][]inputClass{
 	"goal":         {classCorpus, classGo, classDocs},
 	"aliases":      {classCorpus, classGo},
 	"write-path":   {classCorpus, classGo},
-	"spec-key-gap": {classCorpus, classGo, classDeploy},
 	"coverage":     {classCorpus, classGo, classDocsUp},
-	"counts":       {classCorpus, classGo, classDeploy},
+	"counts":       {classCorpus, classGo, classDocsUp},
 	"tables":       {classCorpus, classGo, classDocs, classKube},
 	"processors":   {classCorpus, classGo, classCore, classDocsUp},
 	"validate-crs": {classCorpus, classGo, classKube},
 	"extract-crs":  {classCorpus, classGo},
-	"shapes":       {classCorpus, classGo, classDeploy},
 
 	// The audits read what the binary embeds, which is the corpus compiled by
 	// the Go source.
@@ -104,18 +99,6 @@ var reads = map[string][]inputClass{
 	"--bare":       {classCorpus, classGo},
 	"--paths":      {classCorpus, classGo},
 	"--unverified": {classCorpus, classGo},
-
-	referencesScript: {classCorpus, classGo, classDeploy},
-}
-
-// lastLines keeps a failing script's tail, because the interesting part of a
-// helm render is at the end.
-func lastLines(s string, n int) string {
-	lines := strings.Split(strings.TrimRight(s, "\n"), "\n")
-	if len(lines) > n {
-		lines = lines[len(lines)-n:]
-	}
-	return strings.Join(lines, "\n")
 }
 
 func runVerified(args []string) error {
@@ -201,29 +184,6 @@ func runVerified(args []string) error {
 		ran++
 	}
 
-	// The script drives helm over somebody else's charts, so it reads the
-	// clones as well.
-	if _, err := os.Stat(filepath.Join(root, referencesScript)); err == nil {
-		key := checkKey(referencesScript, digests)
-		switch {
-		case record[referencesScript] == key:
-			fmt.Printf("skip  %-14s inputs unchanged since it last passed\n", "references")
-			skipped++
-		default:
-			start := time.Now()
-			out, err := exec.Command("bash", filepath.Join(root, referencesScript)).CombinedOutput()
-			if err != nil {
-				fmt.Printf("FAIL  %-14s %v\n%s\n", "references", err, lastLines(string(out), 12))
-				delete(record, referencesScript)
-				failed++
-			} else {
-				fmt.Printf("ok    %-14s %s\n", "references", time.Since(start).Round(time.Millisecond))
-				record[referencesScript] = key
-				ran++
-			}
-		}
-	}
-
 	if err := os.MkdirAll(filepath.Dir(recordPath), 0o755); err != nil {
 		return err
 	}
@@ -295,7 +255,7 @@ func classDigests(root string) (map[inputClass]string, error) {
 		return nil, err
 	}
 	for c, env := range map[inputClass]string{
-		classKube: "kube", classCore: "core", classDocsUp: "docs", classDeploy: "deployments",
+		classKube: "kube", classCore: "core", classDocsUp: "docs",
 	} {
 		// **A clone is keyed by its commit, not by hashing it.** These are
 		// other people's repositories, some of them large, and the commit is

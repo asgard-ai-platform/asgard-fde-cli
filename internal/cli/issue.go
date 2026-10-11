@@ -89,7 +89,7 @@ memory of today.
   4. Where the answer actually was
      This section is often left out and is the most useful. Say what you searched for
      first: "I searched for the marketplace names and got nothing; it was in
-     asgard-freyr-skills the whole time." A missing page and an unfindable page
+     the skills repository the whole time." A missing page and an unfindable page
      need different fixes, and only this sentence tells them apart. If you never
      found it, say that.
 

@@ -260,8 +260,8 @@ that a manual trigger creates a Job from the CronJob whether or not it is
 suspended against asgard-core `7346d2e5` `internal/bpcontroller/server/syn_controller.go` (`TriggerSyncer`);
 the git sync's clear-then-copy against
 asgard-syncer `8d278689` `internal/syncer/git.go` (`GitSyncer.Run`, `clearDir`),
-the unsuspended schedule against asgard-freyr-kube `8f6d6c1`
-`tenants/xxtechec/chart/app/templates/source_set/git_repos.yaml`, and the
+the unsuspended schedule against a production deployment's
+`source_set/git_repos.yaml`, and the
 CronJob replacement against
 asgard-core `001bbf69` `internal/bpoperator/reconciler/syn_reconciler.go`;
 the SFTP concurrency fields against asgard-kube `42e8722`

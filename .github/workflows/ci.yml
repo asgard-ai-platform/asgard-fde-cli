@@ -149,9 +149,8 @@ jobs:
       - name: both indexes match the documents they list
         run: go run ./hack index
 
-      # `go run ./hack tables`, `processors`, `counts`, `coverage`,
-      # `spec-key-gap`, `validate-crs` and `hack/verify-references.sh` are
-      # deliberately absent: every one needs a clone of somebody else's
+      # `go run ./hack tables`, `processors`, `counts`, `coverage` and
+      # `validate-crs` are deliberately absent: every one needs a clone of somebody else's
       # repository, and asgard-core is private. They are in the maintainer's
       # gate - `go run ./hack pass` prints it - and `go run ./hack sources` says
       # when one is due.

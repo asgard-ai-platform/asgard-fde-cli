@@ -22,7 +22,6 @@ CLAUDE.md             @AGENTS.md, so the rules load without being asked for
 .agents/skills/       this repo's own maintenance skills, not the ones that ship
 cmd/asgard-cli/       main; signal handling and exit codes only
 internal/             every package, none exported
-source/               provenance; never ships
 hack/                 the maintainer's gate, in Go: `go run ./hack pass`
 .github/             CI, the tag-driven release, and the PR template
 .goreleaser.yaml      how the binary is built and published
@@ -233,18 +232,6 @@ provenance like every other body of material and the same audits reach them.
 They land in the same directory as the platform corpus but are a different
 half: these say how to work, the corpus says what the platform is.
 
-## `source/` - never ships
-
-`source/SOURCES.md` traces each extract back to the deployment it came from, and
-records the generational conflicts: two charts that disagree in a way that is
-dated rather than a matter of taste.
-
-`.out/verified.json` records what passed on one machine and stays there.
-
-It lives outside `internal/` deliberately, so `go:embed` cannot reach them even
-by accident. Everything under `internal/` ships to every engagement and names no
-customer; `SOURCES.md` is the one place that does.
-
 ## `hack/` - the maintainer's gate
 
 Go, one binary with a subcommand each, and `hack/internal/src` for where the
@@ -263,10 +250,6 @@ need a clone of somebody else's repository, which is why they are here rather
 than in the binary, and why CI runs only the ones that need nothing but this
 repository. `hack/README.md` is the procedure, and the PR template asks for its
 output.
-
-`hack/verify-references.sh` is the one shell script and stays one. It drives
-helm and this repository's own binary over the reference deployments;
-rewriting that in Go buys nothing.
 
 Nothing here clones or pulls. A check that fetched would turn "read at this
 commit" into "read at whatever was there when it ran", which the provenance
@@ -287,7 +270,7 @@ customer's own source systems at design time.
 
 Read-only, never vendored in. The URL is the source of truth, not the local
 clone path, so the clone location is an environment variable rather than a path
-in a script: `ASGARD_KUBE`, `ASGARD_DOCS`, `ASGARD_CORE`, `ASGARD_DEPLOYMENTS`.
+in a script: `ASGARD_KUBE`, `ASGARD_DOCS`, `ASGARD_CORE`.
 `go run ./hack sources` prints what each resolves to and how far behind it is.
 
 | what | source of truth |
@@ -295,7 +278,6 @@ in a script: `ASGARD_KUBE`, `ASGARD_DOCS`, `ASGARD_CORE`, `ASGARD_DEPLOYMENTS`.
 | CRD definitions, the platform contract | https://github.com/asgard-ai-platform/asgard-kube |
 | product documentation | https://github.com/asgard-ai-platform/asgard-docs |
 | the processor definitions the CRD is generated from | https://github.com/asgard-ai-platform/asgard-core (private) |
-| the reference deployments | listed with their shapes in `source/SOURCES.md` |
 
 A copy taken into this repo stops tracking upstream and then looks like a
 current one. Record the commit you read instead.
@@ -311,6 +293,8 @@ current one. Record the commit you read instead.
   `go test ./...` runs in CI alongside `go vet` and `gofmt -l`; see "The gate"
   in `AGENTS.md`.
 - No `.out/` in version control. It is gitignored and holds anything a command
-  produces: hand-built binaries, command output, scratch programs.
-- No customer data anywhere. Everything under `internal/` is generic; the
-  customer's own knowledge lives in the repo the CLI writes, not in the CLI.
+  produces: hand-built binaries, command output, scratch programs, and
+  `.out/verified.json`, which records what passed on one machine.
+- No customer data anywhere, and no customer's name: not in the material, not in
+  provenance, not in this repository's own documents. The customer's own
+  knowledge lives in the repo the CLI writes, not in the CLI.

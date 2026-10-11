@@ -129,8 +129,8 @@ fields against asgard-kube `3da0365` `pkg/apis/asgard/v1alpha1/types.go`
 `SandboxBlueprintSpec.Agents`) and asgard-kube `crd/asgard-ai.com_agents.yaml`;
 the Hub serving every managed `Agent` against
 asgard-core `478cf5d6` `internal/bpoperator/reconciler/ns_reconciler.go`; the `Agent` shape against the
-`Agent` CRs in unitech-e-asgard-kube `44e71a2`, finance-ai-asgard-kube
-`d062197`, asgard-freyr-kube `8f6d6c1` and xxentria-asgard-kube `967407c`.
+`Agent` CRs of every deployment the extracts were written from that declares
+one.
 
 **Unchecked:** the Console side - the five templates, the profile picture and
 custom menu, enabling and disabling, and the Flow Agent creation form - which

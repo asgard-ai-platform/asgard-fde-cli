@@ -13,7 +13,7 @@ optional per-brand API token on every turn, and a public support widget where th
 site forwards a scope-limited token so the agent can read that customer's own
 orders and nothing else.
 
-**Checked:** written directly from a supervisor's SandboxBlueprint hook in asgard-freyr-kube `3ebd2be`, whose comment there records the incident that shaped it. Checked against the CRD's hook events. The public-widget variant against asgard-industry-demo-generator `718cc0e`, `retail/chart/app/templates/supervisor/customer_service/` and `retail/skills/customer-service-api/SKILL.md`.
+**Checked:** written directly from a supervisor's SandboxBlueprint hook in a commerce back-office deployment, whose comment there records the incident that shaped it. Checked against the CRD's hook events. The public-widget variant against asgard-industry-demo-generator `718cc0e`, `retail/chart/app/templates/supervisor/customer_service/` and `retail/skills/customer-service-api/SKILL.md`.
 
 Read the platform side first: `../wiki/api.md` covers the endpoint, the SSE
 event sequence, and the four integration patterns. This page assumes you have
@@ -153,8 +153,8 @@ in a string field, and no schema validates its contents.
 
 ## Source
 
-- Written from a commerce back-office supervisor's `SandboxBlueprint` in
-  asgard-freyr-kube `3ebd2be`, whose hook comment records the 2026-08-21 pod-recreation incident that moved it off
+- Written from a commerce back-office supervisor's `SandboxBlueprint`, in a
+  deployment not named here, whose hook comment records the 2026-08-21 pod-recreation incident that moved it off
   `session-start`.
 - The public-widget variant is the same mechanism reached from the other side,
   read out of a retail customer-service supervisor in asgard-industry-demo-generator

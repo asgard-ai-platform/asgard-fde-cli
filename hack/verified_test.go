@@ -21,7 +21,7 @@ import (
 // than derived, because a new class that nothing here mutates is a class no
 // test holds a key against.
 var allClasses = []inputClass{
-	classCorpus, classGo, classDocs, classKube, classCore, classDocsUp, classDeploy,
+	classCorpus, classGo, classDocs, classKube, classCore, classDocsUp,
 }
 
 func baseDigests() map[inputClass]string {

@@ -223,7 +223,7 @@ Connectivity and vocabulary produce no CRs, so there is no extract for them.
 asgard-core `478cf5d6` `internal/bpoperator/reconciler/sl_reconciler.go`; the four addresses against
 asgard-docs `95a27895` `docs/help-community/other/vpn-white-list-ip.mdx`; the
 Environment id reaching a chart against
-xxentria-asgard-kube `967407c` `.asgard-pipeline.yaml` and its Workflow labels;
+a production deployment's `.asgard-pipeline.yaml` and its Workflow labels;
 `sshTunnel`, the classes that take it and the three that refuse it against
 asgard-kube `42e8722` `crd/asgard-ai.com_dataconnectors.yaml` and against
 asgard-core `001bbf69` `internal/bpcontroller/dataconnector/`.

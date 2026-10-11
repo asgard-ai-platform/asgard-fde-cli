@@ -203,7 +203,7 @@ person:
 Check: `audit-material --links` and `--bare`.
 
 Do not point at anything a customer repository does not have. These files land
-in somebody else's checkout, where "this repo" is theirs and `source/SOURCES.md`
+in somebody else's checkout, where "this repo" is theirs and `APPROACH.md`
 does not exist. Citing a file in another repository is correct, because that is
 provenance; name the repository on the same line.
 Check: `audit-material --paths`.
@@ -226,8 +226,7 @@ flag, because it is whole documents on disk.
 
 Go code, command output, error messages, command help, and every document
 this repository ships are in English. That is the whole corpus, plus
-`README.md`, `TASK.md`, `STRUCTURE.md`, `APPROACH.md`, this file and
-`source/SOURCES.md`.
+`README.md`, `TASK.md`, `STRUCTURE.md`, `APPROACH.md` and this file.
 
 Two documents here are in Chinese on purpose. `Goal.md` is the goal as its
 author states it, and `README.zh-TW.md` is the Chinese half of the README. Both
@@ -292,9 +291,9 @@ follow:
     expression. That package exists because two readers of one format drift.
   - `go test ./...` can reach them.
 
-A script that drives other programs stays a shell script:
-`verify-references.sh` renders charts with helm and pipes them into the binary,
-and rewriting that in Go gains nothing.
+A script that only drives other programs - helm piped into the binary, say -
+may stay a shell script, because rewriting that in Go gains nothing. None does
+today.
 
 ## Plain ASCII, no emoji
 
@@ -531,7 +530,7 @@ and a green build says nothing about them:
 | `audit-material` with no flag, `--ask`, `--unmarked` | every bold imperative on one screen, because the failure is two opposing ones never being in front of the same reader. `--ask` narrows to the ones telling a reader to ask a customer, which is where filter 0 applies |
 | `--unchecked` | what every document says it has NOT been held against. This is the opposite question to `--unverified`: a page whose marker names a whole surface passes that check, and this puts the surface in front of a reader. Every document is expected to have one, so it cannot fail. `TASK.md` reads its blocked list from it instead of keeping one |
 | `--term <field>` | the sweep for a renamed platform field, across prose and templates. It cannot fail on its own: it only answers a question somebody asks it |
-| `go run ./hack sources` | how far each clone is behind its remote, and with `--extracts` how far each extract's source chart has moved since the commit it was written from. Both are information rather than a verdict |
+| `go run ./hack sources` | how far each upstream clone is behind its remote. It is information rather than a verdict |
 | `go run ./hack related` | which documents point at the ones a change touched. `--orphans` asks whether anything points at a document; this asks what does, using the same graph. It lists what a change owes a re-read, instead of the whole corpus. It cannot fail, because a pointer is a question rather than a defect |
 | `go run ./hack introduced` | the count-shaped lines this change adds. Over the whole corpus the same detector reports more than a thousand lines, which would make it a rule to delete; over a diff it reports a few dozen. Existing counts are a backlog worked through by reading, and it shrinks: a document reviewed at a recorded digest does not come back until it changes. This check keeps new counts from refilling it |
 
@@ -633,9 +632,15 @@ next person can recount it - `internal/corpus/wiki/index.md` carries that one
 and `go run ./hack coverage` recomputes it.
 
 **Would this be recognisable to the customer it came from?**
-Nothing under `internal/` may name or portray a customer - not in a `--help`
-example, and not in an illustration modelled on one engagement's actual
-systems.
+Nothing in this repository may name or portray a customer - not in a `--help`
+example, not in an illustration modelled on one engagement's actual systems,
+and not in a provenance marker. That covers a customer's repository name, its
+GitHub organisation, a namespace or workspace name carrying either, and the
+customer's own name. Describe the deployment by its shape instead - "a
+production deployment", "a commerce back-office deployment" - and cite the
+platform's own source for the claim where one exists. Everything under
+`internal/` also lands in other customers' repositories, so a name there
+reaches them.
 
 **Is "done" as wide as what you checked?**
 Say what was verified and what was not. "The extracts are correct" and "the
@@ -890,15 +895,6 @@ and no material is what this comparison exists to find. Ask before writing the p
 mistakes do not cost the same: material for a kind nobody may use invites
 somebody to use it.
 
-`go run ./hack spec-key-gap` asks the same question one level down, per spec
-key rather than per kind, and mechanically. A key a production chart uses is
-written by `add`, named in a commented skeleton where somebody meets it, absent
-on purpose with the document that says why, or nowhere - and only the last is a
-gap. The third state is a pointer to a document, not an opinion: the row names
-the document carrying the decision, and the check fails when that document is
-gone or has stopped naming the key. So a key you decide against gets its reason
-written where a reader meets it, the same as a kind does.
-
 ## Reference material lives outside this repo
 
 The reference repositories are read-only and never vendored in. The URL is the
@@ -926,39 +922,23 @@ definition names. `internal/corpus/wiki/processors.md` is where that is
 recorded, and "would this check fire on material that is correct" above has the
 cost of treating it as closed.
 
-The reference deployments: every extract under `internal/corpus/usecase/`
-was taken from one of these, and a claim about how a shape is built should be
-checkable against at least one:
+The extracts under `internal/corpus/usecase/` were written from production
+deployments read before this tool generated charts. Those deployments are not
+tracked here and are not a source to re-read: most now generate their charts
+with this tool, so reading them again would check the tool against its own
+output. A claim about how a shape is built is held against the contract above,
+and what is learned in the field is written with the platform source that
+explains it, describing the deployment by its shape and never by name.
 
-    unitech-e-asgard-kube            xxentria-asgard-kube
-    finance-ai-asgard-kube           buy123-asgard-kube
-    asgard-freyr-kube                asgard-auto-post-kube
-    asgard-industry-demo-generator   asgard-freyr-skills
-
-all under https://github.com/asgard-ai-platform/. unitech-e is archived and
-buy123 has moved to the customer's organisation; both clones are kept as the
-version the extracts describe. What shape each one demonstrates is in
-`source/SOURCES.md` and is not restated here: that file owns the attribution,
-states the commit each extract was written from, and its
-counts are recomputed by `go run ./hack counts`. A second copy here would be
-one nothing checks.
-
-Which customer each belongs to, and how the extracts refer to one without naming
-it, is in `source/SOURCES.md` - the one file here allowed to make that link, and
-the reason it sits outside `internal/`.
-
-Clone them wherever you like and point an environment variable at each:
-`ASGARD_KUBE`, `ASGARD_DOCS`, `ASGARD_CORE`, and `ASGARD_DEPLOYMENTS` for the
-directory holding the deployment clones. `go run ./hack sources` prints what they
-resolve to and how far behind each one is.
+Clone the three wherever you like and point an environment variable at each:
+`ASGARD_KUBE`, `ASGARD_DOCS` and `ASGARD_CORE`. `go run ./hack sources` prints
+what they resolve to and how far behind each one is.
 
 Pull before relying on any of them, and record the commit you read in whatever
 you write; a copy taken into this repo stops tracking upstream and still looks
 current. `asgard-cli audit-material --sources` holds every recorded commit
 against every other, but it cannot tell you a recorded commit has gone stale.
-`go run ./hack sources` reports how far each clone is behind its remote, and
-`--extracts` how far each extract's source chart has moved since the commit it
-was written from.
+`go run ./hack sources` reports how far each clone is behind its remote.
 
 ## Put generated files in `.out/`
 

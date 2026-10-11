@@ -10,11 +10,11 @@ you already integrate with X" for them.
 ## SHOPLINE: yes, and deeply
 
 A commerce middleware deployment integrates SHOPLINE through two skills, and
-they are the most developed channel material here. Read them before answering a
-question about SHOPLINE:
+they are the most developed channel material here. They live in that
+deployment's own repository, which this material does not name:
 
-    asgard-freyr-skills/shopline/              the Open API
-    asgard-freyr-skills/shopline-backoffice/   the back office
+    shopline/              the Open API
+    shopline-backoffice/   the back office
 
 They are separate because the two surfaces are separate, and the split carries a
 constraint to know before promising anything:
@@ -24,18 +24,19 @@ email are readable and not writable - there is no merchant write endpoint. What
 the API can write is Merchant Metafields, the store-level custom fields, plus a
 restricted direct product creation (`POST /v1/products`, with an image upload
 to the media library, `POST /v1/media`, behind the same gate) that the skill
-allows only to a user holding `products:force_publish` who has chosen it over Freyr's
-review flow; it has no endpoint that modifies an existing product, and no
+allows only to a user holding `products:force_publish` who has chosen it over the
+deployment's own review flow; it has no endpoint that modifies an existing product, and no
 orders. Changing the store's own details means the back office.
 
-The back office is mapped rather than browsed: 88 L1 page entry points, each
+The back office is mapped rather than browsed. When the map was read it held
+88 L1 page entry points, each
 declared for whether anything deeper sits under them; 160 rows of operations
 covering in-page tabs, dialogs, editor panels and apps inside an iframe; 14 API
 domains recorded.
 
 That 88 is the count the map states in its own two headings and asserts with a
-script of its own, in `shopline-backoffice/references/page-map.md` in
-asgard-freyr-skills - menu-level pages only, with tabs, dialogs and nested
+script of its own, in the back-office skill's `references/page-map.md` -
+menu-level pages only, with tabs, dialogs and nested
 apps in `operation-map.md` beside it. Read the count off the document rather
 than recounting it or taking a figure from a neighbouring tally. The skill works
 API first - where a contract was
@@ -51,7 +52,8 @@ The token mechanism is decided and implemented. It is written up in the skill's
 
 ## Everything else: no
 
-Every reference deployment and the Freyr skills repository were searched for
+Every deployment the extracts were written from, and that skills repository,
+were searched for
 PChome, momo, 蝦皮 / Shopee and Coupang. No chart, skill or document integrates
 one. The only hits are this tool's own landed material and the SHOPLINE
 glossary, where `shopee` is one of SHOPLINE's own sales-channel identifiers
@@ -96,7 +98,7 @@ pricing four, ask the question that most often reduces them to one:
     "Is there already something that pulls these together for you?"
 
 An OMS, a middleware layer, a warehouse that consolidates the channels - which is
-what the Freyr deployment is, from the other side. If one exists, four
+what the commerce middleware deployment above is, from the other side. If one exists, four
 integrations become one database and the estimate changes by an order of
 magnitude. `../guide/requirements.md` puts this at question 3 for the
 same reason.
@@ -112,18 +114,18 @@ for a channel skill at full size.
 
 ## Sources
 
-- asgard-freyr-skills at `2ff0e1e`: `shopline/SKILL.md`, `shopline/glossary.md`,
-  `shopline-backoffice/SKILL.md` and `shopline-backoffice/references/page-map.md`
-  in asgard-freyr-skills
+- The commerce middleware deployment's skills repository, at one commit:
+  `shopline/SKILL.md`, `shopline/glossary.md`, `shopline-backoffice/SKILL.md`
+  and `shopline-backoffice/references/page-map.md`. The repository is not named,
+  because this page ships to every engagement and names no customer.
 - Searched for PChome, momo, 蝦皮/Shopee, Coupang and 酷澎 across every
-  reference deployment clone at the commits below, plus asgard-freyr-skills: unitech-e at `44e71a2`, xxentria at `967407c`,
-  finance-ai at `d062197`, buy123 at `4dab85d`, freyr at `8f6d6c1`, auto-post at
-  `62ccbe0`, industry-demo-generator at `1106771` (excluding `.agents/skills/asgard-platform/`,
-  which is this corpus as `init` wrote it)
+  deployment the extracts were written from, plus that skills repository
+  (excluding `.agents/skills/asgard-platform/`, which is this corpus as `init`
+  wrote it)
 
 **Checked:** the SHOPLINE split, the merchant write limit and the map's own
-counts against asgard-freyr-skills at `2ff0e1e`; the absence of every other
-channel against the eight repositories at the commits above.
+counts against that skills repository; the absence of every other channel
+against every deployment the extracts were written from.
 
 **Unchecked:** which of the other channels offers an open API today, which is
 the vendor's to answer, and whether the SHOPLINE back-office map still matches

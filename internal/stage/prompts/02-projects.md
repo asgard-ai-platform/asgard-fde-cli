@@ -199,10 +199,9 @@ them, and asgard-cli check is green.
 **Checked:** the shapes it names are real (`asgard-cli size` counts
 them off production, the extracts in `../usecase/` assemble each); every command
 and flag it writes is in the binary; and the namespace pattern was read off the
-reference deployments rather than off this tool, which does not derive it -
-`asgard-unitech-e-internal-dev`, `asgard-unitech-e-website-prod`,
-`asgard-buy123-shopping-guide-stage` (the first two were destroyed when that
-deployment was archived; the pattern stands as read). No CRD claim is made here:
+namespaces of three production deployments rather than off this tool, which
+does not derive it. They are not quoted, because a namespace carries the
+customer's workspace name. No CRD claim is made here:
 which CRs a project ends up with belongs to
 `../guide/read-path.md`, `../guide/entry-point.md` and the extracts.
 

@@ -115,10 +115,10 @@ reader gets whichever finished last.
 Do not rename it: the service writing into it holds the SourceSet name in its own configuration,
 so renaming the CR silently breaks every route that writes to it.
 
-**Checked:** against asgard-freyr-kube `8f6d6c1`
+**Checked:** against a production deployment's
 `source_set/brand_skills.yaml`, whose own comment forbids reusing the
-Syncer-backed SourceSet and cites that deployment's `asgard-freyr-api` TASK-183
-D183-6 for the requirement.
+Syncer-backed SourceSet and cites that deployment's own service requirement for
+it.
 
 **Unchecked:** the mechanism. A Syncer runs as a CronJob of a separate
 `asgard-syncer` image with the SourceSet's whole volume mounted

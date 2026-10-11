@@ -569,7 +569,7 @@ not fail the build, because search reaches some of them.
 
 --paths checks every path that is not a document pointer. These files are
 written into a customer's repository, where "this repo" means theirs and
-` + "`source/SOURCES.md`" + ` or ` + "`APPROACH.md`" + ` is not there. A path inside a repository
+` + "`APPROACH.md`" + ` or ` + "`STRUCTURE.md`" + ` is not there. A path inside a repository
 has to name the repository it is inside, on the same line.
 
 --urls needs the network, which is why it is not part of --links. It reports
@@ -1201,7 +1201,7 @@ func findChild(node *cobra.Command, name string) *cobra.Command {
 // gate's constants while leaving the pages is a corpus that claims two
 // different readings of the same upstream with nothing to say which is true.
 // The repository name must not be the tail of a longer name: `\b` treats `-`
-// as a boundary, so a deployment named `unitech-e-asgard-kube` would otherwise
+// as a boundary, so a repository named `customer-asgard-kube` would otherwise
 // be read as asgard-kube.
 var sourceCommit = regexp.MustCompile(`(?:^|[^a-z0-9-])(asgard-[a-z0-9-]+)\s+` + "`?" + `([0-9a-f]{7,12})` + "`?" + `(\s*\(unread\))?`)
 
@@ -1356,7 +1356,7 @@ func checkSources(out io.Writer, srcs []source) error {
 // earlier layout of this material and resolve in neither tree. **A renamed
 // directory leaves prose behind exactly the way a renamed page leaves a
 // pointer behind**, and the second has always had a check.
-var ourFiles = regexp.MustCompile(`(?:^|[^A-Za-z0-9_./-])((?:source|hack|internal|cmd|prompts|pages|extracts)/[A-Za-z0-9_./*-]*|(?:Goal|TASK|STRUCTURE|APPROACH)\.md|selfsrc\.go)`)
+var ourFiles = regexp.MustCompile(`(?:^|[^A-Za-z0-9_./-])((?:hack|internal|cmd|prompts|pages|extracts)/[A-Za-z0-9_./*-]*|(?:Goal|TASK|STRUCTURE|APPROACH)\.md|selfsrc\.go)`)
 
 // knownRepos are the repository names the material is allowed to cite a path
 // inside. **Add one when the material starts drawing on another repository**,

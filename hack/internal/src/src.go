@@ -18,7 +18,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
@@ -29,10 +28,9 @@ type Source struct {
 	What    string
 }
 
-// Order is the order a reader wants them in - the contract first, then what is
-// written from it - rather than alphabetical, which puts the deployments before
-// the CRDs they are checked against.
-var Order = []string{"kube", "docs", "core", "deployments"}
+// Order is the order a reader wants them in - the contract first - rather than
+// alphabetical.
+var Order = []string{"kube", "docs", "core"}
 
 var Sources = map[string]Source{
 	"kube": {"ASGARD_KUBE", "projects/asgard/asgard-kube",
@@ -41,8 +39,6 @@ var Sources = map[string]Source{
 		"the product documentation: https://github.com/asgard-ai-platform/asgard-docs"},
 	"core": {"ASGARD_CORE", "projects/asgard/asgard-core",
 		"the processor definitions: https://github.com/asgard-ai-platform/asgard-core"},
-	"deployments": {"ASGARD_DEPLOYMENTS", "projects/asgard",
-		"the directory holding the reference deployment clones"},
 }
 
 // Root is this repository, found from the working directory upwards so that a
@@ -136,28 +132,10 @@ func Git(dir string, args ...string) (string, error) {
 }
 
 // Commit is the short commit a clone is on, or "" when it is not a repository.
-//
-// ASGARD_DEPLOYMENTS is normally the parent of several clones rather than a
-// clone, so an empty answer is the ordinary case and not a failure.
 func Commit(dir string) string {
 	out, err := Git(dir, "rev-parse", "--short", "HEAD")
 	if err != nil {
 		return ""
 	}
 	return strings.TrimSpace(out)
-}
-
-// Since counts the commits between a ref and a clone's HEAD, or -1 when the
-// clone does not have that ref - which means the reading cannot be opened at
-// all, and is worse than being behind.
-func Since(dir, ref string) int {
-	out, err := Git(dir, "rev-list", "--count", ref+"..HEAD")
-	if err != nil {
-		return -1
-	}
-	n, err := strconv.Atoi(strings.TrimSpace(out))
-	if err != nil {
-		return -1
-	}
-	return n
 }

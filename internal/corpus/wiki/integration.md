@@ -303,7 +303,7 @@ order not placed.
   and [Customized Integration](https://docs.asgard-ai.com/docs/product-suite/odin/features/applications-customized-integration)
   - asgard-docs `6261fdff`
 - That SMTP cannot be reached at all, and what a real mail send costs: read
-  off `unitech-e-asgard-kube`, which asked for a mail API, received
+  off a production deployment, which asked for a mail API, received
   SMTP credentials for it, and wrote down why neither route worked. The
   single-call shape, the empty-bodied 202, the click-tracking rewrite and the
   verified-sender requirement are from that deployment's own working send; the
