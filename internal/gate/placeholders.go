@@ -34,7 +34,7 @@ var reachesAReader = map[string]map[string]string{
 		"summary":     "how the model chooses BETWEEN layers - the tool that lists them returns the name and this, and nothing else",
 	},
 	"SkillSet": {
-		"searchPaths": "a path that is not a skill directory resolves to no skills at all, and nothing else reports it",
+		"searchPaths": "a path the sync never writes loads no skills at all, and nothing else reports it",
 	},
 }
 

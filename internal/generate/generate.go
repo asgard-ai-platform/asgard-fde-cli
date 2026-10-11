@@ -155,9 +155,9 @@ defaultSemanticLayerEffort: "medium"
 		Extract: "skill-set",
 		Wiki:    "tools",
 		After: []string{
-			"searchPaths must name one directory per skill. A parent directory",
-			"  resolves to nothing, and no check catches it - the symptom is an agent",
-			"  with fewer skills than expected.",
+			"Each searchPath is searched recursively for SKILL.md: one path per skill",
+			"  keeps the set explicit, a parent directory loads every skill under it,",
+			"  and a path the sync never writes loads nothing. No check sees which.",
 			"The agent reads this skill and the tooling.description of every tool it",
 			"  has in one context, so the two have to divide the subject: anything",
 			"  true across several tools belongs in the skill, and a skill still",

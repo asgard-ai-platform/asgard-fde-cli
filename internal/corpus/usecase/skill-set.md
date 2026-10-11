@@ -15,9 +15,16 @@ in every deployment that converted to it on 2026-09-13, each Syncer
 carrying both labels below. How a SkillSet reaches a sandbox against
 asgard-core `478cf5d6` `internal/bpoperator/reconciler/sb_reconciler.go`; what
 `searchPaths` means against asgard-kube `3da0365` `crd/asgard-ai.com_skillsets.yaml`.
+How a searchPath resolves against asgard-agent-sandbox `9bda069c`:
+asgard-agent-sandbox `internal/skill/discover.go` (`rootsForSet` joins each path
+to the SkillSet's mount, `walkRoot` walks it for every `SKILL.md`), and against
+asgard-core `ed72bce2`: asgard-core `internal/bpoperator/reconciler/sb_reconciler.go`
+mounts the whole SourceSet for each SkillSet, and
+asgard-core `internal/processor/driverloop/localplugin.go` (`buildPluginJSON`)
+hands the CLI exactly the directories those `SKILL.md` files are in.
 
-**Unchecked:** how a searchPath resolves. asgard-core only passes the list to the
-sandbox runtime, `asgard-agent-sandbox`, which is in no repository here.
+**Unchecked:** a parent-directory searchPath has not been observed on a running
+sandbox; every SkillSet on the platform's dev cluster names one skill per path.
 
 Read the platform side first: `../wiki/tools.md` covers how MCP Server, Skillset
 and Plugin differ. This page assumes you have read it.
@@ -52,7 +59,7 @@ at all.
 
     SourceSet  ss-<name>     the store. members are directories in it.
       <- Syncer  syn-<name>  fills one member. syncerClass git / database / web.
-    SkillSet   sk-<name>     sourceSetName + searchPaths, one path per skill
+    SkillSet   sk-<name>     sourceSetName + searchPaths, the directories searched
       <- Agent.managed.skillSetNames, or SandboxBlueprint.skillSetNames
 
 ## One SourceSet per SkillSet
@@ -241,7 +248,8 @@ metadata:
 spec:
   sourceSetName: ss-sk-<name>
   searchPaths:
-    # One path per skill directory. A parent directory resolves to nothing.
+    # Each path is searched recursively for SKILL.md. One path per skill keeps
+    # the set explicit; a parent directory loads every skill under it.
     - git/skills/pdf/
     - git/skills/docx/
 ```
@@ -297,14 +305,17 @@ both - a SkillSet lists paths, nothing more.
 
 ## Fields that are not obvious
 
-A searchPath is one skill directory: `.../pdf/`, not `.../skills/`. The
-deployments state that one searchPath resolves as one skill and that naming a
-parent directory silently resolves to nothing. The CRD's own description says
-the opposite - each path is searched for `SKILL.md` recursively, and an empty
-list searches the whole SourceSet - and the code that decides it is the sandbox
-runtime, which nothing here can read. One directory per path is right under
-either reading, so write it that way. Not checkable from the CR - a wrong path
-shows up only as an agent with fewer skills than expected.
+A searchPath is a directory the sandbox searches recursively for `SKILL.md`,
+and every skill it finds loads; an empty list searches the whole SourceSet. So
+`git/skills/pdf/` loads one skill and `git/skills/` loads every skill in that
+directory, including one the repository gains later and any `SKILL.md` nested
+inside another skill. A path that does not exist loads nothing, and nothing
+reports it beyond a line in the sandbox's log.
+
+Which to write is a choice. One path per skill keeps the set explicit: a skill
+added to the repository is not loaded until somebody lists it. A parent path
+follows the repository. Not checkable from the CR either way - the symptom of a
+wrong path is an agent with fewer or more skills than expected.
 
 `asgard-ai.com/managed-by: skill-set` goes on the SourceSet and the Syncer
 in the 1:1:1 shape. It hides the Syncer from the generic list, and it is what the
@@ -403,10 +414,10 @@ The xref check resolves `sourceSetName`, confirms every `searchPath` falls under
 a declared member, that a SourceSet backs at most one SkillSet, and that
 `managed-by` is on both CRs.
 
-Neither catches the "one skill directory per searchPath" rule, because it is not
-visible in the CRs. It shows up only as an agent with fewer skills than expected,
-so check the resolved skills after the first sync, by listing what the sync
-wrote under each searchPath:
+Neither shows which skills a searchPath resolves to, because that depends on
+what the sync wrote, not on the CRs. It shows up only as an agent with fewer or
+more skills than expected, so check after the first sync, by listing what the
+sync wrote under each searchPath:
 
 ```bash
 asgard-cli operate skill-set ls <skill-set> <searchPath> --release <release>

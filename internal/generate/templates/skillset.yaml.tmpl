@@ -120,7 +120,7 @@ metadata:
 spec:
   sourceSetName: ss-<<.Name>>
   searchPaths:
-    # One path per skill directory. A parent directory resolves to nothing,
-    # and no check catches it - the symptom is an agent with fewer skills than
-    # expected.
+    # Searched recursively for SKILL.md. One path per skill keeps the set
+    # explicit; a parent directory loads every skill under it, and a path the
+    # sync never writes loads nothing. No check sees which.
     - git/TODO/

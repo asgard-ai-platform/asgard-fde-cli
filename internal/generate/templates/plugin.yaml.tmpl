@@ -40,5 +40,6 @@ metadata:
 spec:
   sourceSetName: <<if .Connector>><<.Connector>><<else>>ss-skill-repos<<end>>
   searchPaths:
-    # One path per skill directory. A parent directory resolves to nothing.
+    # Searched recursively for SKILL.md. One path per skill keeps the set
+    # explicit; a parent directory loads every skill under it.
     - TODO/
