@@ -1,8 +1,11 @@
 # <<.DisplayName>>
 #
 # A zero-parameter query. No user input reaches SQL, so there is no injection
-# surface, which is why this shape is used for a public audience. Do not add
-# parameters: interpolating a keyword reintroduces injection. A query that wants a filter gets rewritten to aggregate instead.
+# surface, which is why this shape is used for a public audience. A query that
+# wants a filter gets rewritten to aggregate instead. Where one genuinely needs
+# a parameter, bind it (the sql.args keys below) and never write request data
+# into the sql text: a bound value cannot change the statement. It still lets
+# the caller choose which rows come back.
 #
 # Do not ship a second tool on the same FROM/JOIN differing only in projection:
 # each description then has to name the other as the alternative, and a model
@@ -71,6 +74,15 @@ spec:
             -- Put the reasoning in this comment: soft deletes, why a COUNT is
             -- DISTINCT, how a path is built. There is nowhere else for it.
             select 1
+        # A parameter, if one is unavoidable. The placeholder in sql depends on
+        # the DataConnector's class - $1 on postgres, ? on mysql, @p1 on mssql;
+        # .agents/skills/asgard-platform/wiki/processors.md has the table. Pairs
+        # are numbered from 1 and read until the first gap, and the entry's
+        # inputSchema has to declare the field.
+        # - name: sql.args.1.type
+        #   value: string
+        # - name: sql.args.1.value
+        #   expression: prevPayload.orderId
 
     # Returns the rows to the caller. `resultField` names the variable the rows
     # land in, and this processor sends it back. A query with no response

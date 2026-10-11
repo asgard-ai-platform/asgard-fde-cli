@@ -77,6 +77,14 @@ var processorDefs = map[string]processorDef{
 //	    is refused; the database user's grants are the sturdier control. A
 //	    `semanticLayers` list built by an expression this cannot parse is not
 //	    read, because what it evaluates to is not in the chart.
+//	W5  a `validate-payload` processor is reported. A warning: it still runs,
+//	    and it is deprecated - the entry's `inputSchema` and `files` are
+//	    checked before any processor and replace it.
+//	W6  a `query-database` whose `sql` is an expression or a template is
+//	    reported. A warning: building the statement at run time is how request
+//	    data ends up in SQL, and a value bound with `sql.args.<n>.*` cannot
+//	    change the statement. It is correct when everything the template reads
+//	    is ours rather than the caller's, which this cannot tell.
 //
 // There is no W3, a rule flagging a key the definitions do not declare: the
 // definitions are a subset of what the runtime accepts, not the config
@@ -168,8 +176,18 @@ func Processors(docs []Doc, opts Options) Result {
 				}
 			}
 
+			if ptype == "validate-payload" {
+				warnf("W5 Workflow/%s processor %q: validate-payload is deprecated. Put the schema in the entry's inputSchema and any file requirements in its files; the platform checks both before the first processor runs",
+					d.Name, pname)
+			}
+
 			for _, raw := range digList(p, "configs") {
-				if what := narrows(ptype, mapOf(raw)); what != "" {
+				c := mapOf(raw)
+				if ptype == "query-database" && digStr(c, "name") == "sql" && (digStr(c, "expression") != "" || digStr(c, "template") != "") {
+					warnf("W6 Workflow/%s processor %q: sql is built at run time, by an expression or a template. Request data written into it runs as SQL; write sql as a value with placeholders and bind each value with sql.args.<n>.type and sql.args.<n>.value",
+						d.Name, pname)
+				}
+				if what := narrows(ptype, c); what != "" {
 					warnf("W4 Workflow/%s processor %q (%s): %s. The platform matches the table names in the SQL against it as strings, so a correct query that leaves out the schema is refused. Keep it only if every query names each table exactly as listed; otherwise prefer the DataConnector's database user's grants",
 						d.Name, pname, ptype, what)
 				}

@@ -244,14 +244,28 @@ which is what the user actually said. Set it only when the input has been
 worked on first: a summary prepended, or the question rewritten into something
 clearer.
 
+## `validate-payload` is deprecated
+
+A Workflow entry's `inputSchema` does what `validate-payload` did, and does it
+first. The platform validates the payload against the schema before any
+processor runs and ends the request with `InvalidArgument` and the failures
+when it does not match. The same schema is what a model is shown as a tool's
+parameters, so on a tool Workflow it is both the contract and the description
+of it. The entry's `files` replaces the processor's `file.<n>.*` requirements.
+
+So a Workflow's entry carries the contract, and its first processor is the one
+that does the work. Do not add a `validate-payload` node; remove one when the
+Workflow is next edited. The processor still runs, so a Workflow that has one
+keeps working, and `asgard-cli verify` warns (W5) on it.
+
 ## Fields that decide something and look like detail
 
 | processor | field | what it decides |
 |---|---|---|
 | `execute-script` | Engine | only `ECMA5` is accepted, and it is a name rather than a language level: the body runs in the same VM as the expression fields and accepts what they accept, arrow functions included |
 | `http-request` | Parse JSON | off by default. On, `httpResponse` gains a `json` field. Off, the body is a string and every downstream expression has to parse it |
-| `validate-payload` | Schema (required), File Requirements | this is the entry contract of an automation tool - what the caller must supply, and which file types are accepted |
-| `query-database` | SQL Type Arguments | parameterised queries, supplied as extra keys rather than a static field. The alternative is string-building a query, which is the injection surface `../usecase/fixed-query-tools.md` exists to remove. The docs page for this processor is called `query-sql` - see the naming table below |
+| `validate-payload` | Schema (required), File Requirements | deprecated. The entry's `inputSchema` and `files` are the contract now - "`validate-payload` is deprecated" below |
+| `query-database` | SQL Type Arguments | parameterised queries, supplied as extra keys rather than a static field - "Parameterised SQL in `query-database`" below. The docs page for this processor is called `query-sql` - see the naming table below |
 | `retrieve-knowledge` | Similarity Threshold (required) | there is no safe default to fall back on. Too high returns nothing and looks like an empty knowledge base |
 | `retrieve-knowledge` | Filter Tags, Path Exists, Path Predicate | retrieval can be scoped without splitting the knowledge base |
 | `generate-embedding` | Result Field (required) | where the vector lands. Every model processor that produces data names its own output field |
@@ -270,7 +284,6 @@ The three worth knowing before the table:
 | processor | field | |
 |---|---|---|
 | `retrieve-knowledge` | `sampleK` | required, and defaults to 20. How many chunks come back. Nothing in the documentation gives the number, so a retrieval returning "too much" or "not enough" is being tuned against an invisible 20 |
-| `validate-payload` | `path` | defaults to `"$"` - the whole payload. Set it to validate a subtree instead |
 | both LLM processors, and `query-database` | `allowWrite` | defaults to true, while `allowQuery` beside it defaults to false. The section above is about this one |
 
 `retrieve-knowledge` requires five fields - the knowledge bases, the query
@@ -345,6 +358,60 @@ and for `path.<n>.*`. Renumber after deleting one.
 Two of them start at 0 and one starts at 1. There is no rule behind it; it is
 per processor, and getting it wrong on `query-database` gives an argument list
 that is silently empty.
+
+### Parameterised SQL in `query-database`
+
+Request data never goes into `sql`. The `sql` config is evaluated like every
+other - a `value`, an `expression` or a `template` - so an expression or a
+template that writes `prevPayload`, or an argument a model chose, into the SQL
+text runs whatever the caller sends: a quote, a comment, an `OR 1=1`. Write
+`sql` as a `value` with placeholders, and bind each value with a pair of extra
+keys:
+
+    - name: sql
+      value: |-
+        select order_id, status from orders
+        where customer_id = $1 order by created_at desc limit $2
+    - name: sql.args.1.type
+      value: string
+    - name: sql.args.1.value
+      expression: prevPayload.customerId
+    - name: sql.args.2.type
+      value: integer
+    - name: sql.args.2.value
+      value: "20"
+
+The pairs are numbered from 1 and read until the first gap. `type` is one of
+`string`, `integer`, `number`, `boolean` or `any`, and the value is converted
+to it before it is bound. The values reach the database driver as the
+arguments of a prepared statement, so nothing in them can change the
+statement.
+
+The placeholder is the database's, so it follows the DataConnector's class:
+
+| `dataConnectorClass` | placeholder |
+|---|---|
+| `postgres` | `$1`, `$2` |
+| `mysql` | `?` |
+| `mssql` | `@p1`, `@p2` |
+| `oracle` | `:p1`, `:p2` |
+| `hana` | `?` |
+| `trino` | `?` |
+| `athena` | `?` |
+| `netsuite` | `:1`, `:2` |
+| `salesforce` | `$1`, `$2` |
+
+`netsuite` and `salesforce` take no bound parameters over their APIs, so their
+drivers replace each placeholder with the argument written as a quoted literal
+before sending the query. The statement is still never built from the request.
+
+Binding removes injection, not exposure. A caller who can pass `customerId`
+can pass anybody's, so a parameter that decides whose rows come back is an
+authorisation decision: its value has to come from something the caller cannot
+choose, or the tool has to be one where every row is the caller's to see.
+`../usecase/fixed-query-tools.md` is the shape that takes no parameters at all,
+for an audience that may not choose. `asgard-cli verify` warns (W6) on a
+`query-database` whose `sql` is an expression or a template.
 
 `sqlTypeArguments` is also an extra key. The documentation gives
 `query-sql` a SQL Type Arguments field for the `$1`, `$2` placeholders, and
@@ -664,7 +731,22 @@ and the single-layer fallback after it) and
 asgard-core `internal/jobrunner/job/backfill_sl_config_job.go`. The palette's scopes, per-scope keys, required flags and the fixed
 `validate-payload` path were also read first hand, against asgard-ai-platform-web
 `e59474e7` `src/components/react-flow/workflow/processors.json` and
-`processor-selector.tsx`.
+`processor-selector.tsx`. Parameterised SQL against asgard-core `2cfd8d30`:
+asgard-core `internal/processor/task/query_database.go` (the `sql.args.<n>` loop),
+asgard-core `internal/bpcontroller/server/dc_controller.go` (`ExecuteQuery`, which
+converts each argument to its type) and
+asgard-core `internal/bpcontroller/dataconnector/base.go`, which prepares the
+statement and passes the arguments to it; the placeholders against the
+placeholders each connector writes in its own queries, in
+asgard-core `internal/bpcontroller/dataconnector/` (`postgres.go`, `mysql.go`,
+`mssql.go`, `oracle.go`), against the drivers for the rest - `go-hdb`,
+`trino-go-client` and asgard-ai-platform's `go-athena` `v1.0.1` `stmt.go` -
+and against asgard-core `pkg/suiteql/driver.go` and `pkg/soql/driver.go`, which
+substitute literals. That `inputSchema` is checked before any processor
+against asgard-core `internal/bpcontroller/server/bp_controller.go`, where an entry's
+schema is compiled and the payload validated before the first processor is
+scheduled. That `validate-payload` is deprecated is the platform team's
+decision.
 
 **Unchecked:** how each processor is meant to be used. The palette says what an
 editor offers and the definitions what the runtime reads; neither is a

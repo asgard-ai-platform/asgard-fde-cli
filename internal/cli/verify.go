@@ -64,7 +64,10 @@ server-side dry run all pass:
     narrows by table name - allowedCubes on a layer it mounts, or
     allowedTables on query-database - is a warning: the platform matches those
     against the SQL as strings and can refuse correct queries, so set one only
-    on purpose, and prefer the DataConnector's database user's grants
+    on purpose, and prefer the DataConnector's database user's grants. Two more
+    warnings: a validate-payload processor, which is deprecated in favour of the
+    entry's inputSchema, and a query-database whose sql is built by an
+    expression or a template, which is how request data ends up in SQL
   - every credential reference reads a key ` + "`.asgard-pipeline.yaml`" + ` declares,
     and every declared key is read by something. Setting a value on the
     platform without declaring the key is stored and never injected -

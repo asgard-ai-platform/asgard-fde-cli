@@ -36,7 +36,8 @@ looking for an `entry` value in the enum finds nothing, and a processor written
 with one is rejected. Two more rows of the menu are not general either:
 Validate Payload and Response appear only in an Automation Tool workflow, and
 Response has no type at all - the output is a `push-message` scoped to
-`automation_tool`, which `../wiki/processors.md` sets out. `llm-query-database`
+`automation_tool`, which `../wiki/processors.md` sets out. Validate Payload is
+still in the menu and is deprecated: the entry's `inputSchema` replaces it. `llm-query-database`
 is the opposite case: a legal type the node menu will not add.
 
 At most 100 processors and 1000 relationships.
@@ -106,7 +107,11 @@ allowUploadFile). With it, a `Toolset` can expose that entry as a tool.
 tools.
 
 An entry can also carry an `inputSchema` (a JSON Schema string) validating the
-incoming payload, and `files` (per-slot type limits and context aliases).
+incoming payload, and `files` (per-slot type limits and context aliases). The
+platform checks both before any processor runs, so they are the contract of a
+tool Workflow, and they replace the deprecated `validate-payload` processor -
+`../wiki/processors.md` has why. On a tool, the `inputSchema` is also what the
+model is shown as the tool's parameters.
 
 ### Editing an inputSchema
 

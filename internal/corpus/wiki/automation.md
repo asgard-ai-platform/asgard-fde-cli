@@ -62,24 +62,37 @@ Description is optional.
 
 "When an order arrives, do X" is this, not a Trigger: an external system calls
 in when something happens rather than us checking on a schedule. The shape is
-three stages and each is a processor - see [`processors`](../wiki/processors.md):
+an entry and two stages - see [`processors`](../wiki/processors.md):
 
     the external system  ->  the endpoint
                                |
-      1. validate-payload      the Payload Schema, a Secret Signature to prove
-                               where it came from, and the allowed Content-Type
+      the entry's inputSchema  what the caller must send. The platform checks
+                               the payload against it before anything runs,
+                               and refuses a request that does not match;
+                               `files` on the entry does the same for uploads
                                |
-      2. whatever it does      query, model, http-request - the ordinary middle
+      1. whatever it does      query, model, http-request - the ordinary middle
                                |
-      3. push-message          what the caller gets back. The documentation
+      2. push-message          what the caller gets back. The documentation
                                calls this page Response, at
                                `processor/automation-tool-response`; there is
                                no `response` type, and a chart writes
                                `push-message` scoped to `automation_tool`
 
-Enable the Secret Signature. Without it the endpoint runs whatever anyone who
-finds the URL sends it, and a webhook URL travels: it is pasted into somebody's
-CI, their vendor console, a ticket.
+The documentation's webhook example starts with a validate-payload stage that
+also checks a Secret Signature and the Content-Type. `validate-payload` is
+deprecated in favour of the entry's `inputSchema`, and there is no signature or
+Content-Type check to enable: nothing in the platform verifies a per-request
+signature on this endpoint.
+
+What proves where a request came from is the BotProvider's API key, sent as
+`X-API-KEY` - `../wiki/api.md` has the header. Treat it as the webhook's
+password: it goes in the calling system's secret store, not in the URL, a
+ticket or a CI file, because a webhook's configuration travels. A generic
+BotProvider whose `authMode` is `none` checks no key at all, and runs what
+anyone who finds the URL sends it. If the customer's policy requires signed
+requests, the platform does not offer that; a relay in front of the endpoint
+that verifies the signature and holds the key is the way to meet it.
 
 The endpoint is the same URL a chat message goes to:
 
@@ -104,10 +117,15 @@ cannot use a tool that asks for consent. Not repeated here.
 
 ## Sources
 
-- The webhook shape, its three stages, the Secret Signature and that the
-  endpoint is the same one:
+- The webhook shape and that the endpoint is the same one:
   [Webhook integration](https://docs.asgard-ai.com/docs/developer-reference/examples/webhook-integration)
   - asgard-docs `f00e0ee`
+- That no signature is checked, and what the key check is:
+  asgard-core `2cfd8d30` `internal/edgeserver/middleware/bot_provider.go`
+  (`GenericBotProviderAuth` compares the header with the BotProvider's
+  `spec.generic.apiKey`, and skips the comparison when `authMode` is `none`);
+  no Secret Signature or Content-Type setting exists in asgard-core,
+  asgard-kube or asgard-ai-platform-web
 
 - [Trigger](https://docs.asgard-ai.com/docs/product-suite/odin/features/automation-trigger)
   - asgard-docs `95a27895`
