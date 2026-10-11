@@ -258,8 +258,8 @@ type paletteEntry struct {
 
 // palette is the editor palette per processor type, from asgard-docs' metadata.
 //
-// Second hand on purpose: asgard-docs reads it out of `asgard-ai-platform-web`,
-// which nothing here has a clone of, and records what it found beside each page.
+// asgard-docs reads it out of `asgard-ai-platform-web` and records what it
+// found beside each page, including the platform-set keys.
 func readPalette(docs string) (map[string][]paletteEntry, error) {
 	paths, err := filepath.Glob(filepath.Join(docs, paletteDir, "*/metadata.json"))
 	if err != nil {

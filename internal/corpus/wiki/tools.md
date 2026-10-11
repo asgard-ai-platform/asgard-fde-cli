@@ -35,13 +35,17 @@ From Existing MCP Server connects to one that already runs. Maps to
 | Name | yes | |
 | Description | | |
 | Transport Type | yes | STDIO or Streamable HTTP |
-| Command | yes | the launch command; `npx` and `uvx` are supported |
-| Arguments | | space separated |
+| Command | with STDIO | the launch command; `npx` and `uvx` are supported |
+| Arguments | | one per line |
 | Environment Variables | | Name/Value pairs, passed over STDIO |
-| MCP Server Volume Mounts | | mount a Drive into the server's environment, with Mount Path, Sub Path and Read Only |
+| MCP Server Volume Mounts | | STDIO only: mount a Drive into the server's environment, with Mount Path and Sub Path |
+| URL | with Streamable HTTP | the endpoint |
+| Custom Headers | | Streamable HTTP only: Name/Value pairs |
 
 With STDIO, Asgard starts a local process and talks to it over standard
 input/output. With Streamable HTTP it connects to an endpoint already running.
+The volume mount form also shows Read Only, but the Console does not send it, so
+a mount made there is writable; write `readOnly` in the chart when it matters.
 
 ## Consent: where it is set, and what it covers
 
@@ -126,11 +130,14 @@ front end's, and no reference deployment has one on a public channel.
 
 A reusable set of skills an agent loads at run time.
 
-From Scratch takes a Name and optional Search Paths. From Git imports
-from a repository.
+From Scratch takes a Name only. From Git imports from a repository: Name,
+repository URL, revision, authentication (none, HTTP or SSH), and the Syncer's
+schedule and time zone.
 
-Search Paths are where the agent looks for skill files, comma separated, and
-each path must end in a slash.
+Search Paths are where the agent looks for skill files. Neither creation form
+asks for them, because the volume is still empty then and a path that does not
+exist resolves zero skills without an error. They are picked afterwards as
+folders from the Files tab's tree, and the Console adds the trailing slash.
 
 The detail page has Files and Settings tabs. Files is that Skillset's own
 browser, and Open in Advance Editor edits the skill files in a separate tab.
@@ -162,6 +169,14 @@ in `spec.hooks`; `../usecase/flow-agent-supervisor.md` shows one.
 | `session-end` | on SIGTERM | usable |
 | `user-prompt-submit` | before each user message reaches the CLI | usable |
 | `pre-tool-call` / `post-tool-call` | - | never implemented; declaring one is a silent no-op |
+
+The Console offers the wrong set. Its Plugin and blueprint forms offer
+`session-start`, `session-end`, `pre-tool-call` and `post-tool-call`, start a new
+hook on `pre-tool-call`, and do not offer `user-prompt-submit`, and the Platform
+API refuses that event on a Plugin. A chart is not affected: the pipeline
+applies it to the apiserver, whose CRD enum carries `user-prompt-submit`, and
+nothing between checks the event. So write hooks in the chart, and check the
+event on a hook somebody made in the Console.
 
 The last row exists only so older CRs stay valid, and nothing catches it for
 you: both events are still in the CRD's enum, so a CR declaring one is accepted
@@ -308,10 +323,22 @@ repair to make when guidance seems to be missing.
   asgard-core `478cf5d6` `internal/processor/driverloop/driverloop.go`
 - The UI form fields: asgard-docs `21c920f6`,
   `docs/product-suite/odin/features/mcp-servers.mdx`, `skillsets.mdx` and
-  `plugins.mdx`
+  `plugins.mdx`, held against the Console's own source,
+  asgard-ai-platform-web `e59474e7`:
+  `app-toolsets/_components/mcp-toolset-panel.tsx` (the form schema and
+  `toArgs`), `create-skillset-scratch-modal.tsx`, `skillset-from-git-panel.tsx`,
+  `SearchPathsPanel.tsx`, `plugin/_components/PluginForm.tsx` and
+  `src/types/plugin.ts`
+- That the Platform API refuses `user-prompt-submit` on a Plugin:
+  asgard-platform-api `b226b1cc` `internal/models/plugin.go` (the `oneof`
+  binding on `Event`); that a chart is not affected: the Plugin CRD's enum at
+  asgard-kube `3f9f6c8`, and no check on the event in asgard-iac `af5320aa` or
+  asgard-kube-admission `81e97e4b`; that the event is implemented and the other two are not:
+  asgard-core `ed72bce2` `internal/processor/driverloop/runtask.go`
+  (`runTurnHooks`)
 
 **Checked:** against asgard-kube `3da0365` and asgard-core `478cf5d6`, the files
 named under Sources.
 
-**Unchecked:** the UI form fields against the Console itself, and how a card
-renders in a front end.
+**Unchecked:** how a card renders in a front end, and what the Console shows
+for a hook event a chart wrote that its forms do not offer.

@@ -89,8 +89,10 @@ wherever; what goes into a page is the repository and the commit.
 | the JavaScript SDK | https://github.com/asgard-ai-platform/asgard-js-sdk |
 | the Syncer runtime, what each `syncerClass` does when it runs | https://github.com/asgard-ai-platform/asgard-syncer (private) |
 | the pipeline runner: plan, review, Apply, and the Syncers a rollout fires | https://github.com/asgard-ai-platform/asgard-iac (private) |
+| the Console: its forms and the editor's processor palette | https://github.com/asgard-ai-platform/asgard-ai-platform-web (private) |
 | the Console's back end | https://github.com/asgard-ai-platform/asgard-platform-api (private) |
 | projects, and the display annotations a CR carries | https://github.com/asgard-ai-platform/asgard-workflow-service (private) |
+| the admission webhook in front of the apiserver | https://github.com/asgard-ai-platform/asgard-kube-admission (private) |
 | the cluster's network, egress and logging | https://github.com/asgard-ai-platform/tf-asgard (private) |
 | the platform's own deployments, read as examples | https://github.com/asgard-ai-platform/asgard-auto-post-kube and https://github.com/asgard-ai-platform/asgard-industry-demo-generator |
 
