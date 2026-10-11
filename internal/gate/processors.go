@@ -1,6 +1,7 @@
 package gate
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -66,6 +67,16 @@ var processorDefs = map[string]processorDef{
 //	    key with no fallback is broken against every version of the platform,
 //	    and the scaffold itself shipped a Workflow whose only LLM processor had
 //	    no completionModel - it rendered, it verified, and it could not run.
+//
+//	W4  a processor that narrows a layer with `allowedCubes`, or a query with
+//	    `allowedTables`, is reported. A warning: the field is legitimate where
+//	    every query names each table exactly as the allowed list does, and the
+//	    point is that it is set on purpose. The platform enforces both by
+//	    matching the table names parsed from the SQL against the allowed names
+//	    as strings, so a correct query that writes a table without its schema
+//	    is refused; the database user's grants are the sturdier control. A
+//	    `semanticLayers` list built by an expression this cannot parse is not
+//	    read, because what it evaluates to is not in the chart.
 //
 // There is no W3, a rule flagging a key the definitions do not declare: the
 // definitions are a subset of what the runtime accepts, not the config
@@ -157,12 +168,56 @@ func Processors(docs []Doc, opts Options) Result {
 				}
 			}
 
+			for _, raw := range digList(p, "configs") {
+				if what := narrows(ptype, mapOf(raw)); what != "" {
+					warnf("W4 Workflow/%s processor %q (%s): %s. The platform matches the table names in the SQL against it as strings, so a correct query that leaves out the schema is refused. Keep it only if every query names each table exactly as listed; otherwise prefer the DataConnector's database user's grants",
+						d.Name, pname, ptype, what)
+				}
+			}
+
 		}
 	}
 
 	sort.Strings(problems)
 	sort.Strings(warnings)
 	return Result{Problems: problems, Warnings: warnings, Summary: fmt.Sprintf("%d processor(s)", seen)}
+}
+
+// narrows says what a config entry narrows by table name, or "" when it does
+// not. Only a value this can read is judged: a `semanticLayers` expression that
+// is not a JSON literal is left alone.
+func narrows(ptype string, c map[string]any) string {
+	name := digStr(c, "name")
+	set := digStr(c, "value") != "" || digStr(c, "expression") != "" || digStr(c, "template") != ""
+	switch {
+	case ptype == "query-database" && name == "allowedTables" && set:
+		return "sets allowedTables"
+	case ptype != "llm-completion" && ptype != "stream-llm-completion-message":
+		return ""
+	case name == "semanticLayer.allowedCubes" && set:
+		return "sets semanticLayer.allowedCubes"
+	case name != "semanticLayers":
+		return ""
+	}
+	text := digStr(c, "value")
+	if text == "" {
+		text = digStr(c, "expression")
+	}
+	var layers []map[string]any
+	if json.Unmarshal([]byte(text), &layers) != nil {
+		return ""
+	}
+	var named []string
+	for _, l := range layers {
+		if cubes, ok := l["allowedCubes"].([]any); ok && len(cubes) > 0 {
+			n, _ := l["name"].(string)
+			named = append(named, n)
+		}
+	}
+	if len(named) == 0 {
+		return ""
+	}
+	return "sets allowedCubes on " + strings.Join(named, ", ")
 }
 
 // Tool is one entry exposed to a model as a callable tool.

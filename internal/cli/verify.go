@@ -59,6 +59,12 @@ server-side dry run all pass:
     tell either from a mistake -
     ".agents/skills/asgard-platform/usecase/agent-hub.md" argues for the shape
     each one departs from
+  - every Workflow processor sets the keys it cannot run without, a Workflow
+    with several processors wires them with relationships. A processor that
+    narrows by table name - allowedCubes on a layer it mounts, or
+    allowedTables on query-database - is a warning: the platform matches those
+    against the SQL as strings and can refuse correct queries, so set one only
+    on purpose, and prefer the DataConnector's database user's grants
   - every credential reference reads a key ` + "`.asgard-pipeline.yaml`" + ` declares,
     and every declared key is read by something. Setting a value on the
     platform without declaring the key is stored and never injected -

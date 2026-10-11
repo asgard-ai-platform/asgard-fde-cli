@@ -25,7 +25,10 @@ asgard-kube `0765c58`, whose only rule on a join is the equal length of its two
 asgard-core `internal/processor/domaintools/domaintools.go` (`validateQuery`
 compares the parsed table names with each allowed cube's `sqlTable`) and
 asgard-core `internal/bpcontroller/dataconnector/tablecollect/postgres.go`
-(`FormatPostgresTableName` strips quotes and nothing else).
+(`FormatPostgresTableName` strips quotes and nothing else); `allowedTables`
+against asgard-core `internal/processor/task/query_database.go` and
+asgard-core `internal/bpcontroller/server/bp_controller.go`, which splits the
+value on commas.
 
 **Unchecked:** the modelling guidance - cube granularity, what belongs in `instruction`. Only the customer's database can show whether it holds.
 
@@ -336,15 +339,22 @@ different expectation from one that returns 4.
 
 Set `allowWrite: false` on every binding; the standing architecture is read-only.
 
-Do not set `allowedCubes`, on either path. The platform honours it by parsing
-the SQL the agent writes and holding every table the query names against the
-`sqlTable` of each allowed cube, as the same string: the parser strips quotes
-and adds nothing, so a query that reads an allowed table without the schema its
-`sqlTable` carries - `orders` against `public.orders` - is refused. The check
-refuses correct queries, and the agent cannot tell why.
+Use `allowedCubes` rarely, and only knowing what it does. The platform honours
+it by parsing the SQL the agent writes and holding every table the query names
+against the `sqlTable` of each allowed cube, as the same string: the parser
+strips quotes and adds nothing, so a query that reads an allowed table without
+the schema its `sqlTable` carries - `orders` against `public.orders` - is
+refused. The check refuses correct queries, and the agent cannot tell why. It
+holds up only where every query will name each table exactly as its `sqlTable`
+does.
 
-To limit which tables an agent can read, grant the `DataConnector`'s database
-user only those tables. The database enforces that on every query, whatever SQL
+`query-database`'s `allowedTables` is the same check against a list typed by
+hand, and has one more way to fail: the list is split on commas and nothing is
+trimmed, so in `public.orders, public.items` the second name carries a leading
+space and never matches. The same caution applies.
+
+To limit which tables an agent can read, prefer granting the `DataConnector`'s
+database user only those tables. The database enforces that on every query, whatever SQL
 the agent writes, and it is the one place a restriction cannot be bypassed by
 spelling a table differently. Which layer an agent mounts is the other control.
 
@@ -352,8 +362,11 @@ On the Agent path the field is `Agent.spec.managed.semanticLayers[].allowedCubes
 and `gate` R4 refuses an Agent that sets it, on this repository's standing
 decision that an agent may query any table in its own layer. On the flow-agent
 path, which has no `Agent` CR, it is the `allowedCubes` of an entry in the
-completion processor's `semanticLayers`, which `../wiki/processors.md` owns;
-nothing refuses it there, and the same advice holds. The `SemanticLayer` itself
+completion processor's `semanticLayers`, which `../wiki/processors.md` owns,
+and `gate` W4 warns on it there, along with `semanticLayer.allowedCubes` and
+`query-database`'s `allowedTables`. A warning rather than a refusal: the field
+is legitimate when the table names line up, and the warning is there so that
+it is set on purpose. The `SemanticLayer` itself
 has no such field, so for a layer with no consumer that narrows it, the only
 exposure control is which cubes and dimensions the layer declares - see
 `../usecase/mimir-dashboard.md`. `../wiki/semantic-model.md` weighs this
