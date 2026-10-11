@@ -404,7 +404,14 @@ A processor is scoped to a kind of workflow set. `validate-payload` is
 `automation_tool` only, `push-message` is `bot` and `automation_tool`, and
 everything else is `general`. So `push-message` is the same CRD type reached
 from two different places, which is why the documentation has two pages for it -
-`message-push` and `automation-tool-response`.
+`message-push` and `automation-tool-response`. The two entries are not the
+same node: in an Automation Tool it takes `payload` alone, and requires it; the
+bot entry takes `message`, `template`, `flush` and `payload`. A Trigger's
+workflow set is offered what a bot's is, `general` and `bot`.
+
+Two other differences the palette makes and the table does not show:
+`validate-payload`'s `path` is fixed at `$.prevPayload` and the editor will not
+let an author change it, and `maxTokens` is required on both LLM processors.
 
 `isDebug`, `allowWrite`, `allowedTables` and the `semanticLayer.*` keys are
 set by the platform, not the author. The definitions list `isDebug` as a
@@ -641,9 +648,11 @@ the `ECMA5` engine, `history()` and the removed fault-tolerance setting, against
 asgard-core `478cf5d6` `internal/processor/task/http_request.go`,
 asgard-core `internal/processor/task/execute_script.go`, `internal/models/processor.go`,
 asgard-core `internal/bpcontroller/server/bp_controller.go`, `internal/bpcontroller/eval/value.go`
-and asgard-core `internal/processor/helper/mcp_session.go`.
+and asgard-core `internal/processor/helper/mcp_session.go`. The palette's scopes, per-scope keys, required flags and the fixed
+`validate-payload` path were also read first hand, against asgard-ai-platform-web
+`e59474e7` `src/components/react-flow/workflow/processors.json` and
+`processor-selector.tsx`.
 
-**Unchecked:** the palette is at second hand, from asgard-docs'
-`metadata.json` files; the file they cite, `asgard-ai-platform-web`
-`src/components/react-flow/workflow/processors.json`, is in a repository
-nothing here has a clone of.
+**Unchecked:** how each processor is meant to be used. The palette says what an
+editor offers and the definitions what the runtime reads; neither is a
+statement of intended use, and no source here makes one.

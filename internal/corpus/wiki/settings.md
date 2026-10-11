@@ -139,8 +139,14 @@ Nine providers, matching `DataConnectorClass` exactly:
 MySQL, SAP Hana, SalesForce, Oracle, Microsoft SQL Server, PostgreSQL, NetSuite,
 Trino, Athena.
 
-The form takes Name, Provider, Host, Port, Database, User and Password. Test
-Connection can be run before Save. The form marks nothing as required.
+The form takes Name and Provider; the fields after those - Host, Port,
+Database, User, Password and so on - come from the provider's schema, which the
+Platform API serves, so they differ by provider. Test Connection can be run
+before Save, and stays disabled until the fields that schema requires are
+filled. A provider whose schema carries the SSH tunnel also gets a tunnel
+section - bastion host, port, user, a password or a private key with its
+passphrase, and the host key - which is `spec.sshTunnel` on the
+`DataConnector`; athena, salesforce and netsuite never show it.
 
 In a chart, the non-secret coordinates are declared as `chartValues` and the password as `appSecret`,
 both set on the platform per release. The password is only ever a secretKeyRef, and the Secret's name
@@ -163,16 +169,18 @@ The Type list is grouped by purpose:
 
 | group | options |
 |---|---|
-| syncer | Dropbox, Google Drive, OneDrive |
-| For Loader | Google Drive, OneDrive |
-| For Trigger | Google Drive, Google Sheets, OneDrive, OneDrive Workbook (Excel) |
+| For Syncer | Google Drive, OneDrive, Dropbox |
+| For Trigger | Google Sheets, OneDrive Workbook (Excel), Google Drive, OneDrive |
 
-The same service appears in more than one group, so the services that can
-actually be authorised are Dropbox, Google Drive, OneDrive, Google Sheets and
-OneDrive Workbook - five, not eleven.
+The same service appears in both groups, so the services that can actually be
+authorised are Dropbox, Google Drive, OneDrive, Google Sheets and OneDrive
+Workbook - five. The options themselves come from the Platform API; the Console
+only groups and orders them, and offers no group for the Loader.
 
-The "For Trigger" group is stale: the trigger classes it corresponds to were
-removed and only cron is left. See [`automation.md`](../wiki/automation.md).
+The "For Trigger" group outlived the trigger classes it was named for - only
+cron is left, see [`automation.md`](../wiki/automation.md) - and is kept on
+purpose: a credential made from it is handed to a sandbox as a file through a
+blueprint's `credentialMounts`, which `../usecase/external-api.md` covers.
 
 ## Before writing the chart
 
@@ -210,7 +218,12 @@ asgard-core `internal/constants.go` for the `preset-*` names and the
 `preset-fast` effort guard, and asgard-core `internal/processor/component/model_router_client.go` for
 the model router's URL shape; that an OAuthCredential stays PENDING until a grant writes its Secret against asgard-core `7346d2e5` `internal/bpoperator/reconciler/oac_reconciler.go`; against `asgard-router`'s README;
 against every `CompletionModel` CR in those three deployments held against every
-reference to a model name in the same charts.
+reference to a model name in the same charts. The form fields and the
+Connection Type list against the Console's own source,
+asgard-ai-platform-web `e59474e7`: `src/constants/oauth-provider.ts`
+(`OAUTH_PROVIDER_GROUPS`), `src/constants/trigger.ts`,
+`src/utils/data-source-ssh-tunnel.ts` and
+`settings/data-source/DataSourceForm.tsx`.
 
-**Unchecked:** the UI form fields and the Connection Type list come from the
-product documentation, and nobody here has opened the forms in a Console account.
+**Unchecked:** the provider-specific fields of the model and data source forms,
+which the Platform API serves at run time and no repository here writes down.
