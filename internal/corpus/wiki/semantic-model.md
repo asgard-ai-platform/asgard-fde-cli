@@ -89,9 +89,9 @@ layer, which sits on the binding rather than on the layer. Which binding
 depends on the path, and a reader who knows only one path may conclude no
 narrowing exists: on the Agent path it is the Agent's, and `verify` R4 refuses it there;
 on the flow-agent path it is the `allowedCubes` of an entry in the completion
-processor's `semanticLayers`, which `../wiki/processors.md` owns.
-`../usecase/semantic-layer.md` advises against both, because the check refuses
-correct queries, and points at the database user's grants instead.
+processor's `semanticLayers`, which `../wiki/processors.md` owns, and `verify`
+W4 warns on it there. `../usecase/semantic-layer.md` has why - the check can
+refuse correct queries - and prefers the database user's grants.
 Opening a write path is `../usecase/write-path.md`.
 
 ## Two join failures nothing local catches

@@ -171,10 +171,11 @@ spec:
   A Flow Agent can narrow. Where the layer is mounted on a
   processor rather than on an Agent CR, an entry in the processor's `semanticLayers` takes
   `allowedCubes`, and `query-database` takes `allowedTables`. So "the layer is queryable in
-  full" applies to the Agent path, not to the platform. Do not rely on it: the platform checks
-  `allowedCubes` by matching the table names in the agent's SQL against each cube's `sqlTable`
-  as strings, so a correct query that leaves out the schema is refused. To limit which tables
-  can be read, grant the DataConnector's database user only those. Both default to empty, which means
+  full" applies to the Agent path, not to the platform. Use them rarely: the platform checks
+  them by matching the table names in the agent's SQL against the allowed names as strings,
+  so a correct query that leaves out the schema is refused, and `asgard-cli verify` warns on
+  either (W4) so that it is set on purpose. To limit which tables can be read, prefer
+  granting the DataConnector's database user only those. Both default to empty, which means
   unrestricted, so the widening still happens by default either way.
 - `Agent.managed.semanticLayers[]` needs `allowQuery: true` and (today) `allowWrite: false`.
 

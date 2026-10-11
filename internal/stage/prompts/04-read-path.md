@@ -63,7 +63,8 @@ sensitive tables does not fix it; the shape is the risk.
 
 That is the Agent path, and a public audience is rarely on it. A flow agent
 has no Agent CR, and there the `allowedCubes` of an entry in the completion
-processor's `semanticLayers` does narrow, but it refuses correct queries too;
+processor's `semanticLayers` does narrow, and `asgard-cli verify` warns on it
+there (W4), because it can refuse correct queries;
 `../usecase/semantic-layer.md` says which binding is which, and that the
 database user's grants are what limit the tables. The case for fixed tools is
 the paragraph below: no user input reaches SQL at all.

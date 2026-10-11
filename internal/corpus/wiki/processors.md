@@ -192,15 +192,17 @@ entry writes `allowWrite: false` out, even where it is obviously false.
 
 `allowedCubes` defaults to empty, meaning every cube in the layer. It is the
 field the anonymous-audience argument depends on, and it is not the answer to
-it: it refuses correct queries, and the way to limit which tables an agent can
-read is the database user's grants - `../usecase/semantic-layer.md` has both.
+it: it can refuse correct queries, and the preferred way to limit which tables
+an agent can read is the database user's grants - `../usecase/semantic-layer.md`
+has both.
 The case against mounting a layer for an anonymous audience is that no user
 input should reach SQL at all. `../guide/read-path.md` has that half.
 
 `query-database` carries the same pair and is easier to miss, because the
 name reads as a read tool: `allowWrite` defaults to true there too, and its
 `allowedTables` is the counterpart of `allowedCubes` - both default to empty,
-meaning unrestricted. A scheduled run with a missing `allowWrite` has a write
+meaning unrestricted, both are checked by matching table names as strings, and
+`gate` W4 warns on either on a processor. A scheduled run with a missing `allowWrite` has a write
 path into the customer's systems.
 
 `Toolsets Fault Tolerant` is gone from the platform. A tool that fails is

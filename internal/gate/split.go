@@ -162,7 +162,7 @@ func AgentSplit(docs []Doc, opts Options) Result {
 			}
 
 			if len(digList(layer, "allowedCubes")) > 0 {
-				errf("R4 %s: %s sets allowedCubes, against the standing decision that a bound layer is queryable in full",
+				errf("R4 %s: %s sets allowedCubes, against the standing decision that a bound layer is queryable in full; limit tables with the DataConnector's database user's grants instead",
 					a.Name, name)
 			}
 		}
