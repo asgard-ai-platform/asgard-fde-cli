@@ -63,3 +63,43 @@ func TestW4WarnsOnTableNarrowingOnProcessors(t *testing.T) {
 		})
 	}
 }
+
+// W5 and W6 warn and never fail: validate-payload still runs, and a sql
+// template that reads only our own values is correct.
+func TestW5AndW6Warn(t *testing.T) {
+	q := []map[string]any{
+		{"name": "dataConnector", "value": "dc"},
+		{"name": "resultField", "value": "rows"},
+	}
+	for _, c := range []struct {
+		name   string
+		doc    Doc
+		expect string
+	}{
+		{"a validate-payload node", workflowDoc("validate-payload", map[string]any{"name": "schema", "value": "{}"}), "W5"},
+		{"sql built by a template", workflowDoc("query-database", append(q,
+			map[string]any{"name": "sql", "template": "select * from t where id = '{{prevPayload.id}}'"})...), "W6"},
+		{"sql built by an expression", workflowDoc("query-database", append(q,
+			map[string]any{"name": "sql", "expression": "'select * from t where id = ' + prevPayload.id"})...), "W6"},
+		{"sql as a value with a bound argument", workflowDoc("query-database", append(q,
+			map[string]any{"name": "sql", "value": "select * from t where id = $1"},
+			map[string]any{"name": "sql.args.1.type", "value": "string"},
+			map[string]any{"name": "sql.args.1.value", "expression": "prevPayload.id"})...), ""},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			res := Processors([]Doc{c.doc}, Options{})
+			for _, p := range res.Problems {
+				if strings.HasPrefix(p, "W5") || strings.HasPrefix(p, "W6") {
+					t.Errorf("failed the render; it is a warning:\n%s", p)
+				}
+			}
+			got := strings.Join(res.Warnings, "\n")
+			if c.expect == "" && (strings.Contains(got, "W5") || strings.Contains(got, "W6")) {
+				t.Errorf("warned on correct material:\n%s", got)
+			}
+			if c.expect != "" && !strings.Contains(got, c.expect) {
+				t.Errorf("want %s in:\n%s", c.expect, got)
+			}
+		})
+	}
+}

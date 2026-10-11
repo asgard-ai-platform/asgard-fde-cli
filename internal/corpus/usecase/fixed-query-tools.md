@@ -161,10 +161,12 @@ injection surface is zero.
 The entry provides that, not the field. `sql` is a config like every
 other, so it takes a `value`, an `expression` or a `template` - string-building
 a query out of the payload is possible, and it is the hole this shape
-closes. Where a query genuinely needs a parameter, it is
-`sql.args.<n>.type` and `sql.args.<n>.value` rather than interpolation -
-`../wiki/processors.md` has the numbering, which starts at 1 and stops at the
-first gap.
+closes. Where a query genuinely needs a parameter, it is bound with
+`sql.args.<n>.type` and `sql.args.<n>.value`, never written into the SQL text -
+"Parameterised SQL in `query-database`" in `../wiki/processors.md` has the
+numbering, each database's placeholder and an example. Binding removes
+injection and leaves exposure: a public caller still chooses which rows a
+parameter selects, which is why this shape takes none.
 
 A query that wants a keyword filter gets rewritten to aggregate instead. One that
 filtered with `ILIKE '%keyword%'` became a `string_agg` returning one row per
