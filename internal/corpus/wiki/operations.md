@@ -226,12 +226,18 @@ Environment id reaching a chart against
 a production deployment's `.asgard-pipeline.yaml` and its Workflow labels;
 `sshTunnel`, the classes that take it and the three that refuse it against
 asgard-kube `42e8722` `crd/asgard-ai.com_dataconnectors.yaml` and against
-asgard-core `001bbf69` `internal/bpcontroller/dataconnector/`.
+asgard-core `001bbf69` `internal/bpcontroller/dataconnector/`. That the
+platform's outbound traffic leaves through the VPC's NAT gateways, from
+private-subnet nodes only, against tf-asgard `f81e7de4` `aws/prod/network.tf`,
+`aws/dev/network.tf` and the `subnet_ids` of `aws/prod/eks.tf`; that the SSH
+connection is dialled directly from the bpcontroller, with no proxy, against
+asgard-core `ed72bce2`
+asgard-core `internal/bpcontroller/dataconnector/sshtunnel/sshtunnel.go`; and that
+`sshTunnel` first ships in asgard-core release `1.16.157`, which that
+repository's `.github/workflows/main.yml` deploys to production.
 
-**Unchecked:** the addresses are the documentation's, and the egress
-configuration behind them is in none of the repositories here. That Asgard
-always needs the customer to open the path inward is the FDE team's account of
-every engagement so far and no document states it. That the SSH connection
-to a bastion leaves from the same four addresses, and that production runs an
-asgard-core release carrying `sshTunnel`, is per the platform team; no
-repository here states either.
+**Unchecked:** the four addresses themselves are the documentation's: the NAT
+gateways' addresses are allocated when they are created rather than written in
+tf-asgard, so which of the four belong to production is not in any repository.
+That Asgard always needs the customer to open the path inward is the FDE team's
+account of every engagement so far and no document states it.

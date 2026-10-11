@@ -98,7 +98,7 @@ where it writes and what its cursor follows:
 
     sourceSetName            which store it fills
     destinationPath          the path inside that store
-    statePath                where it keeps its cursor
+    statePath                where it leaves a record of its last run
     bot.botProviderName      the bot it reads; its cursor is a createdAt,
                              which a different provider would inherit
     database.columns         the projection it reads
@@ -114,12 +114,13 @@ and deletes what the old one left behind, and their state records only when
 the sync ran, so no cursor carries over.
 
 So "sync from this folder instead" is an edit, and "write somewhere else" is a
-new Syncer and a deleted one. The cursor does not come with it, so the
-replacement re-reads from the beginning unless `statePath` is handed over
-deliberately. `../usecase/knowledge-drive.md` is where that costs something,
-because a database Syncer is the one that keeps a cursor; a git Syncer
-declares no `statePath` at all and re-clones every run, which
-`../usecase/skill-set.md` says at the field.
+new Syncer and a deleted one. The cursor does not come with it: a database or
+bot Syncer keeps its cursor in its own status, not in the volume, so the
+replacement starts with none and re-reads from the beginning, and handing
+`statePath` over does not change that. `../usecase/knowledge-drive.md` is where
+that costs something, because the database Syncer is the one there. A git
+Syncer follows a revision rather than a cursor, which `../usecase/skill-set.md`
+says at the field.
 
 The Loader keeps the rule on its source, unlike the Syncer. `knowledgeBaseName`
 is immutable, so a Loader cannot be pointed at a different knowledge base,
@@ -136,7 +137,11 @@ at two paths. The mirror sync and the state that holds no cursor, which are
 why the file-store Syncer fields were made editable, against
 asgard-syncer `8d278689` `internal/utils/rclone.go` (`buildRcloneSyncArgs`
 runs `rclone sync --delete-after`) and the six class files beside it in
-asgard-syncer `internal/syncer/`, each of which writes only `syncedAt` as its state. The evaluation-time rule was checked against
+asgard-syncer `internal/syncer/`, each of which writes only `syncedAt` as its state.
+That the cursor lives in the Syncer's status and `statePath` is only written,
+never read back, against asgard-syncer `8d278689` `internal/service/syncer.go`
+(`LoadSyncState`, `SaveSyncState`, `WriteStateMember`) and its two callers,
+asgard-syncer `internal/syncer/database.go` and `internal/syncer/bot.go`. The evaluation-time rule was checked against
 asgard-core `478cf5d6` `internal/bpcontroller/server/sandbox_orchestration.go`.
 
 The rest are two families, and `asgard-cli verify` checks both:
@@ -186,7 +191,8 @@ controller at evaluation time, which fails the run with
 
 That is a different failure from every other rule on this page:
 
-    a CEL rule          the apiserver refuses the CR. You find out at deploy
+    a CEL rule          the apiserver refuses the CR. You find out at the
+                        plan, before anything is written
     this one            the CR is accepted, and the run fails when it is used
 
 So a blueprint carrying both, or neither, deploys green and breaks the first
@@ -205,6 +211,12 @@ blueprint to be read by hand.
   field they concern, `../usecase/write-path.md` and
   `../usecase/fixed-query-tools.md`, which took it from a deployment. The two
   plan-report codes are the platform's own
+- That the plan's dry run reaches CEL: asgard-iac `af5320aa`
+  asgard-iac `internal/helm/dryrun.go` (`DryRunServer` sends every object as a
+  server-side-apply patch with `dryRun=All` and `fieldValidation=Strict`, and
+  records each refusal verbatim as `crd/dry-run-rejected`) and
+  asgard-iac `internal/runner/transition.go` (`Decide`: an error-level finding ends the run
+  `plan_failed`, with Review and Apply skipped)
 
-**Unchecked:** what a CEL refusal looks like in CD, which needs an apiserver
-that has refused one.
+**Unchecked:** the wording of a CEL refusal as the plan shows it, which needs an
+apiserver that has refused one.

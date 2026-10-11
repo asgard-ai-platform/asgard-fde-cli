@@ -15,6 +15,11 @@ against asgard-kube `cbd8d70` for the `web` class block - its
 two required fields and the exactly-one-of over `urls` and `siteMapUrl` - and
 against that deployment's own web Syncer, which is the second of the two.
 How `contextIndex.prompt` reaches the indexer against asgard-core `478cf5d6` `internal/bpoperator/reconciler/ss_context_index_prompt.go`.
+That the database Syncer keeps its cursor in its status and only writes
+`statePath`, against asgard-syncer `8d278689` `internal/service/syncer.go`
+(`LoadSyncState`, `WriteStateMember`) and asgard-syncer `internal/syncer/database.go`;
+that the web Syncer deletes nothing against asgard-syncer `internal/syncer/web.go`
+(`writePageFile`) at the same commit.
 `contextIndex.includePaths` - its path rules, and that narrowing keeps what a
 wider index built - against asgard-kube `3f9f6c8` `pkg/apis/asgard/v1alpha1/types.go`.
 
@@ -121,7 +126,8 @@ spec:
   # Relative path inside the volume: no leading /, no . or .. segment, no //.
   # Must end with /, for every syncer class.
   destinationPath: "catalog/"
-  # Where the incremental cursor is kept. Must NOT end with /.
+  # A record of the last run, written and never read back; the cursor is in
+  # the Syncer's status. Must NOT end with /.
   statePath: ".syncer-state/<name>-catalog"
   syncerClass: database
   schedule: {{ .Values.<name>Knowledge.catalogSync.schedule | quote }}
@@ -283,7 +289,8 @@ writes nothing. Write these two consequences into the CR header:
 - an updated row leaves its old copy in an older partition, so the index prompt
   has to say newest-partition-wins per key
 - a soft-deleted row never disappears from old partitions. A full rebuild means
-  deleting the partitions and clearing the sync state
+  deleting the partitions and clearing the sync state, which is in the
+  Syncer's status, so a replacement Syncer starts without it
 
 `spec.database.columns` is immutable. Changing the projection means a new
 Syncer, not an edit.
@@ -293,7 +300,10 @@ deep crawl. What the agent can see should be reviewable, and `siteMapUrl` -
 the other half of the CRD's exactly-one-of with `urls` - hands that decision
 to whoever maintains the site. When more pages are wanted, add them to the
 values list or stand up a second Syncer in sitemap mode; do not raise
-`maxDepth` on the one holding the reviewed list.
+`maxDepth` on the one holding the reviewed list. Taking a page off the list does
+not take it out of the Drive: the web Syncer writes each page it crawls and
+deletes nothing, so a dropped page stays indexed until somebody deletes its
+file.
 
 `contextIndex.prompt` is appended to the platform's own indexing
 instructions, so only domain knowledge belongs there.

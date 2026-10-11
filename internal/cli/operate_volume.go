@@ -37,15 +37,16 @@ type volumeKind struct {
 var (
 	sourceSetFiles = volumeKind{
 		Kind: "SourceSet", Use: "source-set", volume: platform.SourceSetVolume, Perm: "source-set/put",
-		Overwritten: `A Syncer owns its destinationPath. A git Syncer empties it before every copy,
-and the file-store classes mirror their source, so a file put under a Syncer's
-destination is gone after its next run. Put files a person hands over in a
-folder no Syncer writes.`,
+		Overwritten: `A Syncer owns its destinationPath. A git Syncer removes every file its revision
+does not carry, and the file-store classes mirror their source, so a file put
+under either's destination is gone after its next run; the database, bot and
+web classes delete nothing. Put files a person hands over in a folder no Syncer
+writes.`,
 	}
 	skillSetFiles = volumeKind{
 		Kind: "SkillSet", Use: "skill-set", volume: platform.SkillSetVolume, Perm: "skill-set/put",
-		Overwritten: `A SkillSet filled by a Syncer has its whole tree rebuilt on every run, so a file
-written here by hand lasts until the next sync. Change the repository the
+		Overwritten: `A SkillSet filled by a Syncer is brought back to the repository's revision on
+every run, so a file written here by hand lasts until the next sync. Change the repository the
 Syncer reads instead; this is for looking, and for a fix that cannot wait.`,
 	}
 )

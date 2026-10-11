@@ -115,21 +115,30 @@ reader gets whichever finished last.
 Do not rename it: the service writing into it holds the SourceSet name in its own configuration,
 so renaming the CR silently breaks every route that writes to it.
 
+The mechanism: a Syncer runs as a CronJob of a separate `asgard-syncer` image
+with the SourceSet's whole volume mounted (asgard-core `478cf5d6`
+asgard-core `internal/bpoperator/reconciler/syn_reconciler.go`), and what happens to a file
+somebody else writes under its `destinationPath` depends on the class:
+
+    git                         removed on the next run; it checks the
+                                revision out in place and runs `git clean
+                                -ffdx`. A file the repository's .gitignore
+                                matches survives until the remote moves
+    googleDrive, oneDrive,      removed on the next run; `rclone sync
+    dropbox, ftp, sftp, smb     --delete-after` mirrors the source
+    database, bot, web          kept; they add files and delete none
+
+So a synced store is the source's, not a place to write, for the first two
+groups. Every class also writes `statePath` when one is set, the one file it
+writes outside `destinationPath`.
+
 **Checked:** against a production deployment's
 `source_set/brand_skills.yaml`, whose own comment forbids reusing the
 Syncer-backed SourceSet and cites that deployment's own service requirement for
-it.
-
-**Unchecked:** the mechanism. A Syncer runs as a CronJob of a separate
-`asgard-syncer` image with the SourceSet's whole volume mounted
-(asgard-core `478cf5d6` `internal/bpoperator/reconciler/syn_reconciler.go`), and that image's source is
-in neither asgard-kube nor asgard-core. For a git Syncer the answer is known: it
-empties its destinationPath before every copy (`../wiki/knowledge.md` cites
-asgard-syncer for it), so a file it did not write there is gone after its next
-run. For the other classes one deployment's chart comment is the whole of the
-evidence. Treat it as a constraint that deployment hit rather than a documented
-platform rule, and if a customer's design depends on writing into a synced
-store, ask the platform team rather than this page.
+it. The class table against asgard-syncer `8d278689`
+asgard-syncer `internal/syncer/git.go` (`syncIncremental`, `worktreeDirty`, `materialize`), `internal/utils/rclone.go`
+(`buildRcloneSyncArgs`), and asgard-syncer `internal/syncer/database.go`, `bot.go` and
+`web.go`.
 
 ### The one place a shared store is right
 
@@ -305,8 +314,10 @@ platform cascades on when a SkillSet is deleted.
 the CRD enforces the shape: no leading `/`, no `.` or `..` segments, no `//`.
 `destinationPath` must end with `/`; `statePath` must not.
 
-Do not set `statePath` on a git Syncer. It clones the whole tree every run; the
-incremental cursor belongs to a database syncer's `isMaxValueColumn`.
+A git Syncer needs no `statePath`. It follows `revision`, and what it writes
+there - the revision and the commit it checked out - is a record nothing reads
+back; the incremental cursor belongs to a database syncer's
+`isMaxValueColumn`, and it lives in the Syncer's status.
 
 `revision` decides what a private repo syncs:
 

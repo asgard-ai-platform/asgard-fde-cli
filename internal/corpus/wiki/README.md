@@ -88,6 +88,10 @@ wherever; what goes into a page is the repository and the commit.
 | runtime and processor definitions | https://github.com/asgard-ai-platform/asgard-core (private) |
 | the JavaScript SDK | https://github.com/asgard-ai-platform/asgard-js-sdk |
 | the Syncer runtime, what each `syncerClass` does when it runs | https://github.com/asgard-ai-platform/asgard-syncer (private) |
+| the pipeline runner: plan, review, Apply, and the Syncers a rollout fires | https://github.com/asgard-ai-platform/asgard-iac (private) |
+| the Console's back end | https://github.com/asgard-ai-platform/asgard-platform-api (private) |
+| projects, and the display annotations a CR carries | https://github.com/asgard-ai-platform/asgard-workflow-service (private) |
+| the cluster's network, egress and logging | https://github.com/asgard-ai-platform/tf-asgard (private) |
 | the platform's own deployments, read as examples | https://github.com/asgard-ai-platform/asgard-auto-post-kube and https://github.com/asgard-ai-platform/asgard-industry-demo-generator |
 
 None of them lives in this repository, and each citation names the commit it

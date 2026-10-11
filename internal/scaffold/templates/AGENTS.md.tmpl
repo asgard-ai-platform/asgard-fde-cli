@@ -1076,9 +1076,9 @@ one `docs/decisions/YYYY-MM-DD-<topic>.md` for each decision that got settled.
 - A failed `helm upgrade` can leave the namespace partially applied. The previous revision
   stays `deployed`, so the next upgrade proceeds without a rollback — but do not assume "the deploy
   failed" means "nothing changed".
-- A resource the platform created cannot be taken over by helm without a one-time adoption.
-  Helm refuses with `invalid ownership metadata` unless the live object already carries
-  `app.kubernetes.io/managed-by: Helm`.
+- An object helm does not own - one the platform or another release created first - is
+  refused at the plan, as a dry-run rejection naming the release that owns it. The pipeline
+  has no step that adopts it; ask the platform team.
 - `Toolset.tools[]` require `requestConsent` (bool); `Agent.managed.prompt` requires all of
   `persona`/`task`/`context`/`format`, and `managed.aliasName` + `managed.description` are required.
 - Render with `asgard-cli render` before committing template changes; there is no app to run.

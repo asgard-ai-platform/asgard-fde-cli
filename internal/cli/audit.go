@@ -1364,7 +1364,8 @@ var ourFiles = regexp.MustCompile(`(?:^|[^A-Za-z0-9_./-])((?:hack|internal|cmd|p
 // to tell provenance from a dead pointer.
 var knownRepos = []string{
 	"asgard-fde-cli", "asgard-core", "asgard-kube", "asgard-docs", "asgard-syncer",
-	"asgard-ai-platform", "workflow-service",
+	"asgard-ai-platform", "workflow-service", "asgard-iac", "asgard-platform-api",
+	"tf-asgard",
 }
 
 // checkPaths reports a landed document naming a file only this repository has,

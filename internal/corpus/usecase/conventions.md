@@ -9,7 +9,9 @@ of, and who each piece is for. The wiki describes the platform; this page
 describes how a chart for it is written.
 
 **Checked:** every naming prefix in the table below and the
-`templates/<kind>/` layout, against the deployments they came from.
+`templates/<kind>/` layout, against the deployments they came from. The display
+annotations against their authority, asgard-workflow-service `7e0c9db2`
+asgard-workflow-service `internal/shared.go` (the `Annotation...Name` constants).
 
 The platform claims below - the minted `preset-agent-hub` Secret, the
 `asgard-ai.com/product` codes and who stamps each, the workload Role's Secret
@@ -25,9 +27,7 @@ asgard-core `internal/constants.go`, asgard-core
 `ToolsetSpec.apiKey`.
 
 **Unchecked:** the layout beyond `templates/<kind>/`, the chain suffixes and the
-rest of the house style have no external source to check against. The list of
-display annotations is held against `asgard-cli verify`, not against its
-authority, workflow-service `internal/shared.go`, which no clone here has.
+rest of the house style have no external source to check against.
 
 Where every CR goes, what it is called, and what all of them need.
 Read this once; the shape extracts assume it.
@@ -150,7 +150,10 @@ enforced: `agent-name`, `semantic-layer-name`, `data-connector-name`,
 `workflow-name`, `trigger-name`, `bot-provider-name`,
 `sandbox-blueprint-name`, `knowledge-base-name`, `loader-name`,
 `completion-model-name` and `plugin-name`. Several kinds also take a
-`-description`.
+`-description`. The platform's list also has `embedding-model-name`,
+`oauth-credential-name` and `source-name`, which `asgard-cli verify` does not
+enforce, so a chart that declares an `EmbeddingModel` or an `OAuthCredential`
+writes its annotation by hand.
 
 The one exemption is a SkillSet a Plugin bundles, which is not presented in
 the UI at all and so has no name to be missing - `../usecase/plugin.md` is the
@@ -186,8 +189,8 @@ back empty. Such a grep once made the label look retired. It is current, and
 removing it leaves a gap in the audit trail that nothing reports.
 
 `asgard-cli verify` enforces the display annotations. The authority for every
-platform key is the workflow-service source, `internal/shared.go` - read it
-rather than inferring a convention from another chart. Anything not on the
+platform key is asgard-workflow-service `internal/shared.go` - read it rather
+than inferring a convention from another chart. Anything not on the
 checker's list is invisible to every check, so a new UI label needs a check
 added as well as the line written.
 
