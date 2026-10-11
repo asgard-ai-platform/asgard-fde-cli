@@ -75,6 +75,9 @@ Then the step that cannot be run here. Push, and read the plan back:
      accepted", `crd/unknown-field` is "will it be kept". A field the CRD does
      not declare passes a plain dry run and breaks the deploy, because CRDs
      prune what they do not declare while helm's server-side apply refuses it.
+     A refusal names the CR and carries the apiserver's own message, and the
+     run ends `plan_failed` at Render & Dry-run with Review and Apply skipped,
+     so nothing is written.
 
      If the run was never created, the push matched nothing - no pattern
      matched, or the release was never created on the platform.
@@ -102,10 +105,13 @@ and after it new capability is added with the loop in `../guide/enhance.md`.
 `asgard-cli gate --help` lists them; each names the command that runs it alone
 and each of those exists. The scaffold ships no dry-run or fidelity script. The
 claim that a dry-run reports success while dropping an undeclared field is the CRD's
-documented pruning behaviour.
+documented pruning behaviour. The plan's half against a run on the platform's dev
+cluster, 2026-10-11, for a release of the platform's own demo repository carrying
+one Toolset that broke a CEL rule: `watch` printed the steps, the
+`crd/dry-run-rejected` finding naming the Toolset with the apiserver's message,
+the variables, the per-CR changes, and the dry run's count of rejected resources
+and undeclared fields; the run ended `plan_failed`, Review and Apply skipped.
 
-**Unchecked:** what the platform's half reports - the plan's verdicts - needs a
-signed-in session against a live platform, and this page has not been held
-against one. Also unchecked: that the local steps and the plan together are the
+**Unchecked:** that the local steps and the plan together are the
 whole gate; a deploy that fails for a reason neither looks at is what would show
 otherwise.
