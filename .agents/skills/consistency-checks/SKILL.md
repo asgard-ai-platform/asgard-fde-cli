@@ -103,6 +103,7 @@ gives what each one cannot catch, which the tool does not print.
 | `coverage` | whether the pages behind the numbers say anything true. It counts them. `--drift` names the pages that have moved and never says what changed in one |
 | `processors` | what a key means. The definitions say whether a processor takes dynamic config; that an extra key on `http-request` is an HTTP header is in the loop that reads it, and no table upstream states it |
 | `counts` | a count of something nobody upstream counts. It recomputes the screenshot arithmetic off the asgard-docs tree, and a number invented here has nothing to be held against |
+| `spec-key-gap` | whether a field `add` writes is written well. It compares field sets against the CRDs, so a field emitted with the wrong value counts as covered |
 | `pass-list` | whether any check passed. It holds that every check says what it needs and that the maintenance skill does not leak into a scaffolded tree, and a verdict is not in its reach |
 | `goal` | whether the material is any good. It asks whether the capability is there - the corpus lands, a grep finds things, a chart gets written, the issue route is printed - never whether what landed is right |
 | `sources` | whether a page is still true. It reports how far each clone is behind its remote - never what changed or whether it matters |

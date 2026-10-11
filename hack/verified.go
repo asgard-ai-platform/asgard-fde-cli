@@ -85,6 +85,7 @@ var reads = map[string][]inputClass{
 	"goal":         {classCorpus, classGo, classDocs},
 	"aliases":      {classCorpus, classGo},
 	"write-path":   {classCorpus, classGo},
+	"spec-key-gap": {classCorpus, classGo, classKube},
 	"coverage":     {classCorpus, classGo, classDocsUp},
 	"counts":       {classCorpus, classGo, classDocsUp},
 	"tables":       {classCorpus, classGo, classDocs, classKube},

@@ -14,8 +14,10 @@ The corpus is over 100,000 words as `asgard-cli init` lands it; `go run ./hack
 goal` fails if the landed corpus falls below that.
 
 The chart half is the least finished of Goal's four points: `add` writes a
-starting point, and the rest of what a production chart sets is shown in
+starting point, and much of the rest of what the CRDs accept is shown in
 commented skeletons, because those values are the engagement's to choose.
+`go run ./hack spec-key-gap` measures it against the CRDs, and fails if that
+stops being true.
 
 ## The corpus
 
