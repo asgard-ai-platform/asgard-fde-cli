@@ -430,9 +430,9 @@ func (x *xref) checkSkillSet(d Doc) {
 	}
 
 	// A searchPath outside every Syncer destination resolves to zero skills,
-	// silently. (The other silent failure - listing a parent directory when the
-	// platform reads one searchPath as one skill directory - cannot be seen
-	// from the CR at all.)
+	// silently. (Which skills a path inside one loads - the sandbox walks it
+	// recursively for SKILL.md - depends on what the sync wrote, and cannot be
+	// seen from the CR at all.)
 	dests := x.syncerDestsBySourceSet[ref]
 	for _, path := range strList(d.Spec["searchPaths"]) {
 		if len(dests) == 0 {

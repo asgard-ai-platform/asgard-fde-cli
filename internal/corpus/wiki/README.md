@@ -93,6 +93,7 @@ wherever; what goes into a page is the repository and the commit.
 | the Console's back end | https://github.com/asgard-ai-platform/asgard-platform-api (private) |
 | projects, and the display annotations a CR carries | https://github.com/asgard-ai-platform/asgard-workflow-service (private) |
 | Agent Hub (Sindri): Routines, and the service that runs them | https://github.com/asgard-ai-platform/asgard-agent-hub and https://github.com/asgard-ai-platform/asgard-agent-hub-api (private) |
+| the sandbox runtime: how a SkillSet's skills are found | https://github.com/asgard-ai-platform/asgard-agent-sandbox (private) |
 | Agent Hub's front end | https://github.com/asgard-ai-platform/asgard-ai-agent-hub-web (private) |
 | the admission webhook in front of the apiserver | https://github.com/asgard-ai-platform/asgard-kube-admission (private) |
 | the cluster's network, egress and logging | https://github.com/asgard-ai-platform/tf-asgard (private) |

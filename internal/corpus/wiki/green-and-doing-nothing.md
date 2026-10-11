@@ -25,7 +25,8 @@ in more ways than these.
 | a value is set on the platform and the CR behaves as if it were empty | the key is declared under no release, so it is stored and never injected | `../usecase/write-path.md` |
 | a capability that was working stops, with no change to it | the variable it read is still declared and set, and the thing that read it was replaced | this page, below |
 | an agent has no skills at all | the Syncer is suspended and has no `asgard-ai.com/auto-fire-on-rollout` label, so nothing ever runs it | `../usecase/skill-set.md` |
-| an agent has fewer skills than it should | a `searchPaths` entry names a parent directory, which resolves to nothing | `../usecase/skill-set.md` |
+| an agent has fewer skills than it should | a `searchPaths` entry names a directory the sync never wrote - a typo, or a path from before the repository moved - which loads nothing | `../usecase/skill-set.md` |
+| an agent has more skills than it should | a `searchPaths` entry names a parent directory, and every `SKILL.md` under it loads, including one nested inside another skill | `../usecase/skill-set.md` |
 | the very first message on a new channel is never answered, and every message after it is | the entry routes into `listen-message` before anything replies, and reaching a `listen-message` ends the request | `../usecase/flow-agent-supervisor.md` |
 
 ## Why the toolchain does not catch these

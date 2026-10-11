@@ -11,8 +11,10 @@ Before adding a row, look in the source: the CRDs and Go types in asgard-kube,
 the runtime in asgard-core, the product documentation in asgard-docs, the
 Console in asgard-ai-platform-web and its back end in asgard-platform-api,
 projects and display annotations in asgard-workflow-service, the
-pipeline runner in asgard-iac, the Syncer runtime in asgard-syncer, and the
-cluster's network and logging in tf-asgard. Most questions about how the
+pipeline runner in asgard-iac, the Syncer runtime in asgard-syncer, the
+sandbox runtime in asgard-agent-sandbox, Agent Hub in asgard-agent-hub,
+asgard-agent-hub-api and asgard-ai-agent-hub-web, and the cluster's network and
+logging in tf-asgard. Most questions about how the
 platform behaves are answered there. A row belongs here
 only when the thing exists and none of them says how it behaves; then ask the
 platform team, before the meeting rather than in it, and do not assume an
@@ -26,9 +28,8 @@ it was read from, and delete the row.
 and asgard-docs `56feb925`; every question those repositories answer is on
 the page it concerns.
 
-**Unchecked:** the platform's services that are not in that list - the agent
-sandbox runtime, Agent Hub's own back end - so a question about them may still
-belong here.
+**Unchecked:** a platform service that is in none of the repositories above,
+so a question about one may still belong here.
 
 ## The list
 

@@ -616,9 +616,9 @@ Three conventions, and what each one breaks:
 
 | convention | why |
 |---|---|
-| the SourceSet's only member is `git/`, trailing slash included | the reconciler keys directory- vs file-member behaviour off that slash — without it the whole clone is treated as a single file |
+| the Syncer's `destinationPath` is `git/`, trailing slash included | the CRD rejects a `destinationPath` without one, for every syncer class |
 | `asgard-ai.com/managed-by: skill-set` on the SourceSet and the Syncer | it hides the Syncer from the generic list, and it is what the platform cascades on when a SkillSet is deleted |
-| a `searchPath` is one skill directory | one searchPath resolves to one skill; naming a parent directory silently resolves to nothing. `git/skills/pdf/`, not `git/skills/` |
+| one `searchPath` per skill directory | each path is searched recursively for `SKILL.md`, so `git/skills/` loads every skill in the repository, including ones added later; `git/skills/pdf/` loads one, and keeps the set explicit |
 
 ## Display Annotations
 
