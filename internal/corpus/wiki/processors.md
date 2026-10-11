@@ -164,39 +164,44 @@ the chart says.
 
 ## Where `allowedCubes` and `allowWrite` actually live
 
-Both LLM processors carry the semantic layer configuration, and the warnings in
-the extracts refer to these fields:
+Both LLM processors mount semantic layers through one config key,
+`semanticLayers`: a JSON array with one entry per layer, written as an
+`expression` or a `value`.
 
-    Semantic Layer                a layer this processor may use
-    Semantic Layer Allow Query
-    Semantic Layer Allow Write
-    Semantic Layer Allowed Cubes
+    - name: semanticLayers
+      expression: '[{"name": "sl-<name>", "allowQuery": true, "allowWrite": false}]'
 
-`Allowed Cubes` is the field the anonymous-audience argument depends on, and it
-is easy to misread. It is a key here, so on the flow-agent path a layer can be
-narrowed. It does not narrow anything by default: it defaults to empty, meaning
-unrestricted, so a processor configured by adding only what you want composes
-SQL over every cube, and the surface grows each time a cube is added.
+Each entry carries `name`, `allowQuery`, `allowWrite` and, optionally,
+`allowedCubes` as a list of cube names. The Console's editor writes this
+shape, and so does `asgard-cli add`.
+
+The older keys - `semanticLayer`, `semanticLayer.allowQuery`,
+`semanticLayer.allowWrite` and `semanticLayer.allowedCubes` as a comma-separated
+string - mount one layer and are deprecated. The runtime still reads them,
+adding that layer after the array's entries, and the platform carries a job
+that rewrites a Workflow using them into `semanticLayers` and deletes the old
+keys, so a chart that writes them can find its Workflow changed under helm.
+Write `semanticLayers`.
+
+The safe field defaults off and the dangerous one defaults on. An entry without
+`allowQuery` cannot query, and its `allowWrite` is then forced off too; an
+entry with `allowQuery: true` and no `allowWrite` can write. So an entry
+configured by adding only what you want - the layer, and permission to query
+it - has a write path, and the rendered chart shows nothing. That is why every
+entry writes `allowWrite: false` out, even where it is obviously false.
+
+`allowedCubes` defaults to empty, meaning every cube in the layer. It is the
+field the anonymous-audience argument depends on, and it is not the answer to
+it: it refuses correct queries, and the way to limit which tables an agent can
+read is the database user's grants - `../usecase/semantic-layer.md` has both.
 The case against mounting a layer for an anonymous audience is that no user
-input should reach SQL at all, not that there is nothing to narrow with.
-`../guide/read-path.md` has both halves.
-
-The safe field defaults off and the dangerous one defaults on. In the
-definitions, `semanticLayer.allowQuery` defaults to false and
-`semanticLayer.allowWrite` defaults to true, on both LLM processors. So a
-processor configured by adding only what you want has a write path, and the
-rendered chart shows nothing. That is why every deployment writes
-`allowWrite: false` out on every entry that has a layer, even where it is
-obviously false.
+input should reach SQL at all. `../guide/read-path.md` has that half.
 
 `query-database` carries the same pair and is easier to miss, because the
 name reads as a read tool: `allowWrite` defaults to true there too, and its
 `allowedTables` is the counterpart of `allowedCubes` - both default to empty,
 meaning unrestricted. A scheduled run with a missing `allowWrite` has a write
 path into the customer's systems.
-
-The chart keys are `semanticLayer.allowQuery`, `semanticLayer.allowWrite` and
-`semanticLayer.allowedCubes`, not the spaced labels the builder shows.
 
 `Toolsets Fault Tolerant` is gone from the platform. A tool that fails is
 always handed back to the model as an error result, and the model decides what
@@ -413,12 +418,13 @@ Two other differences the palette makes and the table does not show:
 `validate-payload`'s `path` is fixed at `$.prevPayload` and the editor will not
 let an author change it, and `maxTokens` is required on both LLM processors.
 
-`isDebug`, `allowWrite`, `allowedTables` and the `semanticLayer.*` keys are
-set by the platform, not the author. The definitions list `isDebug` as a
-required key with a default of false, which reads as something to write out; the
-palette says the platform sets it. The same holds for the per-layer permissions
-- see "Where `allowedCubes` and `allowWrite` actually live" above, which the
-palette confirms.
+`isDebug`, `allowWrite` and `allowedTables` are set by the platform, not the
+author. The definitions list `isDebug` as a required key with a default of
+false, which reads as something to write out; the palette says the platform
+sets it. The `semanticLayer.*` keys in the platform column are the deprecated
+single-layer form, which the editor never writes; an author sets a layer's
+permissions inside `semanticLayers` - see "Where `allowedCubes` and
+`allowWrite` actually live" above.
 
 The definitions under-report Failure branches, and the palette agrees with
 the documentation against them: `execute-script`, `http-request`,
@@ -648,7 +654,12 @@ the `ECMA5` engine, `history()` and the removed fault-tolerance setting, against
 asgard-core `478cf5d6` `internal/processor/task/http_request.go`,
 asgard-core `internal/processor/task/execute_script.go`, `internal/models/processor.go`,
 asgard-core `internal/bpcontroller/server/bp_controller.go`, `internal/bpcontroller/eval/value.go`
-and asgard-core `internal/processor/helper/mcp_session.go`. The palette's scopes, per-scope keys, required flags and the fixed
+and asgard-core `internal/processor/helper/mcp_session.go`. The `semanticLayers`
+array, its defaults and the deprecated keys against asgard-core `ed72bce2`:
+asgard-core `internal/models/processor.go` (`SemanticLayerRef`),
+asgard-core `internal/bpcontroller/server/bp_controller.go` (`resolveSemanticLayerRefs`
+and the single-layer fallback after it) and
+asgard-core `internal/jobrunner/job/backfill_sl_config_job.go`. The palette's scopes, per-scope keys, required flags and the fixed
 `validate-payload` path were also read first hand, against asgard-ai-platform-web
 `e59474e7` `src/components/react-flow/workflow/processors.json` and
 `processor-selector.tsx`.

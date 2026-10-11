@@ -121,7 +121,8 @@ No `allowedCubes` on the binding. The platform honours it, but this
 repository's standing decision is that an agent may query any table in its own
 layer, and the restriction is which layer it mounts rather than which cubes
 within it. `gate` R4 refuses an Agent that sets it. A public audience, which is the
-audience that would want it, gets fixed query tools instead of a layer.
+audience that would want it, gets fixed query tools instead of a layer, and
+which tables a layer can reach is set by the database user's grants.
 See `../usecase/semantic-layer.md`.
 
 Zero layers is legal when the agent's capability comes from toolsets instead.

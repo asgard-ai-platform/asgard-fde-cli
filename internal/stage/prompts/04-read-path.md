@@ -62,11 +62,11 @@ surface look bounded while the layer underneath keeps growing. Excluding the
 sensitive tables does not fix it; the shape is the risk.
 
 That is the Agent path, and a public audience is rarely on it. A flow agent
-has no Agent CR, and there `semanticLayer.allowedCubes` on the completion
-processor does narrow - `../usecase/semantic-layer.md` says which binding is
-which. The case for fixed tools is the paragraph below: no user input reaches
-SQL at all. A processor's
-allowlist grows with the layer under it the same way.
+has no Agent CR, and there the `allowedCubes` of an entry in the completion
+processor's `semanticLayers` does narrow, but it refuses correct queries too;
+`../usecase/semantic-layer.md` says which binding is which, and that the
+database user's grants are what limit the tables. The case for fixed tools is
+the paragraph below: no user input reaches SQL at all.
 
 With fixed tools, what can be asked is decided by a few statements in version
 control, no user input reaches SQL so the injection surface is zero, and widening

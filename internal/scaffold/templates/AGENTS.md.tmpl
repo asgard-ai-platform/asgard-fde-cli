@@ -270,8 +270,8 @@ authenticate and an anonymous visitor need different shapes.
 | internal, authenticated | `SemanticLayer`, one per source system, one Agent each |
 | public, anonymous | a `Toolset` of zero-parameter fixed queries, no semantic layer |
 
-A semantic layer is wrong for a public audience. Mounted without
-`allowedCubes` it lets the agent compose arbitrary SQL over every cube in it,
+A semantic layer is wrong for a public audience. Mounted, it lets the agent
+compose arbitrary SQL over every cube in it,
 and the exposed surface grows each time a cube is added, because nobody goes
 back to narrow it. Excluding the sensitive tables does not fix this; the shape
 itself is the risk.

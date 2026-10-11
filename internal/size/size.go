@@ -167,8 +167,8 @@ func Of(s Shape, in Inputs) Estimate {
 	// surface depends on the audience, and this is one of the three decisions
 	// this engagement reversed after building it the obvious way.
 	//
-	// An anonymous caller does not get a SemanticLayer. A layer without
-	// allowedCubes is arbitrary SQL over every cube, and the exposed surface
+	// An anonymous caller does not get a SemanticLayer. A mounted layer is
+	// arbitrary SQL over every cube in it, and the exposed surface
 	// grows by itself every time a table is added. Anonymous audiences get
 	// fixed query tools instead - Workflows, counted below - so a database
 	// contributes a connector and nothing else here.
@@ -248,8 +248,8 @@ func warnings(s Shape, in Inputs) []string {
 	}
 	if in.Databases > 0 && !s.Authenticated() && in.Queries == 0 {
 		out = append(out, "A database and an anonymous audience, with no query tools counted.\n"+
-			"Anonymous callers do not get a SemanticLayer - a layer without allowedCubes is\n"+
-			"arbitrary SQL over every cube - so the read surface is a fixed set of query\n"+
+			"Anonymous callers do not get a SemanticLayer - a mounted layer is arbitrary\n"+
+			"SQL over every cube in it - so the read surface is a fixed set of query\n"+
 			"tools, and how many there are is a design decision nobody has made yet.")
 	}
 	if in.Databases == 0 && in.APIs == 0 && in.Consoles == 0 && s.Name != "mimir-dashboard" {

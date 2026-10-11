@@ -21,7 +21,11 @@ taking no `sql` - and against every measure in the reference charts that sets
 against asgard-core `478cf5d6` `internal/processor/domaintools/domaintools.go`.
 How a join names its cubes against asgard-core `f7fd5f4e`, the same file, and
 asgard-kube `0765c58`, whose only rule on a join is the equal length of its two
-`dimensions` lists.
+`dimensions` lists. How `allowedCubes` is enforced against asgard-core `ed72bce2`:
+asgard-core `internal/processor/domaintools/domaintools.go` (`validateQuery`
+compares the parsed table names with each allowed cube's `sqlTable`) and
+asgard-core `internal/bpcontroller/dataconnector/tablecollect/postgres.go`
+(`FormatPostgresTableName` strips quotes and nothing else).
 
 **Unchecked:** the modelling guidance - cube granularity, what belongs in `instruction`. Only the customer's database can show whether it holds.
 
@@ -332,25 +336,27 @@ different expectation from one that returns 4.
 
 Set `allowWrite: false` on every binding; the standing architecture is read-only.
 
-Do not set `allowedCubes`. The platform honours the field and restricts the agent to
-the cubes it names (at `478cf5d6`,
-asgard-core `internal/bpcontroller/server/bp_controller.go` passes it to the query tools),
-and one reference deployment uses it; this repository's
-standing decision is that an agent may query any table in its own layer, so the
-restriction is which layer it mounts, and `gate` R4 refuses an Agent that sets
-the field. Note where it is: `Agent.spec.managed.semanticLayers[]`, never the
-`SemanticLayer` itself, which has no such field. So for a layer with no Agent on
-it at all there is nothing to set and nothing to narrow, and the only exposure
-control is which cubes and dimensions the layer declares - see
-`../usecase/mimir-dashboard.md`.
+Do not set `allowedCubes`, on either path. The platform honours it by parsing
+the SQL the agent writes and holding every table the query names against the
+`sqlTable` of each allowed cube, as the same string: the parser strips quotes
+and adds nothing, so a query that reads an allowed table without the schema its
+`sqlTable` carries - `orders` against `public.orders` - is refused. The check
+refuses correct queries, and the agent cannot tell why.
 
-That covers the Agent path, not the whole platform. Where a layer is
-mounted on a completion processor instead - the flow-agent shape, which has no
-`Agent` CR - `semanticLayer.allowedCubes` is a config key that does restrict
-what that processor may compose SQL over, and `../wiki/processors.md` owns it.
-It defaults to empty, so the surface still widens with every cube added, but
-there it can be narrowed again. Do not read the paragraph above as "nothing
-narrows a mounted layer, anywhere"; `../wiki/semantic-model.md` weighs this
+To limit which tables an agent can read, grant the `DataConnector`'s database
+user only those tables. The database enforces that on every query, whatever SQL
+the agent writes, and it is the one place a restriction cannot be bypassed by
+spelling a table differently. Which layer an agent mounts is the other control.
+
+On the Agent path the field is `Agent.spec.managed.semanticLayers[].allowedCubes`,
+and `gate` R4 refuses an Agent that sets it, on this repository's standing
+decision that an agent may query any table in its own layer. On the flow-agent
+path, which has no `Agent` CR, it is the `allowedCubes` of an entry in the
+completion processor's `semanticLayers`, which `../wiki/processors.md` owns;
+nothing refuses it there, and the same advice holds. The `SemanticLayer` itself
+has no such field, so for a layer with no consumer that narrows it, the only
+exposure control is which cubes and dimensions the layer declares - see
+`../usecase/mimir-dashboard.md`. `../wiki/semantic-model.md` weighs this
 when it compares fixed query tools with a layer for a public audience.
 
 `sampleQuestions` on the layer is not this field's counterpart either. It is
