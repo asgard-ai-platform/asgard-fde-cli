@@ -70,8 +70,8 @@ spec:
   # A relative path inside the volume. The trailing slash is required:
   # without it the CRD rejects the resource.
   destinationPath: "git/"
-  # No statePath on a git syncer - it clones the whole tree every run. The
-  # incremental cursor belongs to a database syncer.
+  # No statePath on a git syncer - it follows revision, and a cursor belongs to
+  # a database syncer, which keeps it in its status.
   syncerClass: git
   schedule: "0 */6 * * *"
   timeZone: Asia/Taipei

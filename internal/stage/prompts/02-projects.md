@@ -58,8 +58,9 @@ by `on.pattern`, and each created against a different platform project:
     - name: <slug>-prod    pattern '^[0-9]+\.[0-9]+\.[0-9]+$'       -> platform project B
 
 The platform project decides the namespace, so the two have to be different
-ones. That is also why a deployed namespace reads
-`asgard-<workspace>-<project>-<env>` and carries the `-<env>` at all. There are
+ones. What the namespace is called is the platform's to decide and can change,
+so assume no format for it: the platform project is what tells the two
+environments apart, not anything in the namespace's name. There are
 no per-environment values files - what differs between them is the variables set
 on each release on the platform.
 
@@ -186,28 +187,24 @@ request names a project this repository has, `asgard-cli request` lists it as
     asgard-cli request target <<.RequestID>> <slug>
     asgard-cli request ready <<.RequestID>>          once the audience and the scope are settled
 
-Keep the slug short. It becomes part of every release name, and of the
-namespace the platform creates for the project - `asgard-<workspace>-<project>-<env>`
-in the deployments this was written from. A Kubernetes object name is capped at
-63 characters, so everything derived from the slug inherits its length. This
-tool does not build either name: the namespace comes back from the platform
-and a chart reads it out of the injected `asgard` block.
+Keep the slug short. It becomes part of every release name, and a Kubernetes
+object name is capped at 63 characters, so everything derived from the slug
+inherits its length. Do not build the namespace from it: the platform names the
+namespace, and a chart reads it out of the injected `asgard` block.
 
 Done when: projects/ has a directory per project, the root README table lists
 them, and asgard-cli check is green.
 
 **Checked:** the shapes it names are real (`asgard-cli size` counts
 them off production, the extracts in `../usecase/` assemble each); every command
-and flag it writes is in the binary; and the namespace pattern was read off the
-namespaces of three production deployments rather than off this tool, which
-does not derive it. They are not quoted, because a namespace carries the
-customer's workspace name. No CRD claim is made here:
+and flag it writes is in the binary; and that the platform, not the chart,
+names the namespace, against
+asgard-platform-api `b226b1cc` `internal/service/project.go`, which hands back
+the name the project was given. No format is written here, because the format is the platform's and can
+change. No CRD claim is made here:
 which CRs a project ends up with belongs to
 `../guide/read-path.md`, `../guide/entry-point.md` and the extracts.
 
-**Unchecked:** whether `asgard-<workspace>-<project>-<env>` is the platform's
-rule or a convention these workspaces share: the Platform API that builds the
-namespace is in no repository here, so the three namespaces above are the only
-evidence. Also unchecked: the split rule itself - that a project follows the
+**Unchecked:** the split rule itself - that a project follows the
 audience rather than the data or the system - which no source states; a reader
 whose customer has one audience and six systems should get one project.

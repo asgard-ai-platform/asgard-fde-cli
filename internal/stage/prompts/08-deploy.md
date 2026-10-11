@@ -113,7 +113,10 @@ has nothing checking it beyond the dry run, and green there means helm returned.
 
 Read the plan. It reports the resource diff per CR, the variable changes, and
 the server-side dry run's verdict on every one of them. A run stops at review so
-that the plan can be read before anything is written.
+that the plan can be read before anything is written, unless the release has
+auto apply set, in which case it goes straight to Apply. A plan with an
+error-level finding stops there and Apply never runs; one with no changes ends
+as succeeded without either.
 
 Values are on the platform, not in the repository. Two releases of one chart
 differ by what was set on each. A value that is not taking effect is either not
@@ -136,8 +139,9 @@ locally, and why the local gate checks a different class of thing.
   - A failed helm upgrade can leave the namespace partially applied. The
     previous revision stays "deployed", so the next upgrade proceeds without a
     rollback - do not read "the deploy failed" as "nothing changed".
-  - Anything the platform created before helm did needs a one-time adoption, or
-    helm refuses with invalid ownership metadata.
+  - An object helm does not own - one the platform or another release created
+    first - is refused at the plan, as a dry-run rejection naming the release
+    that owns it. The runner has no step that adopts it; ask the platform team.
   - Grant every OAuthCredential the release deployed, before the Syncers
     that read it run (`asgard-cli operate oauth-credential authorize`). The
     person who signs in has to be the account whose data it is for.
@@ -182,9 +186,12 @@ seconds, the plan reported 29 CRs to create and stopped at review, and Apply
 wrote them and then failed at the Syncer step with the reason named. The
 auto-fire label is `asgard-ai.com/auto-fire-on-rollout` and is read only by the
 runner. There is no required order among namespace, environment id, values and
-declaration: both halves are injected.
+declaration: both halves are injected. The runner against asgard-iac `af5320aa`: the plan's contents against
+asgard-iac `internal/plan/report.go` (`Report`); when a run stops at review against
+asgard-iac `internal/runner/transition.go` (`Decide`); the shared Syncer budget against
+asgard-iac `internal/apply/kube.go`; that a failed upgrade is not rolled back against
+asgard-iac `internal/helm/upgrade.go` (`Upgrade`); the ownership refusal at plan against
+asgard-iac `internal/helm/dryrun.go` (`DryRunServer`).
 
-**Unchecked:** the pipeline runner is in no repository here, so the plan and
-Apply are as observed on one dev rollout; the failure paths under "After
-deploying" - a partially applied namespace, the one-time adoption - have not
-been seen on a cluster.
+**Unchecked:** the failure paths under "After deploying" - a partially applied
+namespace, an ownership refusal - have not been seen on a cluster.

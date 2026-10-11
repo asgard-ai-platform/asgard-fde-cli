@@ -30,9 +30,10 @@ through the SkillSet. The platform finds the Syncer itself, as the one with
 that label whose SourceSet is the SkillSet's, and refuses a SkillSet that has
 none.
 
-Every run rebuilds the whole skill tree. A run cut off part way leaves a
-partial tree that the agent answers from without an error, and the next run
-that finishes repairs it.`,
+A run brings the skill tree to the Syncer's revision in place and removes
+every file the revision does not carry. A run cut off part way leaves a tree
+that is neither revision, which the agent answers from without an error, and
+the next run repairs it.`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error { return cmd.Help() },
 	}

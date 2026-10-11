@@ -141,7 +141,7 @@ Every event carries the same envelope, and the payload is a tagged union:
 ```json
 { "eventType": "asgard.message.delta",
   "requestId": "...", "eventId": "...",
-  "namespace": "proj-...", "botProviderName": "bp-...",
+  "namespace": "...", "botProviderName": "bp-...",
   "customChannelId": "...",
   "fact": { "runInit": null, "runDone": null, "runError": null,
             "messageStart": null,

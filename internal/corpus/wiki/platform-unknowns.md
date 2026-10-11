@@ -8,8 +8,12 @@ Platform questions that neither the source nor the documentation settles. Each
 row is one an engagement hit and had to work around.
 
 Before adding a row, look in the source: the CRDs and Go types in asgard-kube,
-the runtime in asgard-core, the product documentation in asgard-docs. Most
-questions about how the platform behaves are answered there. A row belongs here
+the runtime in asgard-core, the product documentation in asgard-docs, the
+Console in asgard-ai-platform-web and its back end in asgard-platform-api,
+projects and display annotations in asgard-workflow-service, the
+pipeline runner in asgard-iac, the Syncer runtime in asgard-syncer, and the
+cluster's network and logging in tf-asgard. Most questions about how the
+platform behaves are answered there. A row belongs here
 only when the thing exists and none of them says how it behaves; then ask the
 platform team, before the meeting rather than in it, and do not assume an
 answer. If the source has no such feature, write that on the page it concerns
@@ -22,8 +26,9 @@ it was read from, and delete the row.
 and asgard-docs `56feb925`; every question those repositories answer is on
 the page it concerns.
 
-**Unchecked:** the Console's back end, the logging pipeline and the canvas
-editor, which are in none of those repositories.
+**Unchecked:** the platform's services that are not in that list - the agent
+sandbox runtime, Agent Hub's own back end - so a question about them may still
+belong here.
 
 ## The list
 
