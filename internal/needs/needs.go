@@ -105,6 +105,7 @@ var shapes = []Shape{{
 	Items: []Item{
 		{Ask: "the documents themselves, or the place they live and access to it", Why: "a Drive syncs from somewhere; without the source there is nothing to index", From: "../usecase/knowledge-drive.md"},
 		{Ask: "who keeps them current, and how often they change", Why: "each Syncer carries its own `schedule` and the index its own cron, so the answer sets both - and with incremental sync the same record lands in several dated partitions, where the graph treats a stale one as a fact unless somebody says which copy wins", From: "../usecase/knowledge-drive.md"},
+		{Ask: "when the documents are in Google Drive, OneDrive or Dropbox: whose account signs in to grant the connection, and that they can be there after the deploy, for the authorize step", Why: "the chart declares the credential but cannot grant it; the grant happens after the deploy, when somebody signs in and consents, and until then the Syncer fails while every check passes. Whoever signs in decides whose files the Syncer reads, and the platform does not check which account it was", From: "../wiki/settings.md"},
 	},
 }, {
 	Name:        "write-path",
