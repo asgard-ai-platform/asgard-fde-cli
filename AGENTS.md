@@ -895,6 +895,15 @@ and no material is what this comparison exists to find. Ask before writing the p
 mistakes do not cost the same: material for a kind nobody may use invites
 somebody to use it.
 
+`go run ./hack spec-key-gap` asks the same question against the CRDs, per kind
+and per spec field, and mechanically. A field the contract defines is written
+by `add`, named in a commented skeleton where somebody meets it, absent on
+purpose with the document that says why, or nowhere - and only the last is
+owed. The third state is a pointer to a document, not an opinion: the row names
+the document carrying the decision, and the check fails when that document is
+gone or has stopped naming the field. So a field you decide against gets its
+reason written where a reader meets it, the same as a kind does.
+
 ## Reference material lives outside this repo
 
 The reference repositories are read-only and never vendored in. The URL is the

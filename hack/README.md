@@ -25,6 +25,7 @@ a script or this file; it is true on one machine and wrong on every other.
     go run ./hack coverage     the wiki's coverage row against the docs tree
     go run ./hack processors   wiki/processors.md's three tables against their owners
     go run ./hack counts       wiki/screenshots.md's arithmetic against the docs tree
+    go run ./hack spec-key-gap what `add` writes against the CRDs
 
     ASGARD_KUBE          the CRDs, the platform contract
     ASGARD_DOCS          the product documentation
@@ -148,6 +149,54 @@ eleven class fields, states the Syncer's 21 and the total, and that no immutable
 Syncer field is missing from the corpus. Pairs rather than distinct paths:
 `bot.botProviderName` is immutable on the Loader and on the Syncer, and those
 are two fields somebody can be refused on.
+
+## How far the generated chart is from the contract
+
+    go run ./hack spec-key-gap             recompute, and check APPROACH.md's claim
+    go run ./hack spec-key-gap --missing   every kind and field the CRDs define that `add`
+                                           neither writes nor names, split by what is owed
+    go run ./hack spec-key-gap --shown     the ones a commented skeleton names
+
+This measures the claim, in APPROACH.md, that the chart half is the least
+finished of the four. It decides whether an FDE treats what `add` emits as a
+chart or as a starting point. The denominator is the CRDs at `$ASGARD_KUBE`,
+per kind: what the platform accepts. It is not measured against a deployment,
+because most deployments now generate their charts with this tool, and a
+measurement against them would compare `add` with itself.
+
+A field `add` does not write is in one of four states, and only the last is
+owed: written; named in a commented skeleton, where somebody meets it at the
+moment they would write one; absent on purpose, with the document that carries
+that decision; or nowhere, which is the worklist. Do not count the middle two
+as owed. A kind `add` never generates is either decided against or listed
+whole.
+
+The third state is recorded as a pointer. `decided` in `hack/speckeys.go` maps
+a kind or a field to the document that says why it is absent, and the check
+fails when that document is gone or has stopped naming it, when the CRD no
+longer has the field, and when `add` now writes all of it. A row is the
+judgement and not an enumeration: a decision covers the fields under it. Do not
+answer a row by writing a commented skeleton for it: that lowers the number by
+inviting somebody to use a shape the material tells them not to. Do not add a
+row for a kind or field the material does not already decide against; write the
+decision on its page first.
+
+What a comment can be read for is the field it names, not the path it sits
+under: a skeleton here is written above the key it belongs to rather than inside
+it, so reconstructing the path attributes it to the previous sibling.
+
+The rendered side is walked alongside the schema, so a customer's key under an
+open map counts as `<key>` and list indices collapse. A rendered field the
+schema does not have fails the check, because the apiserver refuses it.
+
+The `add` side is a matrix rather than one run per kind. Several templates
+branch on a flag, so a key inside `--db-class netsuite`, `--private` or
+`--supervisor` is a key `add` writes. The combinations are derived from the
+generator - the flags `add` registers, the fields each kind's own templates
+branch on, and the closed vocabularies `generate` declares - so a class added
+upstream is probed without an edit here. A branch decided by what the chart
+already holds rather than by anything typed is run twice, once in an empty
+project and once in a seeded one.
 
 ## Recomputing a count that came out of somebody else's document
 
