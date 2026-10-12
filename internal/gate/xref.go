@@ -729,8 +729,8 @@ func (x *xref) checkSandboxBlueprint(d Doc) {
 	// parsing the string. This is the joint of the Flow Agent chain
 	// (BotProvider -> Workflow -> SandboxBlueprint -> Agent), and a typo here
 	// fails as badly as a wrong entrypoint: lint passes, the CRD passes because
-	// agents is just a string, and at runtime a subagent is silently absent so
-	// the agent merely looks like it cannot call its tools.
+	// agents is just a string, and the blueprint fails to evaluate on the first
+	// turn, so the chat errors where it should answer.
 	if raw := digStr(d.Spec, "agents", "value"); raw != "" {
 		var agents []struct {
 			BaseAgentName string `json:"baseAgentName"`

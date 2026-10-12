@@ -16,13 +16,13 @@ const (
 
 // AgentSplit checks the "one system, one Agent" split.
 //
-// None of these break helm lint or apply. They make the orchestrator route
-// wrongly, or let an agent's search space grow back:
+// None of these break helm lint or apply. They leave the agent guidance it
+// cannot tie to the right capability, or let an Agent's resources grow back:
 //
 //	R1b  an Agent cannot have no capability at all - a layer, a Toolset or a
 //	     SkillSet, at least one - so that deleting one by accident does not pass
 //	     quietly. **SkillSet was missing from that list and the rule was wrong
-//	     about a running deployment**: every subagent of a flow-agent supervisor
+//	     about a running deployment**: every Agent of a flow-agent supervisor
 //	     mounts skills and nothing else, and nine of them were told they had no
 //	     capability at all.
 //	R4   no Agent sets allowedCubes, which keeps the standing decision that a
@@ -82,9 +82,9 @@ const (
 //	rule cannot tell that from a copy somebody edited in one place, so there is
 //	no version of this check that does not cry wolf on a correct chart.
 //
-//	It was also not applying where it was supposed to. Subagents of a flow-agent
+//	It was also not applying where it was supposed to. Agents of a flow-agent
 //	supervisor are excluded, and the exclusion reads SandboxBlueprint
-//	`spec.agents.value` - a reference deployment declares its five subagents
+//	`spec.agents.value` - a reference deployment declares its five Agents
 //	through `spec.agents.expression` instead, so all five counted as hub Agents
 //	and R12 failed that deployment too. Finding that the exemption silently did
 //	not apply to the shape it was written for is the other half of why this is a
@@ -98,8 +98,8 @@ const (
 // CR at all. The summary says "0 agent(s)" so that a project that lost its
 // Agents by accident is visible to a reviewer.
 //
-// Every check here is per Agent, so none of them needs to know which Agents are
-// a supervisor's subagents. The helper that read that out of a SandboxBlueprint
+// Every check here is per Agent, so none of them needs to know which Agents a
+// supervisor's blueprint lists. The helper that read that out of a SandboxBlueprint
 // existed for R12 and went with it.
 func AgentSplit(docs []Doc, opts Options) Result {
 	ix := newIndex(docs)
@@ -124,7 +124,7 @@ func AgentSplit(docs []Doc, opts Options) Result {
 
 		// A SkillSet is a capability source too, and leaving it out made this
 		// rule wrong about nine Agents in a deployment that is running: every
-		// subagent of a flow-agent supervisor mounts skills and nothing else,
+		// Agent of a flow-agent supervisor mounts skills and nothing else,
 		// and the message said it had "no source of capability at all" while it
 		// had one. Found by running the gate over the reference deployments
 		// rather than over a chart this tool generated.

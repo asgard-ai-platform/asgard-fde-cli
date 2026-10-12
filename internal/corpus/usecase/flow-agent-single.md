@@ -4,7 +4,7 @@ description: anonymous audience, one job
 ---
 # Single-agent flow agent
 
-A public entry point with no subagent at all. The smallest shape that serves an
+A public entry point with no Agent CR at all. The smallest shape that serves an
 anonymous audience.
 
 **Seen in:** a public product-catalogue widget, and a deployment whose whole
@@ -27,16 +27,15 @@ turn.
 ## When this shape, and when not
 
 Use it when the audience is anonymous and there is one job. A public
-support widget answering questions about one product line has no delegation
-decision for an orchestrator to make.
+support widget answering questions about one product line has one area of work,
+and its prompt and capabilities are the whole of it.
 
-Adding a subagent here only adds a hop: the orchestrator restates the question to
-the single subagent and restates the answer back. One deployment removed exactly
-that hop after shipping it - the prompt moved onto the Workflow's processor and
-the capabilities onto the blueprint.
+An Agent CR adds nothing here. Its guidance would sit beside the Workflow's
+prompt as a second set of instructions for the same job, so keep the prompt on
+the Workflow's processor and the capabilities on the blueprint.
 
-Use the supervisor shape instead when several specialists are needed, and the
-agent hub when every caller can authenticate.
+Use the supervisor shape instead when several areas of work each need their
+own guidance, and the agent hub when every caller can authenticate.
 
 ## The shape
 
@@ -51,9 +50,9 @@ No `Agent` CR anywhere. A chart in this shape renders zero agents, and the
 gate accepts that.
 
 The conversation graph stays minimal on purpose: greet, listen, answer, back to
-listen, plus a failure branch to a maintenance message. Routing between topics is
-the orchestrator's job, informed by the prompt - building a workflow per topic
-puts the routing in two places.
+listen, plus a failure branch to a maintenance message. Telling topics apart is
+the agent's job, informed by the prompt - building a workflow per topic puts
+that decision in two places.
 
 ## Generate it
 

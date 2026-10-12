@@ -13,7 +13,7 @@ import (
 //
 // **`baseAgentName` is absent although the Go types give it a pattern.** It is
 // not a CRD property at all: `SandboxBlueprint.spec.agents` is a **string**
-// holding JSON, so the whole subagent shape rides inside it where no schema and
+// holding JSON, so the whole agent entry shape rides inside it where no schema and
 // no CEL rule can see it. C1 walks the decoded document and would never reach
 // it. `gate/xref.go` parses that string for the reference check, and
 // the flow-agent supervisor extract says why it is the one blueprint worth reading

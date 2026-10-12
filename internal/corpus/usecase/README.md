@@ -48,9 +48,9 @@ no grouping at all. The CR shapes below are independent of that choice.
 
 | file | when |
 |---|---|
-| [`agent-hub.md`](../usecase/agent-hub.md) | every caller can authenticate; several specialists |
+| [`agent-hub.md`](../usecase/agent-hub.md) | every caller can authenticate; several areas of work |
 | [`flow-agent-single.md`](../usecase/flow-agent-single.md) | anonymous audience, one job |
-| [`flow-agent-supervisor.md`](../usecase/flow-agent-supervisor.md) | anonymous or credentialed audience, several specialists - and the one edge that loses the first message of every new conversation |
+| [`flow-agent-supervisor.md`](../usecase/flow-agent-supervisor.md) | anonymous or credentialed audience, several areas of work - and the one edge that loses the first message of every new conversation |
 
 **Read paths** - also decided by audience:
 

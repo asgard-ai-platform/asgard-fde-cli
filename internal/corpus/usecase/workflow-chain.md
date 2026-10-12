@@ -42,7 +42,7 @@ Add more processors when:
 
 Do not add processors to express what a prompt should decide. A workflow node
 per conversation topic puts the routing in two places: one deployment removed its
-topic workflows and let the orchestrator route from the prompt instead. Keep the
+topic workflows and let the agent tell the topics apart from the prompt instead. Keep the
 conversation graph minimal - greet, listen, answer, back to listen, plus a
 failure branch.
 

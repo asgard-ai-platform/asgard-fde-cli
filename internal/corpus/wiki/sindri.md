@@ -1,6 +1,6 @@
 ---
 group: Products and scope
-description: Project, delegation, the Sandbox and its files, the governance gate
+description: Project, the home page and @mentions, the Sandbox and its files, the governance gate
 ---
 # Sindri - Agent Hub
 
@@ -17,34 +17,34 @@ A Project is decided at build time. In Sindri a user can only switch between the
 Projects they have access to, not create one. Switching changes the Available
 Agents, Routines, Directory and My Chats.
 
-## The home page and delegation
+## The home page and @mentions
 
 The centre of the home page is a prompt box, with the published Available Agents
-listed below it. Each card shows a name and a line about when to delegate to it.
+listed below it. Each card shows a name and a line about what the agent covers.
 
 A user does not have to pick the right agent first. The selector above the
-prompt box defaults to Sindri rather than any one agent, and Sindri decides
-whether to delegate and to whom.
+prompt box defaults to Sindri rather than any one agent.
 
-What the runtime gives that decision: Sindri is an orchestrator that already
-holds the union of every published agent's Toolsets, Skillsets and semantic
-layers, and each agent is offered to it as a subagent. For each one it sees the
-`description` with the agent's `sampleQuestions` appended under "Example
-questions this agent handles", and the agent's full fused prompt (Persona, Task,
-Context, Format). Its standing instruction is to do the work itself by default
-and spawn a subagent only for parallel work, to keep its own context lean, or
-when the user asks for a specialist by name.
+What the runtime gives a turn: its agent holds the capabilities of every Agent
+the user may use in the Project - their Toolsets, Skillsets and semantic layers -
+and does the work itself. No Agent runs as an assistant of its own. For each
+Agent the turn's agent is shown one capability block: the `description`, the
+`sampleQuestions` as example requests, what the Agent provides (its tools,
+skills and semantic models, listed by the platform under the names the agent
+calls them), and the Agent's prompt (Persona, Task, Context, Format).
 
-So a Managed Agent's `description` is routing text rather than a
-self-introduction: it is the line labelled "when to spawn", the one line on the
-card a user sees, and the text a sample question is attached to. It is not the
-only thing the decision reads - the prompt is in front of it too - and a
-question Sindri can answer with the union of tools may never be delegated at
-all.
+A message that `@`-mentions an agent by its alias marks that capability as the
+most relevant one: the agent gives its guidance priority and starts from the
+resources it provides, and still uses everything it holds.
+
+So a Managed Agent's `description` says what the capability covers rather than
+introducing the agent: it is the one line on the card a user sees, and the text
+the agent reads to decide when that Agent's guidance applies.
 
 After sending, the screen shows, in order: "Thought for a moment", an
-automatically generated title, a Subagents panel naming the agents delegated to
-and the steps they are running, and finally the reply.
+automatically generated title, and the reply. A Subagents panel appears only
+when the agent starts a general-purpose subagent for a separate sub-task; a
+Managed Agent never appears there.
 
 Below the prompt box are two more selectors - the model tier (the Builtin series)
 and Reasoning effort - and a paperclip for attaching files.
@@ -121,8 +121,8 @@ Two ways of organising conversations:
 | suited to | one-off questions | a long-running subject returned to repeatedly |
 
 A Directory has Chats and Files tabs. Conversations opened inside it stay under
-that topic, and files uploaded to Files are available to whichever agent is
-delegated to.
+that topic, and files uploaded to Files are available to the agent in every
+conversation of that Directory.
 
 Each conversation's menu offers Share (add an email to the access list, or copy a
 link), Rename and Delete.
@@ -187,12 +187,14 @@ is `../usecase/agent-hub.md` and `../usecase/flow-agent-supervisor.md`.
 
 **Checked:** asgard-docs `6261fdff` - every page under
 `docs/product-suite/sindri/` and `docs/product-suite/odin/features/agent-hub-configuration.mdx`;
-asgard-core `478cf5d6` - asgard-core `internal/bpcontroller/server/sandbox_orchestration.go`
-(each Agent becomes a subagent, its description gets its sample questions
-appended, its Toolsets and Skillsets are aggregated onto the orchestrator),
-asgard-core `internal/processor/helper/clidriver_run.go` (`SubagentTeamNote`, the
-do-it-yourself-by-default rule) and asgard-core `internal/models/consent.go` (the
-three consent results). Routines against asgard-agent-hub `3c317865`:
+asgard-core #368 - asgard-core `internal/bpcontroller/server/sandbox_orchestration.go`
+(each Agent's Toolsets, Skillsets and semantic layers are aggregated onto the
+turn's agent) and asgard-core `internal/processor/helper/clidriver_run.go`
+(`AgentCapabilitiesNote`: the capability block, and what an `@`-mention means);
+asgard-core `478cf5d6` asgard-core `internal/models/consent.go` (the three
+consent results); the Agents a turn holds against asgard-agent-hub-api
+`b88b7d4` asgard-agent-hub-api `internal/service/agent.go`
+(`ListAccessibleAgentNamesInProject`). Routines against asgard-agent-hub `3c317865`:
 asgard-agent-hub `internal/model/routine.go` (the fields, the required
 Directory, the system-side disable reason and the overlap reason),
 asgard-agent-hub `internal/service/routine_schedule.go` (the cron form and the
@@ -203,5 +205,7 @@ membership check, the billing gate, the main agent); and against
 asgard-ai-agent-hub-web `33d002a8` `src/components/routine/routine-list.tsx`
 (Show disabled) and asgard-ai-agent-hub-web `src/types/routine.ts`.
 
-**Unchecked:** how often Sindri delegates in practice rather than answering
-itself has not been observed on a live Agent Hub.
+**Unchecked:** that an `@`-mention changes which tools the agent starts from
+has been observed in asgard-core's own end-to-end test, not on a live Agent Hub.
+The asgard-docs pages above still describe the home page in terms of
+delegation; this page follows the platform source where they differ.

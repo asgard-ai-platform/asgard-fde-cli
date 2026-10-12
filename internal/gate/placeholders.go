@@ -24,7 +24,7 @@ var placeholder = regexp.MustCompile(`\bTODO\b`)
 // they are still there.
 var reachesAReader = map[string]map[string]string{
 	"Agent": {
-		"managed.description":     "the orchestrator reads this to decide whether to delegate here",
+		"managed.description":     "the agent reads this to decide when this capability's guidance applies",
 		"managed.sampleQuestions": "the customer sees these in Sindri, before anything the agent says",
 		"managed.prompt.persona":  "the agent answers in the register its prompt is written in",
 		"managed.prompt.task":     "the agent answers in the register its prompt is written in",
@@ -84,8 +84,8 @@ func Placeholders(docs []Doc, opts Options) Result {
 		if d.Kind == "Workflow" {
 			for _, p := range workflowPrompts(d) {
 				warnings = append(warnings, fmt.Sprintf(
-					"Workflow/%s: processor %q has prompt still TODO - this shape has no Agent CR, "+
-						"so the prompt on this processor is the whole of what it does", d.Name, p))
+					"Workflow/%s: processor %q has prompt still TODO - the agent reads it on every turn, "+
+						"and where the blueprint lists no Agent it is the whole of what the agent is told", d.Name, p))
 			}
 			for _, f := range workflowConfigs(d) {
 				warnings = append(warnings, fmt.Sprintf("Workflow/%s: %s", d.Name, f))

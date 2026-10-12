@@ -88,7 +88,7 @@ defaultSemanticLayerEffort: "medium"
 `,
 	},
 	{
-		Name: "agent", Summary: "one specialist, reached through the platform's agent hub",
+		Name: "agent", Summary: "one area of work's capabilities, reached through the platform's agent hub",
 		Prefix: "ag-", Files: []File{{Dir: "agent", Template: "agent.yaml.tmpl"}},
 		Needs:   []string{"--layer sl-<name> (optional)"},
 		Extract: "agent-hub",
@@ -263,9 +263,9 @@ triggers:
 			"  on the capability side: read-only chain, zero-parameter tools, read-only",
 			"  mounts. That argument stops holding the moment a parameterised or",
 			"  write-capable tool is added.",
-			"The prompt lives on the workflow's processor. Several specialists means",
+			"The prompt lives on the workflow's processor. Several areas of work means",
 			"  --supervisor, which writes the four-processor conversation loop three",
-			"  deployments share edge for edge, and then subagents on the blueprint -",
+			"  deployments share edge for edge, and then Agents on the blueprint -",
 			"  see .agents/skills/asgard-platform/usecase/flow-agent-supervisor.md.",
 		},
 		Values: `
@@ -314,7 +314,7 @@ type Options struct {
 
 	// Supervisor writes the four-processor conversation loop instead of the
 	// single-processor shape: the one three deployments share edge for edge.
-	// Its specialists are subagents on the blueprint.
+	// Its areas of work are Agents on the blueprint.
 	Supervisor bool
 
 	DBClass string

@@ -39,8 +39,11 @@ agent was built. They switch to the retail Project, see five published agents
 operations), and without deciding which to ask, type a question naming the
 product and the store that is about to run out.
 
-Sindri delegates to the `allocation` agent, and the Subagents panel shows the
-delegation and its live queries. The reply covers the current position, the total
+The published case study shows Sindri delegating to the `allocation` agent,
+with the Subagents panel showing it running its queries. The platform runs no
+agent as an assistant of its own: the turn's agent holds the `allocation`
+agent's capabilities and runs those queries itself (asgard-core #368), so no
+Subagents panel appears for it. The reply covers the current position, the total
 available to transfer and a per-store ranked list. It then offers three
 options (A: top three stores, B: all stores, C: custom) and waits rather than
 acting.
@@ -56,9 +59,10 @@ Read and write are separated. Reading goes through a Semantic Model; writing
 goes through a Toolset with a governance gate. Having finished the analysis the
 agent does not write; it proposes.
 
-Delegation needs no judgement from the user. They do not have to know which
-agents exist or which to ask, which is what a Managed Agent's `description`
-achieves as routing text.
+Choosing an agent needs no judgement from the user. They do not have to know
+which agents exist or which to ask: the turn's agent holds every agent's
+capabilities, and each Managed Agent's `description` tells it which guidance
+applies.
 
 One dataset is consumed two ways. The same POS store semantic model is explored
 in Mimir and analysed by the Sindri agent.
@@ -99,8 +103,8 @@ mechanism is `../usecase/per-turn-credentials.md`.
 
 ## Corresponding extracts
 
-The read/write separation is `../usecase/write-path.md`; the delegation
-topology is `../usecase/flow-agent-supervisor.md` and `../usecase/agent-hub.md`.
+The read/write separation is `../usecase/write-path.md`; how several agents are
+combined is `../usecase/flow-agent-supervisor.md` and `../usecase/agent-hub.md`.
 
 ## Sources
 

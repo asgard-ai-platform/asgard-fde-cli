@@ -63,11 +63,13 @@ out. One field on the CR, and it is immutable after creation:
 
 ## If it is the agent hub
 
-The Agent CR is pure subagent config and spawns nothing. Its `description` is
-routing text, not a self-introduction. The orchestrator reads it, with the
-sample questions appended, as the "when to spawn" line above the agent's full
-prompt, so put the business nouns in it, and
-where two agents look similar, say in each which side of the line it is on.
+The Agent CR is a capability group and deploys nothing: the agent of each turn
+holds the capabilities of every selected Agent and does the work itself. Its
+`description` says what the capability covers, not who the agent is. The agent
+reads it, with the sample questions and the tools, skills and semantic models
+the platform lists for that Agent, to decide when that Agent's guidance
+applies, so put the business nouns in it and leave the tool names out. Where
+two agents look similar, say in each which side of the line it is on.
 
 Publishing is the on/off switch: callers build agent_names[] from the *published*
 agents, so the agent-published label decides whether an agent gets work.
@@ -78,11 +80,10 @@ nothing on the cluster refuses one without them and `asgard-cli verify` does
 (R7). Knowing which of the two refuses it tells you whether the fix is a chart
 edit or a conversation. `../usecase/agent-hub.md` has why two.
 
-prompt.task and prompt.format are the shared block: Agent CRs have no include
-mechanism, so shared text can only be duplicated, and keeping the copies verbatim
-is what makes a change a single global replace. Nothing checks it, because a
-chart that puts per-role substance inside those two fields is a real shape. `../usecase/agent-hub.md` says what
-that leaves to you.
+Every selected Agent's prompt is shown to the same agent in one turn, so a block
+copied into each Agent is repeated once per Agent. Write in each Agent only what
+is specific to its area of work, and put rules for every turn in the Global
+Directory's `AGENTS.md`. `../usecase/agent-hub.md` has the split.
 
 ## If it is a self-hosted chain
 
@@ -92,9 +93,9 @@ The capabilities live on the SandboxBlueprint, one CR further out than you
 would expect. Searching the Workflow CRD for the link finds nothing; do not
 conclude from that that the link does not exist.
 
-A single public agent needs no subagent. Attaching one only adds a hop where
-the orchestrator restates the question and restates the answer back. Put the
-prompt on the Workflow's processor and the capabilities on the blueprint.
+A single public agent needs no Agent CR. Put the prompt on the Workflow's
+processor and the capabilities on the blueprint, so the instructions for the
+one job are in one place.
 
 The endpoint takes the BotProvider's own key (`generic.authMode: api-key`) or
 nothing at all (`none`, the anonymous shape), and a key in front-end JavaScript
@@ -112,15 +113,20 @@ AGENTS.md, "Workflow sets".
 Done when: asgard-cli verify resolves the whole chain including the entry names.
 
 **Checked:** against asgard-kube `cbd8d70`. `BotProvider.spec.entrypoint`
-is `{entry, workflow}`, both required, with no agent field; the Agent CRD's own
-description reads "The Agent CR is a pure 'subagent config' resource ... it no
-longer produces its own deployment"; `agentClass` carries `self == oldSelf`; the
+is `{entry, workflow}`, both required, with no agent field; `agentClass` carries
+`self == oldSelf`; the
 capability fields (`agents`, `skillSetNames`, `pluginNames`, `sourceSetMounts`,
 `credentialMounts`, `hooks`) are on `SandboxBlueprint.spec` and not on
 `Workflow`. Two claims that read as platform rules are ours and now say so:
 the two-sampleQuestions minimum (the CRD sets none - `gate` R7 does). Shared
 prompt text across per-role agents is nobody's rule: a chart set may interleave
 per-role content into `task` and `format`, and `gate` does not check it.
+Against asgard-kube `1c07e20` (v1.1.9): `ManagedAgentSpec` reads "The Agent CR
+is a capability group ... It produces no deployment of its own and is not a
+separate assistant: the agent of every turn that resolves it holds its
+capabilities directly", and `description` "need not name the tools: the
+platform lists, next to it, the tools, skills and semantic models this
+capability brings".
 
 Against asgard-core `478cf5d6`,
 asgard-core `internal/edgeserver/middleware/bot_provider.go`: a generic BotProvider's routes
@@ -129,5 +135,5 @@ check its own key in `X-API-KEY` or `X-Asgard-Webhook-Token`, or nothing under
 capability side.
 
 **Unchecked:** which audience forces which shape, and that a single public agent
-needs no subagent, are one engagement's judgement rather than a platform
+needs no Agent CR, are one engagement's judgement rather than a platform
 contract.

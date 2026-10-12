@@ -254,7 +254,7 @@ folder to show, so it aimed the file card at a directory.
 
 Both can only address paths inside the working directory, because that is
 where the file explorer is rooted - including for a file derived from a user's
-attachment, which lands outside it. The Agent Hub orchestrator prompt tells the
+attachment, which lands outside it. The Agent Hub's own prompt tells the
 model so; a chart's own prompt has to say it for itself. An agent asked to unpack an attached `.zip`
 extracted beside the attachment and then pushed a card at that directory; the
 user tapped a card pointing outside the tree.

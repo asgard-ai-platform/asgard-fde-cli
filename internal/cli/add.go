@@ -213,7 +213,7 @@ Run "asgard-cli add" with no arguments to list the kinds.`,
 	cmd.Flags().BoolVar(&opts.Write, "write", false, "this tool has a side effect, so gate it with requestConsent")
 	cmd.Flags().BoolVar(&opts.Public, "public", false, "the entry point serves anonymous visitors (authMode: none)")
 	cmd.Flags().BoolVar(&opts.Supervisor, "supervisor", false,
-		"for flowagent, write the four-processor conversation loop three deployments share, whose specialists are subagents on the blueprint")
+		"for flowagent, write the four-processor conversation loop three deployments share, with its Agents listed on the blueprint")
 	cmd.Flags().StringVar(&opts.DBClass, "db-class", "postgres",
 		"DataConnector class: "+strings.Join(generate.DBClasses(), ", ")+". Each has its own fields - salesforce has no port and no user, athena has neither host nor database")
 	cmd.Flags().StringVar(&opts.BotClass, "bot-class", "", "for flowagent, the channel the BotProvider serves: "+strings.Join(generate.BotClasses, ", ")+" (defaults to generic, an HTTP API for your own front end)")

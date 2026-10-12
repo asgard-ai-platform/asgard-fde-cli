@@ -66,11 +66,12 @@ Environment Variables) or Streamable HTTP (an endpoint already running).
 **3. Configure the agent.** A Managed Agent is where the pieces meet - see
 [`agents.md`](../wiki/agents.md) for the fields. Two of them decide more than the rest:
 
-  - Description is not a self-introduction. It is the routing text the
-    orchestrator reads, labelled "when to spawn", when deciding whether to
-    delegate this question to this agent; the agent's sample questions are
-    appended to it, and the full prompt is in front of the orchestrator too.
-    Write it as "ask me when ...", not as "I am a helpful assistant for ..."
+  - Description is not a self-introduction. It says what the agent's
+    capability covers; the agent of each turn reads it, with the sample
+    questions and the tools the platform lists for the agent, to decide when
+    this agent's guidance applies. Write it as "covers ...: ...", not as "I am
+    a helpful assistant for ..." and not as "hand it to me when ...". Leave the
+    tool names out; the platform lists them
   - Prompt is four separate fields - Persona, Task, Context, Format - not one
     box. Putting everything in Persona stops working once the agent has two tasks
 
@@ -87,10 +88,10 @@ General Assistant.
 > disabled one stops serving and keeps its configuration.
 
 What a user sees in Sindri is the Available Agents list on the home page, each
-card showing a name and a line about when to delegate to it - that line being the
+card showing a name and a line about what the agent covers - that line being the
 Description from step 3. The user does not have to pick the right agent: the
-selector defaults to Sindri, which decides whether to delegate, reading those
-descriptions. See
+selector defaults to Sindri, whose agent holds every agent's capabilities and
+reads those descriptions to decide which guidance applies. See
 [`sindri.md`](../wiki/sindri.md).
 
 So an agent is found in the hub through the Description written in step 3, not
@@ -153,8 +154,9 @@ Check the file before using it. These were captured against the product at
 some point and nothing here tracks when. Do not put a screenshot of an older
 form in a customer deck; they will compare it to what they see.
 
-The last of the three also shows why a Description should be routing text:
-every card on it reads 「當使用者要⋯時,委派給 X Agent」.
+The last of the three shows Descriptions written as routing text - every card
+on it reads 「當使用者要⋯時,委派給 X Agent」. Do not copy that form; write
+「涵蓋⋯:⋯」, as step 3 says.
 
 ## Corresponding extracts
 
@@ -187,7 +189,7 @@ The shapes it passes through are `../usecase/agent-hub.md`,
   listed: the Data Source Provider list (every entry a database, no
   HTTP option), the Managed Agent form (the four Prompt fields and the live
   preview), and the Sindri home page (the Available Agents, each card showing
-  its Description as routing text)
+  its Description)
 
 **Checked:** asgard-docs `21c920f6` - `docs/product-suite/odin/features/settings/data-source.mdx`
 (nine providers, Test Connection before Save), `settings/connection.mdx` (the five
@@ -195,8 +197,9 @@ OAuth services), `mcp-servers.mdx` (From Workflow and From Existing, STDIO or
 Streamable HTTP), `agent-hub-managed-agent.mdx` (the five built-in templates), and
 `docs/quickstarts-guide.mdx` plus the two Odin case studies, none of which states a
 build order; asgard-core `478cf5d6`
-asgard-core `internal/bpcontroller/server/sandbox_orchestration.go` for what the
-orchestrator is given about each agent; asgard-kube `3da0365` `pkg/apis/asgard/v1alpha1/types.go` for the
+asgard-core `internal/bpcontroller/server/sandbox_orchestration.go`, and
+asgard-core #368 asgard-core `internal/processor/helper/clidriver_run.go`
+(`AgentCapabilitiesNote`), for what the turn's agent is given about each agent; asgard-kube `3da0365` `pkg/apis/asgard/v1alpha1/types.go` for the
 dependency direction - `SemanticLayer.spec.dataConnectorName`, and
 `Agent.spec.managed` naming its SkillSets, Toolsets, SourceSet mounts and
 semantic layers.

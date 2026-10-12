@@ -200,9 +200,9 @@ platform changes what it has to say:
   for scope; a chat bot cannot, so the prompt has to say what it does and what
   it does not do in its first turn, or users ask it anything.
 - Keep the graph minimal. 招呼 -> listen -> answer -> back to listen, plus a
-  failure branch to a maintenance message. Routing between topics is the
-  orchestrator's job informed by the prompt, not a workflow node per topic -
-  building the latter puts the routing in two places.
+  failure branch to a maintenance message. Telling topics apart is the
+  agent's job informed by the prompt, not a workflow node per topic -
+  building the latter puts that decision in two places.
 - `debugMode` is `never | on-demand | always`. Not `always` on a live channel.
 
 ### Security on a chat channel

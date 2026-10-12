@@ -1,16 +1,21 @@
 # <<.DisplayName>>
 #
-# An Agent CR is pure subagent config: it spawns nothing. The entry point is the
-# platform's per-namespace preset-agent-hub, and the caller selects agents per
-# turn with payload.agent_hub.agent_names[].
+# An Agent CR is a capability group: the tools, skills and data one area of work
+# needs, plus the guidance for working in it. It deploys nothing and is not a
+# separate assistant. The entry point is the platform's per-namespace
+# preset-agent-hub, the caller selects agents per turn with
+# payload.agent_hub.agent_names[], and the agent of that turn holds every
+# selected Agent's capabilities and does the work itself.
 #
 # TODO before this is usable:
-#   1. description - this is routing text for the orchestrator. It reads it,
-#      with sampleQuestions appended, as the "when to spawn" line above this
-#      agent's prompt, so put the business nouns in it. Where another agent looks
-#      similar, say which side of the line each is on.
-#   2. prompt.task and prompt.format are the shared block - copy them from a
-#      sibling Agent, and change every copy in one edit. No check enforces this.
+#   1. description - what this capability covers, in the customer's business
+#      nouns. The agent reads it to decide when this guidance applies. Do not
+#      name tools, skills or semantic models: the platform lists them beside it.
+#      Where another agent looks similar, say which side of the line each is on.
+#   2. prompt - only what is specific to this area of work. Every selected
+#      Agent's prompt is shown to the same agent in one turn, so a block copied
+#      into each Agent is repeated once per Agent. Rules for every turn belong
+#      in the Global Directory's AGENTS.md.
 #   3. At least two sampleQuestions while published.
 apiVersion: asgard-ai.com/v1alpha1
 kind: Agent
@@ -25,10 +30,11 @@ metadata:
 spec:
   agentClass: managed
   managed:
-    # The delegation name. Convention: the CR name without its ag- prefix.
+    # The handle a user writes as @<aliasName> to point at this capability.
+    # Convention: the CR name without its ag- prefix.
     aliasName: <<.Name>>
     description: |-
-      TODO: when to delegate here.
+      TODO: what this capability covers.
     # Every field below is 繁體中文, and the agent answers in the register its
     # prompt is written in. Write them to .agents/skills/plain-chinese/ - an
     # agent whose prompt says 賦能 and 至關重要 uses those words in its answers
@@ -37,11 +43,11 @@ spec:
       persona: |-
         TODO: who this agent is. Per agent.
       task: |-
-        TODO: the operating rules. The shared block - copy it from a sibling.
+        TODO: the operating rules for this area of work.
       context: |-
         TODO: what it can reach. Per agent.
       format: |-
-        TODO: how to answer. The shared block - copy it from a sibling.
+        TODO: how to answer, where this area needs its own form.
     # Shown to the end user in Sindri before anything else this agent says, so
     # they are 繁體中文. Write real questions somebody would type, to
     # .agents/skills/plain-chinese/ - not 「如何提升營運效率?」, which nobody
@@ -86,9 +92,9 @@ spec:
     # browser:
     #   enabled: true
 
-    # Files from a SourceSet, mounted into the shared sandbox pod - and
-    # aggregated onto the orchestrator's, not only this subagent's. The mount
-    # is a choice about what this agent works on, so none is written.
+    # Files from a SourceSet, mounted into the sandbox pod of every turn that
+    # selects this Agent. The mount is a choice about what this agent works on,
+    # so none is written.
     #
     # A YAML list here. The same field on a SandboxBlueprint is a stringified
     # JSON array, and people copy one shape into the other - both shapes are side by side in
