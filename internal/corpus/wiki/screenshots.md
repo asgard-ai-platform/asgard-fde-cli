@@ -66,11 +66,11 @@ For a customer-service shape rather than an internal one:
 | `retail-ai-customer-service/21-flow-agent-canvas.png` | a single Entry node on an otherwise empty canvas. It does not show the default flow, whatever its caption says; use the next one for that |
 | `retail-ai-customer-service/23-agent-node-open.png` | the Agent node's settings panel, with the flow behind it - Entry, Init, Agent and an Error push on Agent's failure branch are visible, the rest is under the panel - and the prompt deciding what a logged-out visitor is told versus a logged-in one, cut off at the right edge. CROP FIRST: the prompt names `prevPayload.user`, `customer-service-api` and `ecshop` |
 
-And the one that shows Description used as routing text in the hub:
+And the one that shows each agent's Description in the hub:
 
 | path | what it shows |
 |---|---|
-| `sindri-home/home-available-agents.png` | each card's line is that agent's Description, as routing text |
+| `sindri-home/home-available-agents.png` | each card's line is that agent's Description. The Descriptions in it are written as routing text (「委派給 X Agent」); do not hold it up as the form to copy - `../wiki/setup-path.md` step 3 has the form |
 
 ## For a handover: the setup path
 

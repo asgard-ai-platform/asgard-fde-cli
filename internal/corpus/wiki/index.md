@@ -11,7 +11,7 @@ description: every wiki page grouped by the question it answers - start here whe
 |---|---|
 | [`product-suite`](../wiki/product-suite.md) | what each product is for, and who uses it |
 | [`console`](../wiki/console.md) | the permission layers, the pages that disagree with each other, Workspace Management - and the path each thing sits at, for when the answer is where to click |
-| [`sindri`](../wiki/sindri.md) | Project, delegation, the Sandbox and its files, the governance gate |
+| [`sindri`](../wiki/sindri.md) | Project, the home page and @mentions, the Sandbox and its files, the governance gate |
 | [`mimir`](../wiki/mimir.md) | Thread, View, Dashboard, Knowledge |
 | [`fehu`](../wiki/fehu.md) | billing and usage, how cost is broken down - and which product lets a customer bring their own model |
 

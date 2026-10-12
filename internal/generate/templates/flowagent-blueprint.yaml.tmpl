@@ -4,9 +4,9 @@
 # workflow. The Workflow CRD does not contain the link, so searching it finds
 # nothing.
 #
-# A single-purpose agent needs no subagent. Adding one only makes the
-# orchestrator restate the question and the answer. Several
-# specialists is a different shape -
+# A single-purpose agent needs no Agent CR: its prompt is on the workflow and
+# its capabilities are here. Several areas of work, each with its own
+# guidance, is a different shape -
 # `.agents/skills/asgard-platform/usecase/flow-agent-supervisor.md`.
 apiVersion: asgard-ai.com/v1alpha1
 kind: SandboxBlueprint
@@ -61,9 +61,11 @@ spec:
   # sourceSetMounts:
   #   value: '[{"sourceSetName": "ss-<name>", "mountPath": "/knowledge", "readOnly": true}]'
   #
-  # The specialists. `add flowagent --supervisor` writes the workflow that
-  # delegates and stops there, because choosing the specialists and the line
-  # between them is a design decision -
+  # The Agents: one capability group per area of work, each bringing its
+  # tools, skills and data plus the guidance for that area. The agent of
+  # every turn holds all of them and does the work itself.
+  # `add flowagent --supervisor` writes the workflow and stops there, because
+  # choosing the areas and the line between them is a design decision -
   # `.agents/skills/asgard-platform/usecase/flow-agent-supervisor.md` has how
   # to split them and what each entry may override.
   #
@@ -71,12 +73,13 @@ spec:
   # as a YAML list because its contents look like one. Each entry carries
   # exactly one of baseAgentName - an Agent CR in this
   # chart, every other field on the entry then a delta merged onto it - or
-  # aliasName, a subagent with no CR at all, defined entirely by the entry.
+  # aliasName, a capability group with no CR at all, defined entirely by the
+  # entry.
   # agents:
   #   value: |-
-  #     [{"baseAgentName": "ag-<specialist>"},
+  #     [{"baseAgentName": "ag-<area>"},
   #      {"baseAgentName": "ag-<other>"}]
   #
-  # An `expression:` computes the roster per turn from the caller's payload
+  # An `expression:` computes the list per turn from the caller's payload
   # instead, and `template:` is the third form. The CRD takes exactly one of
   # the three, so swapping forms means deleting the one in place.

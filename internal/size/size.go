@@ -60,9 +60,9 @@ var Shapes = []Shape{
 			"Workflow":         1,
 			"SandboxBlueprint": 1,
 		},
-		SeenIn: "the same shape with subagents mounted on the blueprint",
-		Note: "Still no `Agent` CR. Subagents are Managed Agents mounted by the\n" +
-			"blueprint, so add one `Agent` per specialism with `--agents`.",
+		SeenIn: "the same shape with Agents listed on the blueprint",
+		Note: "Still no `Agent` CR in the base. The blueprint lists Managed Agents,\n" +
+			"so add one `Agent` per area of work with `--agents`.",
 	},
 	{
 		Name:     "agent-hub",

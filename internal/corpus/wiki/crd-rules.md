@@ -182,7 +182,7 @@ says so, and the plan is the authority:
 
 ## The one the schema cannot enforce
 
-A `SandboxBlueprint`'s subagent must set exactly one of `baseAgentName` or
+Each entry in a `SandboxBlueprint`'s `agents` must set exactly one of `baseAgentName` or
 `aliasName`, and nothing in the CRD checks it. The shape rides inside a
 JSON-string value, so CEL cannot see it. It is enforced by the blueprint
 controller at evaluation time, which fails the run with

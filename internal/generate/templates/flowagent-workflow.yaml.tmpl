@@ -1,10 +1,11 @@
 # <<.DisplayName>> —— 對話流程
 #
-# The prompt lives here, on the processor. There is no Agent CR in this shape.
+# The prompt lives here, on the processor. The single-purpose shape has no
+# Agent CR; with --supervisor, the Agents are listed on the blueprint.
 #
-# Keep the graph minimal: greet, listen, answer, back to listen. Routing between
-# topics is the orchestrator's job, informed by the prompt - a workflow per topic
-# puts the routing in two places.
+# Keep the graph minimal: greet, listen, answer, back to listen. Telling topics
+# apart is the agent's job, informed by the prompt - a workflow per topic puts
+# that decision in two places.
 #
 # Without the workflow-set labels below, this workflow belongs to no set and the
 # UI has nothing to list, although it runs. Lint, CRD validation and a dry-run
@@ -54,15 +55,16 @@ spec:
       configs:
         - name: completionModel
           value: {{ .Values.defaultCompletionModelName | quote }}
-        # The supervisor's own instruction. Its specialists are subagents on the
-        # blueprint, and each has its own prompt - a subagent's task is what
-        # makes it a specialist, so do not copy this into them.
+        # The entry agent's own instruction, and the one place for rules that
+        # hold on every turn. The platform shows this agent each Agent on the
+        # blueprint - its description, its prompt and the tools it provides -
+        # so this prompt does not repeat them, and they do not repeat this.
         - name: prompt
           template: |-
-            TODO: who the supervisor is, in 繁體中文 written to
-            .agents/skills/plain-chinese/. Say that it works through its
-            subagents rather than from memory, and which kind of request goes
-            to which - by what each does, never by CR or agent names.
+            TODO: who this agent is, in 繁體中文 written to
+            .agents/skills/plain-chinese/. Say that it works through its tools
+            rather than from memory, and the rules every turn follows - by
+            what they are for, never by CR or agent names.
         # The deployments set these two identically. The processor waits for the
         # whole reply without being told to; production charts that still set
         # `await` carry a key the platform no longer reads - see
@@ -72,7 +74,7 @@ spec:
         - name: effort
           value: medium
         # Capabilities live one CR further out, on the blueprint - including the
-        # subagents. Do not also declare toolsets here.
+        # Agents. Do not also declare toolsets here.
         - name: sandboxBlueprint
           value: sbp-<<.Name>>
 

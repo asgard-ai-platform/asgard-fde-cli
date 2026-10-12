@@ -24,9 +24,12 @@ To create one:
 - **Agent Name** (required)
 - **Agent Alias** (required) - `aliasName` in the CR, whose pattern is
   `^[a-z0-9][a-z0-9\-]*$`: lowercase letters, digits and hyphens, starting with
-  a letter or a digit. It is the name the orchestrator invokes the agent by
-- **Description** (required) - what this agent can do. It is shown on the agent's
-  profile, and it is what the orchestrator reads to decide whether to delegate
+  a letter or a digit. It is the handle a user writes as `@<alias>` to point
+  at this agent's capability
+- **Description** (required) - what this agent's capability covers. It is shown
+  on the agent's profile, and the agent of each turn reads it to decide when
+  this agent's guidance applies. It does not need to name the tools: the
+  platform lists them beside it
 - **Prompt** (required), in four fields
   - Persona - who this agent is
   - Task - the list of things it does
@@ -46,9 +49,9 @@ Every Managed Agent is published to Sindri and can also be managed from the
 Management Console. An enabled agent serves immediately; a disabled one stops
 serving but keeps its configuration. Enabled and disabled are Console state: the
 `Agent` CR has no field for either. There is no publish step and nothing to
-import on the Sindri side. What makes an agent findable there is the
-Description: the orchestrator reads it, with the sample questions appended, as
-the "when to spawn" line above the agent's prompt. In a chart the
+import on the Sindri side. What makes an agent's guidance apply there is the
+Description: the agent of each turn reads it, with the sample questions and the
+tools the platform lists for it, beside the agent's prompt. In a chart the
 same holds: one `preset-agent-hub` per namespace serves every managed `Agent` CR,
 and nothing in the `Agent` names the Hub.
 [`setup-path.md`](../wiki/setup-path.md) is the order this sits in.
@@ -105,12 +108,16 @@ resources. They are not one to one.
 `agentClass` has only one value, `managed`, so the CRD's `Agent` is the UI's
 Managed Agent and there is no other kind, although the name suggests a choice
 between two. An entry in `SandboxBlueprint.spec.agents` either names an `Agent`
-CR (`baseAgentName`) or defines a subagent inline (`aliasName`) with no `Agent`
-CR behind it.
+CR (`baseAgentName`) or defines one inline (`aliasName`) with no `Agent` CR
+behind it.
+
+A Managed Agent is a capability group, not an assistant that runs on its own:
+the agent of a turn holds the capabilities of every Managed Agent selected for
+it and does the work itself.
 
 For how each shape is assembled: `../usecase/agent-hub.md` (an internal
 hub), `../usecase/flow-agent-single.md` (anonymous, one job), `../usecase/flow-agent-supervisor.md`
-(anonymous, several specialists), `../usecase/browser-operation.md` (giving one a browser).
+(anonymous, several areas of work), `../usecase/browser-operation.md` (giving one a browser).
 
 ## Sources
 
@@ -127,6 +134,8 @@ hub), `../usecase/flow-agent-single.md` (anonymous, one job), `../usecase/flow-a
 fields against asgard-kube `3da0365` `pkg/apis/asgard/v1alpha1/types.go`
 (`BotProviderSpec.Entrypoint`, `AgentClass`, `ManagedAgentSpec`, `AgentPrompt`,
 `SandboxBlueprintSpec.Agents`) and asgard-kube `crd/asgard-ai.com_agents.yaml`;
+what a Managed Agent is and what its alias and description are for against
+asgard-kube `1c07e20` (v1.1.9) `ManagedAgentSpec`;
 the Hub serving every managed `Agent` against
 asgard-core `478cf5d6` `internal/bpoperator/reconciler/ns_reconciler.go`; the `Agent` shape against the
 `Agent` CRs of every deployment the extracts were written from that declares

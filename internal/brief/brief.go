@@ -280,7 +280,7 @@ built, and reversed. The same obvious choice is tempting each time.`,
 				"../wiki/processors.md",
 			},
 			{
-				"a SandboxBlueprint's subagents",
+				"a SandboxBlueprint's agents",
 				"it deployed, so the blueprint is right",
 				"Exactly one of `baseAgentName` or `aliasName`, and no CRD checks it - the shape rides inside a JSON string where CEL cannot see it, so the controller enforces it at evaluation time. Both set, or neither, deploys green and fails the first time somebody talks to the agent. Check this rule by hand on every blueprint",
 				"../wiki/crd-rules.md",

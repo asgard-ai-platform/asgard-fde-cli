@@ -317,9 +317,10 @@ In that shape the capabilities live one CR further out, on the
 Searching the `Workflow` CRD for the link finds nothing, and that has led to a
 wrong conclusion before.
 
-A single public agent needs no subagent. Attaching one through the blueprint's
-`agents[]` only adds a hop where the orchestrator restates the question and
-restates the answer back.
+A single public agent needs no `Agent` CR. Its prompt goes on the workflow's
+processor and its capabilities on the blueprint; an `Agent` in the blueprint's
+`agents[]` would put a second set of instructions for the same job beside the
+first.
 
 > Answered wrong once: a public widget was specced onto the agent hub, then
 > re-decided as a self-hosted chain.
@@ -494,7 +495,7 @@ table is what each one looks like once chosen.
 | Entry | the platform's per-namespace `preset-agent-hub` — you do not author it | your own `BotProvider` → your own `Workflow` | your own `BotProvider` → your own `Workflow` |
 | Capabilities bound via | an `Agent` CR; the caller passes `agent_hub.agent_names[]` per turn | `toolsets` / `semanticLayers` written straight onto the `stream-llm-completion-message` processor | `sandboxBlueprint` on that processor → `SandboxBlueprint`'s own `toolsetNames` / `skillSetNames` / `sourceSetMounts` |
 | Who can reach it | only a caller that can authenticate | anyone the BotProvider lets in | anyone the BotProvider lets in |
-| `Agent` CRs in the chart | one per source system | none | none, unless a blueprint attaches subagents |
+| `Agent` CRs in the chart | one per source system | none | none, unless the blueprint lists Agents for several areas of work |
 
 Field shapes to keep straight in shape C, all `ValueExprTemplate`: the names
 fields carry a comma-separated string in `value`; `sourceSetMounts` carries a
@@ -797,7 +798,7 @@ apiserver, not by `helm lint`.
 It also carries `asgard-ai.com/project-environment-id`, like `Workflow` and `Trigger`.
 
 `SemanticLayer.spec.completionModelName` is required; an `Agent` takes no model (the caller
-picks the orchestrator's model per turn).
+picks the model per turn).
 
 ## Secrets
 
