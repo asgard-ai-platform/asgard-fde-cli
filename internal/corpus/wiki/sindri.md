@@ -225,8 +225,8 @@ membership check, the billing gate, the main agent); and against
 asgard-ai-agent-hub-web `33d002a8` `src/components/routine/routine-list.tsx`
 (Show disabled) and asgard-ai-agent-hub-web `src/types/routine.ts`. The
 Global Directory written from a chart against asgard-kube `d0f8a8e`
-(`staticContent`, and the destinationPath rule per class), asgard-iac `cece0c2`
-asgard-iac `internal/helm/values.go` (the reserved value) and
+(`staticContent`, and the destinationPath rule per class), and at asgard-iac
+`cece0c2` against asgard-iac `internal/helm/values.go` (the reserved value) and
 asgard-iac `internal/apply/cluster.go` (`SyncersToFire` reads only
 auto-fire-on-rollout, never syncer-suspend).
 
