@@ -257,10 +257,9 @@ order - is therefore read once per Agent, and two copies that have drifted
 apart give the agent two different rules.
 
 State a rule for every turn once. In the agent hub the place for it is the
-Global Directory's `AGENTS.md` (`../wiki/sindri.md`), which every Agent Hub
-conversation in the Project reads. It is set in Odin rather than in the chart,
-so keep its intended text in the repository and say there where it is
-uploaded. A Flow Agent states such rules once in its Workflow's prompt
+Global Directory's `AGENTS.md`, which every Agent Hub conversation in the
+Project reads, and a chart writes it with a Syncer (`../wiki/sindri.md`). A
+Flow Agent states such rules once in its Workflow's prompt
 (`../usecase/flow-agent-supervisor.md`).
 
 A chart set that models one agent per business role may still write `task` and

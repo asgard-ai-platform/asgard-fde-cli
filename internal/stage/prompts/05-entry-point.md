@@ -83,7 +83,8 @@ edit or a conversation. `../usecase/agent-hub.md` has why two.
 Every selected Agent's prompt is shown to the same agent in one turn, so a block
 copied into each Agent is repeated once per Agent. Write in each Agent only what
 is specific to its area of work, and put rules for every turn in the Global
-Directory's `AGENTS.md`. `../usecase/agent-hub.md` has the split.
+Directory's `AGENTS.md`, which the chart writes (`../wiki/sindri.md`).
+`../usecase/agent-hub.md` has the split.
 
 ## If it is a self-hosted chain
 

@@ -88,6 +88,7 @@ projects/<project>/chart/app/templates/
   source_set/<name>.yaml       a SourceSet that is not a skill set's store
   plugin/<name>.yaml           Plugin + the SkillSet it bundles
   bot_provider/<name>.yaml     BotProvider
+  agent_hub/<name>.yaml        the Syncer writing the Global Directory's AGENTS.md
   sandbox_blueprint/<name>.yaml
   _helpers.tpl
   NOTES.txt

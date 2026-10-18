@@ -54,6 +54,7 @@ Not every `syncerClass` the CRD supports is reachable from the UI.
 | Bot | no | `bot` |
 | Dropbox | no | `dropbox` |
 | FTP / SFTP / SMB | no | `ftp` / `sftp` / `smb` |
+| Static content | no; shown read-only | `static-content` |
 
 The ones marked no can only be declared in a chart. If a customer's data lives on an
 FTP server or an SMB share, that route works, but it has to be built in a chart.

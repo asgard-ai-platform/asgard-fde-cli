@@ -443,7 +443,7 @@ asgard-cli add dataconnector erp --db-class postgres --project erp
 asgard-cli add flowagent support --bot-class line --project site
 ```
 
-十種 kind：`dataconnector`、`semanticlayer`、`agent`、`httptool`、`querytool`、`skillset`、`trigger`、`knowledgedrive`、`plugin`、`flowagent`。
+可產生的 kind：`dataconnector`、`semanticlayer`、`agent`、`agentsmd`、`httptool`、`querytool`、`skillset`、`trigger`、`knowledgedrive`、`plugin`、`flowagent`。
 
 它產生的是骨架：結構與陷阱是對的，內容標成 TODO。產生的是沒有任何檢查會抓到的部分：缺一個顯示用 annotation 會讓 UI 出現一個沒有名字的資源、沒有 set label 的 Workflow 在 UI 上看不到、沒有自己那兩個 label 的 Trigger 打開是一張空白畫布、上游改過名的欄位用舊名字照樣能通過 lint。這些都不會被 `helm lint`、CRD 驗證或 server-side dry-run 抓到。
 

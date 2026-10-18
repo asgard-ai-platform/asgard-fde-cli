@@ -501,8 +501,8 @@ Next:
                       asgard-cli verify
 ```
 
-Ten kinds: `dataconnector`, `semanticlayer`, `agent`, `httptool`, `querytool`,
-`skillset`, `trigger`, `knowledgedrive`, `plugin`, `flowagent`.
+The kinds: `dataconnector`, `semanticlayer`, `agent`, `agentsmd`, `httptool`,
+`querytool`, `skillset`, `trigger`, `knowledgedrive`, `plugin`, `flowagent`.
 
 It generates a skeleton: the structure and the traps are right, and the content
 is marked TODO. It generates the parts nothing else catches: a missing display

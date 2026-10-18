@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/render"
 )
 
 // displayNameAnnotation maps a kind to the annotation the Platform UI reads its
@@ -101,6 +103,11 @@ type xref struct {
 	// puts content is the only declaration that content is there.
 	syncerDestsBySourceSet map[string]map[string]bool
 
+	// syncersBySourceSet is every Syncer writing into a SourceSet, for the one
+	// overlap a render can see: a static-content file under another Syncer's
+	// destination, or two static-content Syncers writing one file.
+	syncersBySourceSet map[string][]Doc
+
 	// skillSetsBySourceSet finds a SourceSet shared by two SkillSets, which
 	// leaves the UI unable to show either one's git configuration.
 	skillSetsBySourceSet map[string][]string
@@ -134,6 +141,7 @@ func (x *xref) buildLookups() {
 	x.labelsByWorkflow = map[string]map[string]string{}
 	x.labelsBySourceSet = map[string]map[string]string{}
 	x.syncerDestsBySourceSet = map[string]map[string]bool{}
+	x.syncersBySourceSet = map[string][]Doc{}
 	x.skillSetsBySourceSet = map[string][]string{}
 	x.searchPathsBySkillSet = map[string][]string{}
 	x.bundledSkillSets = map[string]bool{}
@@ -161,6 +169,9 @@ func (x *xref) buildLookups() {
 					x.syncerDestsBySourceSet[ss] = map[string]bool{}
 				}
 				x.syncerDestsBySourceSet[ss][dest] = true
+			}
+			if ss != "" {
+				x.syncersBySourceSet[ss] = append(x.syncersBySourceSet[ss], d)
 			}
 
 		case "SkillSet":
@@ -282,6 +293,15 @@ func (x *xref) checkKind(d Doc) {
 		x.checkSkillSet(d)
 	case "Syncer":
 		x.checkSyncer(d)
+	case "SourceSet":
+		// The platform creates this one in every namespace, so a chart
+		// declaring it is declaring the platform's own object: helm refuses to
+		// take over a resource it did not create, and a chart that did own it
+		// would delete Agent Hub's directory on uninstall.
+		if render.PlatformProvidedSourceSets[d.Name] {
+			x.errf("SourceSet/%s is created by the platform in every namespace, so a chart must not declare it. Point a Syncer at it through .Values.asgard.agentHubGlobalSourceSetName and remove this CR",
+				d.Name)
+		}
 	case "Workflow":
 		x.checkWorkflow(d)
 	case "SandboxBlueprint":
@@ -539,9 +559,26 @@ func (x *xref) checkSkillSet(d Doc) {
 	}
 }
 
+// syncerClassStaticContent is the class whose destinationPath is a file.
+const syncerClassStaticContent = "static-content"
+
+// syncerClassesThatDelete are the classes that remove a file under their
+// destinationPath which their source does not carry: git cleans the checkout,
+// and the file-store classes mirror with --delete-after. database, bot and web
+// add files and delete none (`.agents/skills/asgard-platform/usecase/skill-set.md`).
+var syncerClassesThatDelete = map[string]bool{
+	"git": true, "google-drive": true, "onedrive": true, "dropbox": true,
+	"ftp": true, "sftp": true, "smb": true,
+}
+
 func (x *xref) checkSyncer(d Doc) {
 	sourceSet := digStr(d.Spec, "sourceSetName")
-	x.ref(fmt.Sprintf("Syncer/%s.sourceSetName", d.Name), "SourceSet", sourceSet)
+	// The Global Directory is the platform's, so a chart's render never holds
+	// it and a reference to it is not dangling.
+	if !render.PlatformProvidedSourceSets[sourceSet] {
+		x.ref(fmt.Sprintf("Syncer/%s.sourceSetName", d.Name), "SourceSet", sourceSet)
+	}
+	static := digStr(d.Spec, "syncerClass") == syncerClassStaticContent
 
 	// destinationPath and statePath are relative paths inside the volume, and
 	// these are the CRD's own CEL rules. Catching them here reads better than
@@ -554,17 +591,23 @@ func (x *xref) checkSyncer(d Doc) {
 	// name, and the same path rules apply to whichever spelling is in use.
 	dest := digStr(d.Spec, "destinationPath")
 	if dest == "" {
-		if old := digStr(d.Spec, "destinationMemberKey"); old != "" {
+		if old := digStr(d.Spec, "destinationMemberKey"); old != "" && static {
+			x.errf("Syncer/%s is static-content and sets only destinationMemberKey=%q. The CRD requires destinationPath for this class and does not accept the deprecated spelling", d.Name, old)
+			return
+		} else if old != "" {
 			dest = old
 			x.warnf("Syncer/%s sets destinationMemberKey=%q, the pre-rename spelling. The CRD still accepts it - kept so pre-rename objects stay readable - and new objects should set destinationPath. Both are immutable once set, so this is a new Syncer rather than an edit",
 				d.Name, old)
 		}
 	}
-	if dest == "" {
+	switch {
+	case dest == "":
 		x.errf("Syncer/%s: sets neither destinationPath nor the deprecated destinationMemberKey, and the CRD requires one of them", d.Name)
-	} else if why := badRelPath(dest); why != "" {
-		x.errf("Syncer/%s.destinationPath=%q: %s", d.Name, dest, why)
-	} else if !strings.HasSuffix(dest, "/") {
+	case badRelPath(dest) != "":
+		x.errf("Syncer/%s.destinationPath=%q: %s", d.Name, dest, badRelPath(dest))
+	case static && strings.HasSuffix(dest, "/"):
+		x.errf("Syncer/%s.destinationPath=%q: a static-content Syncer writes one file, and its destinationPath is that file, so it must not end in /", d.Name, dest)
+	case !static && !strings.HasSuffix(dest, "/"):
 		x.errf("Syncer/%s.destinationPath=%q: the destination is a directory and must end in /", d.Name, dest)
 	}
 
@@ -581,7 +624,13 @@ func (x *xref) checkSyncer(d Doc) {
 			x.errf("Syncer/%s.statePath=%q: %s", d.Name, state, why)
 		} else if strings.HasSuffix(state, "/") {
 			x.errf("Syncer/%s.statePath=%q: the state path is a file and must not end in /", d.Name, state)
+		} else if static && state == dest {
+			x.errf("Syncer/%s.statePath=%q is the file the Syncer writes, which the CRD refuses for static-content", d.Name, state)
 		}
+	}
+
+	if static && dest != "" {
+		x.checkStaticContentOverlap(d, sourceSet, dest)
 	}
 
 	// Only a database-class Syncer has a DataConnector.
@@ -616,6 +665,31 @@ func (x *xref) checkSyncer(d Doc) {
 			sort.Strings(sortedOwners)
 			x.errf("Syncer/%s feeds SkillSet/%s's own SourceSet/%s, so it needs label %s=%s (or it shows up in the general Syncer list)",
 				d.Name, strings.Join(sortedOwners, ", "), sourceSet, managedByKey, managedBySkillSet)
+		}
+	}
+}
+
+// checkStaticContentOverlap reports a static-content file that another Syncer
+// in the same SourceSet removes or rewrites on every run. Both Syncers apply and
+// run; the file alternates between them for as long as both exist.
+//
+// These are warnings: the platform accepts both objects, and only the content
+// of one file is at stake.
+func (x *xref) checkStaticContentOverlap(d Doc, sourceSet, file string) {
+	for _, o := range x.syncersBySourceSet[sourceSet] {
+		if o.Name == d.Name {
+			continue
+		}
+		other := digStr(o.Spec, "destinationPath")
+		class := digStr(o.Spec, "syncerClass")
+		switch {
+		case class == syncerClassStaticContent && other == file && d.Name < o.Name:
+			// Reported once, from the first of the two by name.
+			x.warnf("Syncer/%s and Syncer/%s both write %s in SourceSet/%s, so each run replaces the other's content",
+				d.Name, o.Name, file, sourceSet)
+		case syncerClassesThatDelete[class] && strings.HasSuffix(other, "/") && strings.HasPrefix(file, other):
+			x.warnf("Syncer/%s writes %s inside %s, which Syncer/%s (%s) owns in SourceSet/%s. Each run of that Syncer removes a file its source does not carry, so the file comes and goes. Write it outside that folder",
+				d.Name, file, other, o.Name, class, sourceSet)
 		}
 	}
 }

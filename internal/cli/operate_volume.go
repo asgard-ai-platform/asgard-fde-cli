@@ -40,8 +40,9 @@ var (
 		Overwritten: `A Syncer owns its destinationPath. A git Syncer removes every file its revision
 does not carry, and the file-store classes mirror their source, so a file put
 under either's destination is gone after its next run; the database, bot and
-web classes delete nothing. Put files a person hands over in a folder no Syncer
-writes.`,
+web classes delete nothing. A static-content Syncer owns one file, and puts its
+text back over any edit on its next run. Put files a person hands over in a
+folder no Syncer writes.`,
 	}
 	skillSetFiles = volumeKind{
 		Kind: "SkillSet", Use: "skill-set", volume: platform.SkillSetVolume, Perm: "skill-set/put",

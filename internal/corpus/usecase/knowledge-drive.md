@@ -275,8 +275,9 @@ structured questions well and the knowledge ones badly.
 
 ## Fields that are not obvious
 
-`destinationPath` must end with `/`, for every syncer class;
-`statePath` must not. Both are relative paths inside the volume, and the CRD
+`destinationPath` must end with `/`, for every syncer class but
+`static-content`, whose destinationPath is the one file it writes
+(`../wiki/sindri.md`); `statePath` must not. Both are relative paths inside the volume, and the CRD
 rejects a leading `/`, a `.` or `..` segment, or `//`.
 
 The folder does not need declaring anywhere. Writing to it creates it, so a

@@ -7,8 +7,8 @@ import (
 )
 
 // Enum values the CRDs accept, extracted from the kubebuilder validation
-// markers in asgard-kube `pkg/apis/asgard/v1alpha1/types.go` at 42e8722 on
-// 2026-10-07, keyed by json field name.
+// markers in asgard-kube `pkg/apis/asgard/v1alpha1/types.go` at d0f8a8e on
+// 2026-10-18, keyed by json field name.
 //
 // **Some field names are deliberately absent**: `type`, `format`, `alias` and
 // `status` each carry a different enum in different places, and the union of
@@ -28,39 +28,39 @@ import (
 //
 // `go run ./hack tables` holds this table against the generated CRDs. Run it
 // after regenerating, and when asgard-kube moves.
-const enumsRead = "2026-10-07, asgard-kube 42e8722"
+const enumsRead = "2026-10-18, asgard-kube d0f8a8e"
 
 var crdEnums = map[string][]string{
-	"agentClass":                {"managed"},                                                                                    // 1 declaration(s)
-	"authMode":                  {"api-key", "none"},                                                                            // 2 declaration(s)
-	"blobStatus":                {"Bound", "Unbound"},                                                                           // 1 declaration(s)
-	"botProviderClass":          {"discord", "generic", "line", "slack", "telegram"},                                            // 1 declaration(s)
-	"completionModelClass":      {"anthropic", "aoai-chat", "builtin", "gemini", "mistral", "openai-chat"},                      // 1 declaration(s)
-	"connectorStatus":           {"Failed", "Pending", "Provisioning", "Ready"},                                                 // 1 declaration(s)
-	"dataConnectorClass":        {"athena", "hana", "mssql", "mysql", "netsuite", "oracle", "postgres", "salesforce", "trino"},  // 1 declaration(s)
-	"debugMode":                 {"always", "never", "on-demand"},                                                               // 1 declaration(s)
-	"documentClass":             {"audio", "docx", "image", "pdf", "pptx", "video"},                                             // 1 declaration(s)
-	"effort":                    {"auto", "disabled", "high", "low", "max", "medium", "xhigh"},                                  // 2 declaration(s)
-	"embeddingModelClass":       {"aoai", "builtin", "gemini", "mistral", "openai", "voyageai"},                                 // 1 declaration(s)
-	"event":                     {"post-tool-call", "pre-tool-call", "session-end", "session-start", "user-prompt-submit"},      // 1 declaration(s)
-	"handlerType":               {"command"},                                                                                    // 1 declaration(s)
-	"imageGenerationModelClass": {"aoai", "builtin", "gemini", "openai"},                                                        // 1 declaration(s)
-	"indexStatus":               {"Complete", "Failed", "Indexing", "Pending"},                                                  // 1 declaration(s)
-	"knowledgeBaseClass":        {"asgard-baseline"},                                                                            // 1 declaration(s)
-	"linkageType":               {"as-destination", "as-source"},                                                                // 1 declaration(s)
-	"loaderClass":               {"bot", "database", "google-drive", "onedrive", "web"},                                         // 1 declaration(s)
-	"phase":                     {"Expired", "Failed", "Pending", "Ready", "Refreshing"},                                        // 1 declaration(s)
-	"provisionStatus":           {"Provisioned", "Provisioning"},                                                                // 1 declaration(s)
-	"relationship":              {"many_to_one", "one_to_many", "one_to_one"},                                                   // 1 declaration(s)
-	"scheme":                    {"http", "https"},                                                                              // 1 declaration(s)
-	"signatureAlgorithm":        {"ES256", "ES512", "PS256"},                                                                    // 1 declaration(s)
-	"sourceClass":               {"audio", "csv", "docx", "image", "json-line", "pdf", "pptx", "video", "xlsx"},                 // 2 declaration(s)
-	"sslMode":                   {"disable", "require", "verify-ca", "verify-full"},                                             // 1 declaration(s)
-	"storageStatus":             {"Provisioning", "Ready"},                                                                      // 1 declaration(s)
-	"syncerClass":               {"bot", "database", "dropbox", "ftp", "git", "google-drive", "onedrive", "sftp", "smb", "web"}, // 1 declaration(s)
-	"toolsetClass":              {"mcp-server", "workflow-tooling"},                                                             // 1 declaration(s)
-	"transcriptionModelClass":   {"aoai", "builtin", "gemini", "openai"},                                                        // 1 declaration(s)
-	"triggerClass":              {"cron"},                                                                                       // 1 declaration(s)
+	"agentClass":                {"managed"},                                                                                                      // 1 declaration(s)
+	"authMode":                  {"api-key", "none"},                                                                                              // 2 declaration(s)
+	"blobStatus":                {"Bound", "Unbound"},                                                                                             // 1 declaration(s)
+	"botProviderClass":          {"discord", "generic", "line", "msteams", "slack", "telegram"},                                                   // 1 declaration(s)
+	"completionModelClass":      {"anthropic", "aoai-chat", "builtin", "gemini", "mistral", "openai-chat"},                                        // 1 declaration(s)
+	"connectorStatus":           {"Failed", "Pending", "Provisioning", "Ready"},                                                                   // 1 declaration(s)
+	"dataConnectorClass":        {"athena", "hana", "mssql", "mysql", "netsuite", "oracle", "postgres", "salesforce", "trino"},                    // 1 declaration(s)
+	"debugMode":                 {"always", "never", "on-demand"},                                                                                 // 1 declaration(s)
+	"documentClass":             {"audio", "docx", "image", "pdf", "pptx", "video"},                                                               // 1 declaration(s)
+	"effort":                    {"auto", "disabled", "high", "low", "max", "medium", "xhigh"},                                                    // 2 declaration(s)
+	"embeddingModelClass":       {"aoai", "builtin", "gemini", "mistral", "openai", "voyageai"},                                                   // 1 declaration(s)
+	"event":                     {"post-tool-call", "pre-tool-call", "session-end", "session-start", "user-prompt-submit"},                        // 1 declaration(s)
+	"handlerType":               {"command"},                                                                                                      // 1 declaration(s)
+	"imageGenerationModelClass": {"aoai", "builtin", "gemini", "openai"},                                                                          // 1 declaration(s)
+	"indexStatus":               {"Complete", "Failed", "Indexing", "Pending"},                                                                    // 1 declaration(s)
+	"knowledgeBaseClass":        {"asgard-baseline"},                                                                                              // 1 declaration(s)
+	"linkageType":               {"as-destination", "as-source"},                                                                                  // 1 declaration(s)
+	"loaderClass":               {"bot", "database", "google-drive", "onedrive", "web"},                                                           // 1 declaration(s)
+	"phase":                     {"Expired", "Failed", "Pending", "Ready", "Refreshing"},                                                          // 1 declaration(s)
+	"provisionStatus":           {"Provisioned", "Provisioning"},                                                                                  // 1 declaration(s)
+	"relationship":              {"many_to_one", "one_to_many", "one_to_one"},                                                                     // 1 declaration(s)
+	"scheme":                    {"http", "https"},                                                                                                // 1 declaration(s)
+	"signatureAlgorithm":        {"ES256", "ES512", "PS256"},                                                                                      // 1 declaration(s)
+	"sourceClass":               {"audio", "csv", "docx", "image", "json-line", "pdf", "pptx", "video", "xlsx"},                                   // 2 declaration(s)
+	"sslMode":                   {"disable", "require", "verify-ca", "verify-full"},                                                               // 1 declaration(s)
+	"storageStatus":             {"Provisioning", "Ready"},                                                                                        // 1 declaration(s)
+	"syncerClass":               {"bot", "database", "dropbox", "ftp", "git", "google-drive", "onedrive", "sftp", "smb", "static-content", "web"}, // 1 declaration(s)
+	"toolsetClass":              {"mcp-server", "workflow-tooling"},                                                                               // 1 declaration(s)
+	"transcriptionModelClass":   {"aoai", "builtin", "gemini", "openai"},                                                                          // 1 declaration(s)
+	"triggerClass":              {"cron"},                                                                                                         // 1 declaration(s)
 }
 
 // Enums walks every rendered CR and reports a value the CRD's enum does not
