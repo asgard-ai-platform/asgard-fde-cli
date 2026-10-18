@@ -80,6 +80,24 @@ var PlatformInternalSecrets = map[string]bool{
 	"preset-agent-hub": true,
 }
 
+// AgentHubGlobalSourceSet is the SourceSet behind Agent Hub's Global Directory:
+// the namespace reconciler creates it in every namespace (asgard-core
+// `internal/constants.go` PresetAgentHubGlobalName), and every Agent Hub
+// conversation mounts it read-only and reads its top-level `AGENTS.md`.
+//
+// A chart reads the name from `.Values.asgard.agentHubGlobalSourceSetName`,
+// which the Platform injects (asgard-iac `internal/helm/values.go`), and never
+// writes it down. It is here so the local render supplies the real name and the
+// gate can tell a reference to it from a dangling one.
+const AgentHubGlobalSourceSet = "preset-agent-hub-global"
+
+// PlatformProvidedSourceSets are SourceSets the platform creates in every
+// namespace. A chart may point a Syncer at one, although its render does not
+// contain it; a chart that declares one is overwriting the platform's object.
+var PlatformProvidedSourceSets = map[string]bool{
+	AgentHubGlobalSourceSet: true,
+}
+
 // ResourceAPIKey is the conventional key in the release's own Secret for a
 // platform resource credential - `SourceSet.apiKey`, `Toolset.apiKey`,
 // `BotProvider.adminApiKey`. The value is the engagement's own: when no use case
@@ -110,7 +128,9 @@ func AppConfigMapName(releaseName string) string {
 // The names are the contract - a chart reads them and never writes a namespace,
 // a secret name or an environment id down - so they are listed here in full
 // rather than assembled, and a local render supplies the shape with placeholder
-// contents.
+// contents. agentHubGlobalSourceSetName is the exception: it is the same in every
+// namespace, so the real value is supplied and the gate sees the name the
+// platform will.
 func AsgardValues(releaseName, namespace string) map[string]any {
 	helm := HelmReleaseName(releaseName)
 	if namespace == "" {
@@ -126,6 +146,8 @@ func AsgardValues(releaseName, namespace string) map[string]any {
 		"appConfigMapName":     AppConfigMapName(releaseName),
 		"ref":                  Placeholder,
 		"commitSha":            Placeholder,
+
+		"agentHubGlobalSourceSetName": AgentHubGlobalSourceSet,
 	}
 }
 

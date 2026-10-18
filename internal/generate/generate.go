@@ -109,6 +109,19 @@ defaultSemanticLayerEffort: "medium"
 		},
 	},
 	{
+		Name: "agentsmd", Summary: "the AGENTS.md every Agent Hub conversation reads, from the Global Directory",
+		Prefix: "syn-", Files: []File{{Dir: "agent_hub", Template: "agentsmd.yaml.tmpl"}},
+		Extract: "agent-hub",
+		Wiki:    "sindri",
+		After: []string{
+			"Write the rules into the text. Only the top-level AGENTS.md is read, and",
+			"  only its first 64 KiB. The next deploy writes it; until then the Global",
+			"  Directory keeps whatever was there.",
+			"A project has one of these: two Syncers on one file overwrite each other",
+			"  on every run, and the gate warns about it.",
+		},
+	},
+	{
 		Name: "httptool", Summary: "a tool that calls an external HTTP API, plus its Toolset",
 		Prefix: "wf-", Files: []File{{Dir: "tool", Template: "httptool.yaml.tmpl"}},
 		Needs:    []string{"--toolset ts-<name>", "--write for a gated write path"},

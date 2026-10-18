@@ -65,8 +65,8 @@ thing to come back and fix when that model is retired.
 
 ## Which of them a render can be held against
 
-There are 76 CEL rules written and 234 enforced. 76 is the number of `XValidation` markers in asgard-kube's Go
-types; the generated CRDs carry 234 rule instances, 53 of them distinct,
+There are 80 CEL rules written and 240 enforced. 80 is the number of `XValidation` markers in asgard-kube's Go
+types; the generated CRDs carry 240 rule instances, 57 of them distinct,
 because one marker on a struct several kinds embed lands in every CRD that
 embeds it. Hold a render against the CRDs, not against the markers: the
 generated schema is the contract and the Go types are only its source.

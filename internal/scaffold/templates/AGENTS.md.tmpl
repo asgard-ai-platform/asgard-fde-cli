@@ -617,7 +617,7 @@ Three conventions, and what each one breaks:
 
 | convention | why |
 |---|---|
-| the Syncer's `destinationPath` is `git/`, trailing slash included | the CRD rejects a `destinationPath` without one, for every syncer class |
+| the Syncer's `destinationPath` is `git/`, trailing slash included | the CRD rejects a `destinationPath` without one, for every syncer class but `static-content`, whose destinationPath is a file |
 | `asgard-ai.com/managed-by: skill-set` on the SourceSet and the Syncer | it hides the Syncer from the generic list, and it is what the platform cascades on when a SkillSet is deleted |
 | one `searchPath` per skill directory | each path is searched recursively for `SKILL.md`, so `git/skills/` loads every skill in the repository, including ones added later; `git/skills/pdf/` loads one, and keeps the set explicit |
 
@@ -713,6 +713,7 @@ run, and the chart reads it:
 | `.Values.asgard.appConfigMapName` | this release's own ConfigMap |
 | `.Values.asgard.ref` | the tag or branch that triggered the run |
 | `.Values.asgard.commitSha` | the full commit SHA |
+| `.Values.asgard.agentHubGlobalSourceSetName` | the SourceSet behind Agent Hub's Global Directory, which a Syncer writes `AGENTS.md` into (`asgard-cli add agentsmd`) |
 
 The chart's `appVersion` is set to the ref for you. A `values.yaml` that defines its own `asgard`
 key gets a lint warning and is overridden.

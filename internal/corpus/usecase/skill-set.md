@@ -134,6 +134,9 @@ somebody else writes under its `destinationPath` depends on the class:
     googleDrive, oneDrive,      removed on the next run; `rclone sync
     dropbox, ftp, sftp, smb     --delete-after` mirrors the source
     database, bot, web          kept; they add files and delete none
+    static-content              kept; it writes the one file that is its
+                                destinationPath, only when that file differs
+                                from its text, and touches nothing else
 
 So a synced store is the source's, not a place to write, for the first two
 groups. Every class also writes `statePath` when one is set, the one file it
@@ -145,7 +148,8 @@ Syncer-backed SourceSet and cites that deployment's own service requirement for
 it. The class table against asgard-syncer `8d278689`
 asgard-syncer `internal/syncer/git.go` (`syncIncremental`, `worktreeDirty`, `materialize`), `internal/utils/rclone.go`
 (`buildRcloneSyncArgs`), and asgard-syncer `internal/syncer/database.go`, `bot.go` and
-`web.go`.
+`web.go`; the static-content row against asgard-syncer `e7df07f`
+asgard-syncer `internal/syncer/staticcontent.go` (`syncStaticContent`).
 
 ### The one place a shared store is right
 

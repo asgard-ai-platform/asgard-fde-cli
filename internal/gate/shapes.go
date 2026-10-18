@@ -7,7 +7,7 @@ import (
 )
 
 // The conditional CEL rules the CRDs carry, from asgard-kube `crd/*.yaml` at
-// cbd8d70, read 2026-09-04 by extracting every `x-kubernetes-validations` rule
+// d0f8a8e, read 2026-10-18 by extracting every `x-kubernetes-validations` rule
 // and keeping the two families a rendered object can be held against.
 //
 // **These were the gap.** `gate.Enums` covers the CRDs' enums and
@@ -17,7 +17,7 @@ import (
 // seen in a render. The rest are these, and nothing checked them - a chart
 // whose credential sets neither `value` nor `valueFrom` renders, lints and
 // passes a dry-run, and is refused at apply.
-const shapesRead = "2026-09-11, asgard-kube cbd8d70"
+const shapesRead = "2026-10-18, asgard-kube d0f8a8e"
 
 // exactlyOne is a set of sibling fields of which exactly one must be present.
 //
@@ -44,7 +44,7 @@ var exactlyOne = [][]string{
 // because these names are ordinary words - `web`, `database`, `image` - and a
 // path-free rule would fire on anything that happened to carry one.
 var specBlocks = map[string][]string{
-	"BotProvider":          {"generic", "telegram", "line", "discord", "slack"},
+	"BotProvider":          {"generic", "telegram", "line", "discord", "slack", "msteams"},
 	"CompletionModel":      {"aoaiChat", "openaiChat", "gemini", "anthropic", "mistral", "builtin"},
 	"DataConnector":        {"postgres", "mysql", "mssql", "oracle", "salesforce", "hana", "netsuite", "trino", "athena"},
 	"EmbeddingModel":       {"aoai", "openai", "gemini", "voyageai", "mistral", "builtin"},
@@ -52,7 +52,7 @@ var specBlocks = map[string][]string{
 	"Indexer":              {"csv", "xlsx", "pdf", "docx", "pptx", "jsonLine", "audio", "video", "image"},
 	"Loader":               {"web", "database", "bot", "googleDrive", "oneDrive"},
 	"Source":               {"pdf", "docx", "pptx", "audio", "video", "image", "csv", "xlsx", "jsonLine"},
-	"Syncer":               {"web", "database", "bot", "googleDrive", "oneDrive", "git", "dropbox", "ftp", "sftp", "smb"},
+	"Syncer":               {"web", "database", "bot", "googleDrive", "oneDrive", "git", "dropbox", "ftp", "sftp", "smb", "staticContent"},
 	"TranscriptionModel":   {"openai", "aoai", "gemini", "builtin"},
 }
 
@@ -67,14 +67,22 @@ var impliesBlock = []struct {
 }{
 	{"toolsetClass", []string{"mcp-server"}},
 	{"documentClass", []string{"pdf", "docx", "pptx", "audio", "video", "image"}},
+	// The CRD states this one both ways: staticContent is set exactly when the
+	// class is static-content. X2 counts class blocks without tying a block to
+	// its class, so the class-implies-block half is checked here.
+	{"syncerClass", []string{"static-content"}},
 }
 
 // blockFor names the sibling a discriminator value requires. Every one of these
 // rules is `self.<field> != '<v>' || has(self.<v>)` - the block is named after
-// the value - except mcp-server, whose block is `mcpServerConfig`.
+// the value - except mcp-server, whose block is `mcpServerConfig`, and
+// static-content, whose block is `staticContent`.
 func blockFor(field, value string) string {
-	if field == "toolsetClass" && value == "mcp-server" {
+	switch {
+	case field == "toolsetClass" && value == "mcp-server":
 		return "mcpServerConfig"
+	case field == "syncerClass" && value == "static-content":
+		return "staticContent"
 	}
 	return value
 }

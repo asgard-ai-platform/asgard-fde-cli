@@ -11,7 +11,7 @@ description: every wiki page grouped by the question it answers - start here whe
 |---|---|
 | [`product-suite`](../wiki/product-suite.md) | what each product is for, and who uses it |
 | [`console`](../wiki/console.md) | the permission layers, the pages that disagree with each other, Workspace Management - and the path each thing sits at, for when the answer is where to click |
-| [`sindri`](../wiki/sindri.md) | Project, the home page and @mentions, the Sandbox and its files, the governance gate |
+| [`sindri`](../wiki/sindri.md) | Project, the home page and @mentions, the Sandbox and its files, the governance gate, the Global Directory and the Syncer that writes its AGENTS.md |
 | [`mimir`](../wiki/mimir.md) | Thread, View, Dashboard, Knowledge |
 | [`fehu`](../wiki/fehu.md) | billing and usage, how cost is broken down - and which product lets a customer bring their own model |
 
@@ -62,7 +62,7 @@ where the judgement is; this table is only the name.
 | Agent Hub > Flow Agent | `Workflow` + `SandboxBlueprint` + `BotProvider`, and no `Agent` | `../usecase/flow-agent-single.md` |
 | Agent Hub > Managed Agent | `Agent` | `../wiki/agents.md` |
 | Agent Hub > Configuration > Models | no CR of its own - it selects `CompletionModel`s that already exist | `../wiki/settings.md` |
-| Agent Hub > Configuration > Global Directory | not a chart's to write - it is edited on that page and shared with every Agent Hub conversation in the platform Project | `../wiki/sindri.md` |
+| Agent Hub > Configuration > Global Directory | a `static-content` `Syncer` writes its `AGENTS.md`; the directory itself is a SourceSet the platform creates, shared with every Agent Hub conversation in the platform Project | `../wiki/sindri.md` |
 | Applications (Data Insight & Agent Hub) | no CR - a listing of what is already published | `../wiki/integration.md` |
 | the Release panel of a Flow Agent's workflow set, listed afterwards under Applications > Customized Integration | `BotProvider` | `../usecase/chat-channel.md` |
 | Automation > API | `Workflow`, with the `automation_tool` workflow-set type | `../wiki/automation.md` |

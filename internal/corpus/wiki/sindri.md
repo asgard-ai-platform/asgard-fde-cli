@@ -1,6 +1,6 @@
 ---
 group: Products and scope
-description: Project, the home page and @mentions, the Sandbox and its files, the governance gate
+description: Project, the home page and @mentions, the Sandbox and its files, the governance gate, the Global Directory and the Syncer that writes its AGENTS.md
 ---
 # Sindri - Agent Hub
 
@@ -156,13 +156,33 @@ memory, distinct from an agent's prompt and from the Global Directory.
 
 ## Global Directory
 
-Configured in Odin under Agent Hub -> Configuration -> Global Directory. Its
+Shown in Odin under Agent Hub -> Configuration -> Global Directory. Its
 contents are shared with every Agent Hub conversation in that Project and look
-the same to everyone. Agents can read but not change them; editing happens only
-on that page.
+the same to everyone. Agents can read but not change them.
 
-The convention is to put durable working rules in a top-level `AGENTS.md` and
-file other reference material however suits.
+Behind the page is a SourceSet the platform creates in every namespace, and a
+chart reaches it through the reserved value
+`.Values.asgard.agentHubGlobalSourceSetName`. Durable working rules go in a
+top-level `AGENTS.md`, which the agent reads on every turn; other reference
+material can be filed however suits.
+
+A chart writes `AGENTS.md` with a `static-content` Syncer: one Syncer, one
+file, the content in the CR's own `text`. `asgard-cli add agentsmd` generates
+it, and the served skill `asgard-cr-verification` lists what applies cleanly
+there and is still wrong. The repository is then where the rules live, and the
+text that used to be kept in the repository and pasted into the page by hand
+is that Syncer's `text` instead.
+
+The generated Syncer is suspended and fires on each deploy, so:
+
+- the file changes when a deploy changes it, and not between deploys;
+- Odin shows a suspended Syncer as not Active wherever it lists one, and its
+  Manual Trigger still runs it;
+- an edit made to `AGENTS.md` on the page stays until the next deploy writes the
+  Syncer's text over it.
+
+The page can still upload and edit files, and that is the way to put up a file
+no chart owns.
 
 ## Corresponding extracts
 
@@ -203,9 +223,16 @@ defaults); against asgard-agent-hub-api `b88b7d4e`:
 asgard-agent-hub-api `internal/service/routine_executor.go` (the owner's
 membership check, the billing gate, the main agent); and against
 asgard-ai-agent-hub-web `33d002a8` `src/components/routine/routine-list.tsx`
-(Show disabled) and asgard-ai-agent-hub-web `src/types/routine.ts`.
+(Show disabled) and asgard-ai-agent-hub-web `src/types/routine.ts`. The
+Global Directory written from a chart against asgard-kube `d0f8a8e`
+(`staticContent`, and the destinationPath rule per class), asgard-iac `cece0c2`
+asgard-iac `internal/helm/values.go` (the reserved value) and
+asgard-iac `internal/apply/cluster.go` (`SyncersToFire` reads only
+auto-fire-on-rollout, never syncer-suspend).
 
-**Unchecked:** that an `@`-mention changes which tools the agent starts from
+**Unchecked:** Odin does not list the Global Directory's Syncers yet - the
+Configuration page shows its files only - so the not-Active display is taken
+from a Drive's Syncers tab, not from that page. That an `@`-mention changes which tools the agent starts from
 has been observed in asgard-core's own end-to-end test, not on a live Agent Hub.
 The asgard-docs pages above still describe the home page in terms of
 delegation; this page follows the platform source where they differ.

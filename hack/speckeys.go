@@ -12,6 +12,7 @@ import (
 
 	"github.com/asgard-ai-platform/asgard-fde-cli/hack/internal/src"
 	"github.com/asgard-ai-platform/asgard-fde-cli/internal/generate"
+	asgardrender "github.com/asgard-ai-platform/asgard-fde-cli/internal/render"
 	"gopkg.in/yaml.v3"
 )
 
@@ -397,12 +398,13 @@ func dedupeRuns(runs [][]string) [][]string {
 // Values the platform injects per run, which helm cannot know. `asgard-cli
 // render` supplies them; this renders with helm directly, so they are supplied
 // here.
-const injected = `asgard:
-  projectEnvironmentId: probe-env
-  projectId: probe-project
-  appSecretName: probe-secret
-  namespace: probe-ns
-`
+// injected is the reserved block every template may read, from the one
+// declaration the local render and the gate use. A copy kept here went stale the
+// first time the platform added a key a template wraps in `required`, and the
+// probe chart then rendered nothing.
+func injected() ([]byte, error) {
+	return yaml.Marshal(map[string]any{"asgard": asgardrender.AsgardValues("probe", "probe-ns")})
+}
 
 // The claim, not the count. APPROACH.md states the judgement - that the chart
 // half is the least finished, because `add` writes a starting point rather than
@@ -623,7 +625,11 @@ func ours(binary, root string, schemas map[string]map[string]any) (keys, unknown
 		return nil, nil, 0, fmt.Errorf("`init` failed in a scratch repository:\n%s", stderr)
 	}
 	vals := filepath.Join(tmp, "injected.yaml")
-	if err := os.WriteFile(vals, []byte(injected), 0o644); err != nil {
+	body, err := injected()
+	if err != nil {
+		return nil, nil, 0, err
+	}
+	if err := os.WriteFile(vals, body, 0o644); err != nil {
 		return nil, nil, 0, err
 	}
 

@@ -1,0 +1,69 @@
+# <<.DisplayName>>
+#
+# The AGENTS.md every Agent Hub conversation in this Project reads. The platform
+# creates one SourceSet per namespace, the Global Directory, mounts it read-only
+# into every Agent Hub conversation, and reads its top-level AGENTS.md on every
+# turn. This Syncer writes that file from the chart, so the rules live in this
+# repository and a deploy is how they change.
+#
+# One Syncer writes one file, and its whole content is the text below, written
+# as it renders. A file that already matches is left alone. Content with several
+# files or a structure of its own belongs in a git Syncer instead.
+#
+# The served skill asgard-cr-verification lists what applies cleanly here and
+# is still wrong; read it before changing anything but the text.
+#
+# TODO before this is usable:
+#   1. text - the rules for every turn: the answer language, how to confirm a
+#      write, the order of steps that cross areas of work. What only one area
+#      needs belongs in that Agent's prompt, because every selected Agent's
+#      prompt is shown in the same turn.
+#   2. helm evaluates the text, so a literal pair of opening braces in it is
+#      written {{ "{{" }}.
+apiVersion: asgard-ai.com/v1alpha1
+kind: Syncer
+metadata:
+  name: <<.CRName>>
+  annotations:
+    asgard-ai.com/syncer-name: "<<.DisplayName>>"
+  labels:
+    # Scheduler off, and the deploy fires it instead: the platform's apply step
+    # fires the Syncers of this release that carry auto-fire-on-rollout and
+    # waits for them, so the file changes when a deploy changes it.
+    #
+    # Both labels are required, and neither reads the other. auto-fire-on-rollout
+    # is opt-in and only the platform's runner reads it; the Syncer module never
+    # looks at it. A suspended Syncer without it never runs.
+    #
+    # Odin lists a suspended Syncer as not Active, and its Manual Trigger still
+    # runs it. An edit made to AGENTS.md in Odin's Global Directory stays until
+    # the next deploy writes this text over it.
+    asgard-ai.com/syncer-suspend: "true"
+    asgard-ai.com/auto-fire-on-rollout: "true"
+    {{- include "<<.Chart>>.labels" . | nindent 4 }}
+spec:
+  # The platform names this SourceSet and injects the name. required stops the
+  # render on a platform that does not inject it yet, instead of rendering an
+  # empty sourceSetName.
+  sourceSetName: {{ required "the platform injects .Values.asgard.agentHubGlobalSourceSetName, and this run has none: the platform predates writing the Global Directory from a chart" .Values.asgard.agentHubGlobalSourceSetName }}
+  # The one file this Syncer writes. Unlike every other class, no trailing
+  # slash. Only the top-level AGENTS.md is read.
+  destinationPath: "AGENTS.md"
+  syncerClass: static-content
+  # Required by the CRD and never reached: the Syncer is suspended, so only a
+  # deploy runs it.
+  schedule: "0 3 * * 1"
+  timeZone: Asia/Taipei
+  staticContent:
+    # Indent every line of the text to this level. The | keeps one trailing
+    # newline.
+    text: |
+      # TODO: rules for every Agent Hub conversation in this Project
+
+      ## Answer language
+
+      TODO
+
+      ## Before writing anything
+
+      TODO: what the agent confirms with the user before a write.
