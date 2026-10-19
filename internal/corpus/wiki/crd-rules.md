@@ -65,8 +65,8 @@ thing to come back and fix when that model is retired.
 
 ## Which of them a render can be held against
 
-There are 80 CEL rules written and 240 enforced. 80 is the number of `XValidation` markers in asgard-kube's Go
-types; the generated CRDs carry 240 rule instances, 57 of them distinct,
+There are 85 CEL rules written and 245 enforced. 85 is the number of `XValidation` markers in asgard-kube's Go
+types; the generated CRDs carry 245 rule instances, 58 of them distinct,
 because one marker on a struct several kinds embed lands in every CRD that
 embeds it. Hold a render against the CRDs, not against the markers: the
 generated schema is the contract and the Go types are only its source.
@@ -212,7 +212,7 @@ blueprint to be read by hand.
 
 - `asgard-kube/pkg/apis/asgard/v1alpha1/types.go` - the type
   definitions the CRDs are generated from, with the reasoning in comments
-  - asgard-kube `3f9f6c8`; the immutability walk above was made at `42e8722`,
+  - asgard-kube `1652e80`; the immutability walk above was made at `42e8722`,
     and nothing between the two adds a `self == oldSelf` rule
 - The generated CRDs carry the same rules without the reasoning:
   [asgard-kube `crd/`](https://github.com/asgard-ai-platform/asgard-kube/tree/main/crd)

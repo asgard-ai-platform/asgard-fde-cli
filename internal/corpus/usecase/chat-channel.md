@@ -11,8 +11,8 @@ unchanged - and that field is immutable after creation.
 **Seen in:** the platform's BotProvider contract, and a deployment that decided
 against LINE and wrote down exactly what taking it on would have cost.
 
-**Checked:** against the CRD, field by field: all five credential blocks below match
-`asgard-kube/pkg/apis/asgard/v1alpha1/types.go` exactly - `generic` takes
+**Checked:** against the CRD, field by field: all six credential blocks below match
+`asgard-kube/pkg/apis/asgard/v1alpha1/types.go` exactly, `msteams` at asgard-kube `1652e80` - `generic` takes
 `apiKey` and `authMode` and both are optional, while every chat class's
 credentials are required. So a `generic` BotProvider with no credential
 block at all applies cleanly and is open; a `line` one missing
@@ -20,7 +20,7 @@ block at all applies cleanly and is open; a `line` one missing
 argument is about `generic` and not about the chat classes.
 
 Two rules the CRD enforces:
-`ExactlyOneOf=generic;telegram;line;discord;slack` - exactly one class block,
+`ExactlyOneOf=generic;telegram;line;discord;slack;msteams` - exactly one class block,
 so leaving the old one behind while adding a new one is refused - and
 `botProviderClass` carries `self == oldSelf`, which is where the immutability
 below comes from.
@@ -92,7 +92,7 @@ One deployment chose the agent hub first and recorded this as the cost: "LINE
 
 ## The classes, and what each one costs
 
-`spec.botProviderClass` is `generic | telegram | line | discord | slack`. Every
+`spec.botProviderClass` is `generic | telegram | line | discord | slack | msteams`. Every
 class takes the same `entrypoint`, so the Workflow, the SandboxBlueprint and the
 tools behind it do not change when the channel does.
 
@@ -103,12 +103,33 @@ tools behind it do not change when the channel does.
 | `telegram` | `botToken`, `webhookSecretToken` | Telegram posts a webhook | none |
 | `discord` | `botToken` | a Connector Pod holds a WebSocket to the Gateway | a Deployment the operator creates |
 | `slack` | `appToken`, `botToken` | a Connector Pod | a Deployment the operator creates |
+| `msteams` | `botTenantId`, `appId`, `appPassword`, `customerTenantId` | nothing receives them yet; see below | none in the contract |
 
 The split that matters: webhook classes cost one CR, socket classes get a pod.
 `discord` and `slack` maintain an outbound WebSocket, so the operator creates a
 Deployment for each and its image comes from a platform-level env var rather than
 from your chart - nothing in values, nothing to review, and one more thing that
 can be pending when you look for why the bot is silent.
+
+`msteams` is in the contract from asgard-kube `588a21a`, and asgard-core
+`f411b561` has no code that names it, on any branch. A BotProvider of this
+class applies cleanly and receives nothing, so do not offer it to a customer
+yet, and `add` does not write it. What the four fields mean, from the type's
+own comments in asgard-kube `pkg/apis/asgard/v1alpha1/types.go`:
+
+  - `botTenantId` is the Entra tenant of the bot's own identity, used to get a
+    Bot Connector token. It accepts a verified domain name as well as a GUID.
+  - `customerTenantId` is the Teams tenant whose users talk to the bot, and it
+    is the routing key: every customer shares one Azure Bot and one messaging
+    endpoint, the inbound tenant id is matched against this field, and a tenant
+    no BotProvider names is dropped. It is equal to `botTenantId` only when the
+    Azure resources were created in the customer's own tenant, and confusing
+    the two is how this integration breaks.
+  - `appId` is the client ID of the Entra app registration, a GUID. A wrong one
+    fails the audience check on every inbound token, which looks like a silent
+    bot rather than a configuration error.
+  - `appPassword` is that registration's client secret. Entra caps its lifetime
+    at 24 months, so it has to be rotated.
 
 ## Generate it
 
