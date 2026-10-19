@@ -7,7 +7,7 @@ import (
 )
 
 // The conditional CEL rules the CRDs carry, from asgard-kube `crd/*.yaml` at
-// d0f8a8e, read 2026-10-18 by extracting every `x-kubernetes-validations` rule
+// 1652e80, read 2026-10-19 by extracting every `x-kubernetes-validations` rule
 // and keeping the two families a rendered object can be held against.
 //
 // **These were the gap.** `gate.Enums` covers the CRDs' enums and
@@ -17,7 +17,7 @@ import (
 // seen in a render. The rest are these, and nothing checked them - a chart
 // whose credential sets neither `value` nor `valueFrom` renders, lints and
 // passes a dry-run, and is refused at apply.
-const shapesRead = "2026-10-18, asgard-kube d0f8a8e"
+const shapesRead = "2026-10-19, asgard-kube 1652e80"
 
 // exactlyOne is a set of sibling fields of which exactly one must be present.
 //

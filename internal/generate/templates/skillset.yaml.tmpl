@@ -77,6 +77,12 @@ spec:
   timeZone: Asia/Taipei
   git:
     repoUrl: "<<.Repo>>"
+    # Only for a large repository of which the skills are a few folders: list
+    # them, relative to the repository root, and nothing else is downloaded.
+    # Every searchPath below has to stay inside one of them -
+    # `.agents/skills/asgard-platform/usecase/skill-set.md` has the rest.
+    # includePaths:
+    #   - skills/pdf/
 <<if .Private>>    # Pinning the release tag means the tag must be pushed before the Syncer can
     # find its commit, and a local helm upgrade breaks it.
     revision: {{ .Chart.AppVersion | quote }}

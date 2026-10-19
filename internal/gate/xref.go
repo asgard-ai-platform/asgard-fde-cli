@@ -468,7 +468,9 @@ func (x *xref) checkSkillSet(d Doc) {
 		if !under {
 			x.errf("SkillSet/%s.searchPaths[%q] is not under any Syncer destinationPath feeding SourceSet/%s (they are: %s)",
 				d.Name, path, ref, sorted(dests))
+			continue
 		}
+		x.checkSearchPathAgainstIncludePaths(d.Name, ref, path)
 	}
 
 	// One SkillSet, one SourceSet, one Syncer. The platform's
@@ -559,6 +561,34 @@ func (x *xref) checkSkillSet(d Doc) {
 	}
 }
 
+// checkSearchPathAgainstIncludePaths reports a searchPath that lies inside a git
+// Syncer's checkout but outside every folder its includePaths syncs. That path
+// is never written, so it loads no skills, and the platform does not compare
+// the two lists. A path is fine as long as one Syncer whose destination holds it
+// writes there: one without includePaths, or one whose includePaths reaches it.
+func (x *xref) checkSearchPathAgainstIncludePaths(skillSet, sourceSet, path string) {
+	var narrowing []string
+	for _, s := range x.syncersBySourceSet[sourceSet] {
+		dest := digStr(s.Spec, "destinationPath")
+		if !strings.HasSuffix(dest, "/") || !strings.HasPrefix(path, dest) {
+			continue
+		}
+		include := strList(digList(s.Spec, "git", "includePaths"))
+		if digStr(s.Spec, "syncerClass") != "git" || len(include) == 0 {
+			return
+		}
+		if !includePathsMiss(strings.TrimPrefix(path, dest), include) {
+			return
+		}
+		narrowing = append(narrowing, fmt.Sprintf("Syncer/%s syncs only %s under %s", s.Name, strings.Join(include, ", "), dest))
+	}
+	if len(narrowing) > 0 {
+		sort.Strings(narrowing)
+		x.errf("SkillSet/%s.searchPaths[%q] lies outside the folders its git Syncer checks out (%s), so nothing is written there and it loads no skills. Add the folder to includePaths or point the searchPath inside one - `.agents/skills/asgard-platform/usecase/skill-set.md`",
+			skillSet, path, strings.Join(narrowing, "; "))
+	}
+}
+
 // syncerClassStaticContent is the class whose destinationPath is a file.
 const syncerClassStaticContent = "static-content"
 
@@ -633,6 +663,15 @@ func (x *xref) checkSyncer(d Doc) {
 		x.checkStaticContentOverlap(d, sourceSet, dest)
 	}
 
+	// git.includePaths entries are folders relative to the repository root, and
+	// these are the CRD's own CEL rules on each item. The '.' and '..' rule is
+	// per segment here, unlike destinationPath's, so "Acme Inc./" is a legal name.
+	for i, p := range strList(digList(d.Spec, "git", "includePaths")) {
+		if why := badIncludePath(p); why != "" {
+			x.errf("Syncer/%s.git.includePaths[%d]=%q: %s", d.Name, i, p, why)
+		}
+	}
+
 	// Only a database-class Syncer has a DataConnector.
 	x.ref(fmt.Sprintf("Syncer/%s.database.dataConnectorName", d.Name),
 		"DataConnector", digStr(d.Spec, "database", "dataConnectorName"))
@@ -692,6 +731,46 @@ func (x *xref) checkStaticContentOverlap(d Doc, sourceSet, file string) {
 				d.Name, file, other, o.Name, class, sourceSet)
 		}
 	}
+}
+
+// badIncludePath applies the CRD's rules on one git.includePaths entry.
+func badIncludePath(v string) string {
+	switch {
+	case v == "":
+		return "must not be empty"
+	case strings.HasPrefix(v, "/"):
+		return "must be relative to the repository root and must not start with /"
+	case !strings.HasSuffix(v, "/"):
+		return "is a folder and must end in /"
+	case strings.Contains(v, "//"):
+		return "must not contain consecutive slashes"
+	}
+	for _, s := range strings.Split(v, "/") {
+		switch s {
+		case ".", "..":
+			return "must not contain a . or .. segment"
+		case ".git":
+			return "must not contain a .git segment"
+		}
+	}
+	return ""
+}
+
+// includePathsMiss reports whether a searchPath that lies under a git Syncer's
+// destination reaches none of the folders its includePaths checks out. rel is
+// the searchPath with the destination stripped. A searchPath at or above an
+// included folder still reaches the skills in it, because the sandbox walks a
+// searchPath recursively; one beside every included folder reaches nothing,
+// since cone mode brings only the files directly in its parent folders.
+func includePathsMiss(rel string, includePaths []string) bool {
+	rel = strings.Trim(rel, "/")
+	for _, p := range includePaths {
+		p = strings.Trim(p, "/")
+		if p == "" || rel == "" || rel == p || strings.HasPrefix(rel, p+"/") || strings.HasPrefix(p, rel+"/") {
+			return false
+		}
+	}
+	return true
 }
 
 // badRelPath applies the CRD's relative-path rules.
