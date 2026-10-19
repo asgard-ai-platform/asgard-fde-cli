@@ -65,8 +65,8 @@ thing to come back and fix when that model is retired.
 
 ## Which of them a render can be held against
 
-There are 80 CEL rules written and 240 enforced. 80 is the number of `XValidation` markers in asgard-kube's Go
-types; the generated CRDs carry 240 rule instances, 57 of them distinct,
+There are 85 CEL rules written and 245 enforced. 85 is the number of `XValidation` markers in asgard-kube's Go
+types; the generated CRDs carry 245 rule instances, 58 of them distinct,
 because one marker on a struct several kinds embed lands in every CRD that
 embeds it. Hold a render against the CRDs, not against the markers: the
 generated schema is the contract and the Go types are only its source.
@@ -108,10 +108,10 @@ where it writes and what its cursor follows:
 Where a file-store Syncer reads from is not on that list. The `host` and
 `remotePath` of an ftp, sftp or smb Syncer, the `folderId`, `folderPath` and
 `oAuthCredentialName` of a googleDrive, oneDrive or dropbox Syncer, and a git
-Syncer's `repoUrl` are edited in place. Those classes mirror their source, so
-the run after the edit brings the destination into line with the new source
-and deletes what the old one left behind, and their state records only when
-the sync ran, so no cursor carries over.
+Syncer's `repoUrl` and `includePaths` are edited in place. Those classes
+mirror their source, so the run after the edit brings the destination into
+line with the new source and deletes what the old one left behind, and their
+state records only when the sync ran, so no cursor carries over.
 
 So "sync from this folder instead" is an edit, and "write somewhere else" is a
 new Syncer and a deleted one. The cursor does not come with it: a database or

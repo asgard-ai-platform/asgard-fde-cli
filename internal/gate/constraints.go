@@ -7,8 +7,8 @@ import (
 )
 
 // Field constraints the CRDs enforce beyond enums, from the kubebuilder
-// markers in asgard-kube `pkg/apis/asgard/v1alpha1/types.go` at d0f8a8e on
-// 2026-10-18: Pattern, MinLength, MaxLength, Minimum, Maximum, MinItems and
+// markers in asgard-kube `pkg/apis/asgard/v1alpha1/types.go` at 1652e80 on
+// 2026-10-19: Pattern, MinLength, MaxLength, Minimum, Maximum, MinItems and
 // MaxItems, keyed by json field name.
 //
 // **`baseAgentName` is absent although the Go types give it a pattern.** It is
@@ -54,7 +54,7 @@ import (
 // cron parse in an admission webhook - synchronously, on write. That puts it
 // on the platform's side of the line this tool draws: it is not a check that
 // passes locally and explodes at runtime.
-const constraintsRead = "2026-10-18, asgard-kube d0f8a8e"
+const constraintsRead = "2026-10-19, asgard-kube 1652e80"
 
 type fieldConstraint struct {
 	pattern   string
@@ -88,6 +88,7 @@ var crdConstraints = map[string]fieldConstraint{
 	"folderId":             {minLength: 1},
 	"folderPath":           {minLength: 1},
 	"host":                 {minLength: 1},
+	"includePaths":         {maxItems: 20},
 	"index":                {minimum: f64(0)},
 	"limitPerUrl":          {minimum: f64(1), maximum: f64(10000)},
 	"maxDepth":             {minimum: f64(0), maximum: f64(10)},
@@ -125,8 +126,8 @@ var crdConstraints = map[string]fieldConstraint{
 // `mountPath` must start with one - because helm renders either way and the
 // apiserver refuses at apply time, after the tag is pushed.
 //
-// Immutability is deliberately absent. 28 of the CRDs' 240 enforced CEL rules
-// are exactly `self == oldSelf` - 27 of the 80 `XValidation` markers the Go
+// Immutability is deliberately absent. 28 of the CRDs' 245 enforced CEL rules
+// are exactly `self == oldSelf` - 27 of the 85 `XValidation` markers the Go
 // types carry, which is a different count because one marker on a shared struct
 // is generated into every CRD that embeds it. Each compares a proposed object
 // against the one already on the cluster; a render is a single object with no

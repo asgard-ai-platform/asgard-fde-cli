@@ -229,6 +229,9 @@ spec:
     # A public repo: pin main. This repo, private: pin the release tag, which
     # means the tag has to exist before the Syncer can find its commit.
     revision: "main"
+    # Only for a large repository: the folders to sync, relative to its root.
+    # includePaths:
+    #   - skills/pdf/
     # auth only for a private repo
     auth:
       type: http
@@ -320,6 +323,55 @@ Which to write is a choice. One path per skill keeps the set explicit: a skill
 added to the repository is not loaded until somebody lists it. A parent path
 follows the repository. Not checkable from the CR either way - the symptom of a
 wrong path is an agent with fewer or more skills than expected.
+
+### A large repository: `includePaths`
+
+When the skills are a few folders of a large repository - `anthropics/skills`,
+of which a SkillSet uses `skills/pdf/` - list those folders in
+`git.includePaths`:
+
+```yaml
+  git:
+    repoUrl: "https://github.com/anthropics/skills.git"
+    revision: "main"
+    includePaths:
+      - skills/pdf/
+      - skills/xlsx/
+```
+
+Only those folders are downloaded, written into the destination and kept in
+its `.git`: the checkout becomes a partial clone with a cone-mode sparse
+checkout. Absent or `[]` syncs the whole repository.
+
+- An entry is a folder relative to the repository root, not to the volume:
+  `skills/pdf/`, not `git/skills/pdf/`. The folder keeps its place, so the
+  searchPath is still `git/skills/pdf/`. The CRD holds an entry to the
+  destinationPath rules, checks `.` and `..` per segment rather than as a
+  substring, and refuses a `.git` segment.
+- Cone mode also writes the files directly in the repository root and directly
+  in each parent folder of an entry: `skills/pdf/` brings the root `README.md`
+  and the files directly in `skills/`, and not `skills/docx/`.
+- An entry the revision does not have, or one that is a file, fails the run, and
+  the destination stays as the last sync wrote it.
+- The field is edited in place. The next run converges without cloning again:
+  an added folder is downloaded, a dropped one is deleted from the destination,
+  and an empty list turns the checkout back into the whole repository.
+- A searchPath beside every included folder loads nothing, and the platform
+  does not compare the two lists. `asgard-cli gate` does. A searchPath at or
+  above an included folder still reaches the skills in it.
+- `git log -p`, `git show` and `git diff` run inside the checkout - by an agent
+  with a shell in the sandbox - fetch the missing contents from the repository,
+  and for a private repository that fails, because its credentials are not in
+  the volume.
+- A git server without partial-clone support still serves the sync: it sends
+  everything, and the destination still holds only the listed folders.
+
+**Checked:** against asgard-kube `1652e80` `pkg/apis/asgard/v1alpha1/types.go`
+(`GitSyncerSpec.IncludePaths`) and asgard-syncer `e2fd2c8`
+asgard-syncer `internal/syncer/git_sparse.go` (`syncIncrementalSparse`,
+`validateIncludePaths`, `convertToComplete`), and on the platform's dev cluster
+on 2026-10-19, where a running Syncer's list was switched to another folder,
+pointed at a folder that does not exist, and cleared.
 
 `asgard-ai.com/managed-by: skill-set` goes on the SourceSet and the Syncer
 in the 1:1:1 shape. It hides the Syncer from the generic list, and it is what the
