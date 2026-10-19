@@ -147,7 +147,7 @@ and never opened it.
 Both read the link graph, which is a field on every document rather than a
 regular expression over prose - see `kb.Link`.
 
-The kinds of rot `.agents/skills/knowledge-base/` names apply here too. There is
+The kinds of rot `.agents/skills/llm-wiki/` names apply here too. There is
 one more that only happens here:
 
 Upstream moved and the wiki did not. asgard-docs and asgard-kube both change.

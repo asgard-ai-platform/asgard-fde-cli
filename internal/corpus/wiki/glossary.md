@@ -29,7 +29,7 @@ which is why the senses are laid out as a table.
 | **workspace** | the customer, and the repository root | nothing else. It is also the platform's billing unit, which is the same thing seen from Fehu |
 | **template** | a Go template this tool renders | the "Template" node type the product overview describes, which maps to nothing else here - see `../wiki/what-they-read.md` |
 | **skill** | `assets/skills/<name>/SKILL.md`, read by the deployed agent at runtime | `.agents/skills/`, which the coding agent reads while authoring. Say **design-time skill** for the second |
-| **knowledge-base** | the extract `../usecase/knowledge-base.md`, about `KnowledgeBase` / `Loader` / `Source` - the older knowledge path | the design-time skill of the same name, which is about keeping a repository's own documents honest. A grep for the word returns both, and they have nothing to do with each other |
+| **knowledge-base** | the extract `../usecase/knowledge-base.md`, about `KnowledgeBase` / `Loader` / `Source` - the older knowledge path | a repository's own documents kept as a wiki, which is the `llm-wiki` design-time skill. Say **wiki** for those |
 | **request** | a record under `requirements/requests/` | an HTTP request, and not one run of an agent. For the platform's per-request limits, say **per run** |
 | **source** | a `Source` CR under a KnowledgeBase | source code, and not a documentation source. For the material's provenance say **source block**; for code say **source code** |
 | **check** | `asgard-cli check`, the structural gate | a layout or content checker in a typesetting skill - say which one |

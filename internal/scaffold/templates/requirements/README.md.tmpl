@@ -50,7 +50,7 @@ copies drift, and once they disagree the reader cannot tell which is current.
 | why a choice was made | `docs/decisions/YYYY-MM-DD-<topic>.md` | dated and immutable; a rationale inside a task disappears with it |
 | raw discussion, before it converged | `docs/meeting-notes/YYYY-MM-DD-<topic>.md` | pre-decision material is not a requirement |
 | a question with no answer yet | `docs/open-questions.md` | a question buried in a spec vanishes at `done`, and `asgard-cli question` reads that file |
-| customer API docs, manuals, schema dumps, ERDs | `references/` | a spec that inlines the whole of an API's documentation stops being readable as a spec |
+| customer API docs, manuals, schema dumps, ERDs, and readings off a running system | `references/` | a spec that inlines the whole of an API's documentation stops being readable as a spec |
 | how to edit this repo - layout, CR field traps, gates | `AGENTS.md` | different question, different reader |
 | domain knowledge the running agent needs | `assets/skills/<skill>/SKILL.md` | it has to be synced to the platform, or the agent cannot see it at all |
 | any password, token or key | `.env` (gitignored) and the release's own Secret on the platform | everything here is committed, and git history keeps what you delete |
@@ -61,11 +61,15 @@ in a commit is fixed by rotating the credential, not by deleting the line.
 
 ### Provenance, on every claim about the customer's systems
 
-A statement about a real system records how it was established and when:
+A statement about a real system records how it was established, when, and the
+filed source it came from:
 
-    read off the running database on 2026-09-04
-    from the vendor's PDF, dated 2024, not verified
-    the customer said so in the 2026-09-01 meeting
+    read off the running database on 2026-09-04, references/erp/rma-status-codes.txt
+    from the vendor's PDF, dated 2024, not verified, references/erp/manual.pdf
+    the customer said so in docs/meeting-notes/2026-09-01-kickoff.md
+
+A reading off a running system is filed in `references/` like a document, with
+`asgard-cli reference add`, rather than left as a sentence saying it was checked.
 
 Without that, a reader cannot tell an accurate fact from a three-year-old guess.
 Write "not verified" when it was not verified.

@@ -20,9 +20,11 @@ metadata:
     # because this is a phrase rather than a sentence.
     asgard-ai.com/source-set-description: "TODO: what knowledge this holds"
   labels:
+<<- if .Connector>>
     # To pause indexing, set this label. Do not remove the contextIndex field -
     # clearing it tears down the derived CRs and renames the index aside.
     asgard-ai.com/context-index-suspend: {{ .Values.<<.ValuesKey>>.contextIndex.suspend | quote }}
+<<- end>>
     {{- include "<<.Chart>>.labels" . | nindent 4 }}
 spec:
   # This release's own resource key, declared under `appSecret:` in
@@ -44,9 +46,19 @@ spec:
         key: asgard_resource_api_key
   # No member registry: what is in the Drive is whatever its Syncers write, plus
   # anything uploaded by hand. The paths are the only record.
+<<- if not .Connector>>
+  #
+  # No contextIndex: the Drive holds a written wiki, and the agent reads it from
+  # index.md. `.agents/skills/asgard-platform/usecase/knowledge-drive.md`,
+  # "When unsure: a written wiki, with no index", is this shape. Add a
+  # contextIndex only for a raw feed nobody writes pages from.
+<<- else>>
   #
   # Setting contextIndex derives three same-named CRs that mount the Drive
-  # writable and build the knowledge graph on a cron.
+  # writable and build the knowledge graph on a cron. It is for raw feeds such
+  # as the database Syncer below. A written wiki needs no index; see "When
+  # unsure: a written wiki, with no index" in
+  # `.agents/skills/asgard-platform/usecase/knowledge-drive.md`.
   contextIndex:
     cron:
       schedule: {{ .Values.<<.ValuesKey>>.contextIndex.schedule | quote }}
@@ -60,8 +72,69 @@ spec:
           appears in several dated partitions - say which one is current, or
           the graph treats stale versions as facts
         - what a field means where the name does not carry it
+<<- if .Repo>>
+    # Only the raw feed. The written wiki under git/ is read from its index.md
+    # and has nothing for the graph to add.
+    includePaths:
+      - data/
+<<- else>>
     # includePaths:            # only when a Syncer brings in more than the
     #   - repos/handbook/docs/ # knowledge; absent indexes the whole Drive
+<<- end>>
+<<- end>>
+<<- if .Repo>>
+---
+# The written wiki: this repository's assets/drives/<<.Name>>/, cloned under git/.
+# Mount it from the blueprint with
+#   subPath: git/assets/drives/<<.Name>>/   mountPath: /knowledge   readOnly: true
+# and tell the agent in its prompt to start at /knowledge/index.md.
+apiVersion: asgard-ai.com/v1alpha1
+kind: Syncer
+metadata:
+  name: syn-<<.Name>>-wiki
+  annotations:
+    asgard-ai.com/syncer-name: "<<.DisplayName>> 頁面同步"
+  labels:
+    # Scheduler off, and the deploy fires it instead, so the Drive holds the
+    # pages of the release being deployed. A suspended Syncer without
+    # auto-fire never runs at all.
+    asgard-ai.com/syncer-suspend: "true"
+    asgard-ai.com/auto-fire-on-rollout: "true"
+    {{- include "<<.Chart>>.labels" . | nindent 4 }}
+spec:
+  sourceSetName: <<.CRName>>
+  # Trailing slash required. includePaths keeps the repository's layout, so the
+  # pages land at git/assets/drives/<<.Name>>/.
+  destinationPath: "git/"
+  syncerClass: git
+  schedule: "0 */6 * * *"
+  timeZone: {{ .Values.<<.ValuesKey>>.timeZone | quote }}
+  git:
+    repoUrl: "<<.Repo>>"
+    # Only this Drive's folder reaches the volume: references/, docs/ and every
+    # other Drive's folder stay off it. Git's cone mode also brings the files
+    # directly in the repository root and directly in assets/drives/. The
+    # folder has to exist at the synced revision, or the run fails and the
+    # Drive is left as it was.
+    includePaths:
+      - assets/drives/<<.Name>>/
+<<if .Private>>    # Pinning the release tag means the tag must be pushed before the Syncer can
+    # find its commit, and a local helm upgrade breaks it.
+    revision: {{ .Chart.AppVersion | quote }}
+    auth:
+      type: http
+      username:
+        value: "git"
+      password:
+        valueFrom:
+          secretKeyRef:
+            name: {{ include "<<.Chart>>.appSecretName" . }}
+            key: asgard-github-pat-password
+<<else>>    revision: "main"
+    # A public repo needs no auth block, and no PAT key to declare.
+<<end>>
+<<- end>>
+<<- if .Connector>>
 ---
 # One Syncer per folder that is filled automatically. A folder people upload to
 # by hand needs no Syncer at all.
@@ -140,3 +213,4 @@ spec:
       -- TODO. Run it against the live database before committing, and record
       -- the row count you measured and when.
       select 1
+<<- end>>

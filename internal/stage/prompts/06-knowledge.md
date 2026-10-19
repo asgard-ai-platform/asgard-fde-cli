@@ -1,5 +1,5 @@
 ---
-description: a Drive with contextIndex rather than a KnowledgeBase, the immutable Syncer paths, what a person still has to do after the deploy
+description: a Drive rather than a KnowledgeBase - a written wiki with no index when unsure, contextIndex over raw feeds - the immutable Syncer paths, what a person still has to do after the deploy
 ---
 # Decide where unstructured knowledge lives
 
@@ -15,13 +15,25 @@ the front end reads that field. It is a decision made here, and retrofitting it
 means changing the workflow and the front end together.
 `../wiki/knowledge.md` has the shape.
 
-This is the third decision that is often answered wrong. The recommended answer:
+This is the third decision that is often answered wrong. The recommended answer
+is a SourceSet Drive, and the material decides its shape:
 
-    SourceSet + spec.contextIndex, mounted read-only, queried with graphify
+    unsure, or the knowledge is pages somebody writes
+        a Drive of written pages with an index.md in each folder, no contextIndex,
+        the agent reading from index.md; in the engagement repository the pages
+        go in assets/drives/<drive>/, a git Syncer with includePaths brings only
+        that folder, and SourceSets are split as needed
+    raw feeds nobody writes pages from: database rows, crawled pages, PDFs
+        SourceSet + spec.contextIndex, mounted read-only, queried with graphify
+
+When you do not know which, start with the first. It is the platform team's
+recommendation for that case. After the first deploy, ask the agent a few
+questions and check that it opens index.md first. `../usecase/knowledge-drive.md` has
+both shapes, the first under "When unsure: a written wiki, with no index".
 
 `KnowledgeBase` is still a live CRD and still a shipping console feature, so
-this is a recommendation rather than a platform rule. It rests on one engagement
-that built the other way and reversed.
+preferring a Drive is a recommendation rather than a platform rule. It rests on
+one engagement that built the other way and reversed.
 
 > Answered wrong once: knowledge was built on KnowledgeBase + Loader + retrieval
 > workflows, and was later rebuilt on a Drive with a Context Index (TASK-013).
@@ -75,7 +87,7 @@ graph points at - tell it that in the prompt, or it will crawl the whole Drive.
 Done when: the Drive syncs, or you have decided the customer has no unstructured
 knowledge and recorded that.
 
-**Checked:** against asgard-kube `cbd8d70`. `SourceSet.spec` carries
+**Checked:** against asgard-kube `cbd8d70`; the git Syncer's `includePaths` against asgard-kube `1652e80`. `SourceSet.spec` carries
 `contextIndex` and no `members`; `Syncer` enforces destinationPath ending in `/`,
 statePath not ending in one, both immutable, neither absolute and neither
 containing `//` or `../`; one column at most may set `isMaxValueColumn`;
@@ -94,4 +106,6 @@ chart's prompt to write.
 **Unchecked:** that a Drive plus a Context Index is the right answer and
 KnowledgeBase is not is one engagement's judgement (TASK-013). What a model does
 with a mounted Drive when its prompt does not point at the graph is runtime
-behaviour that nothing here has observed.
+behaviour that nothing here has observed. The written wiki runs in a
+deployment, per the platform team, but how well its agent answered from
+`index.md` is not recorded here.

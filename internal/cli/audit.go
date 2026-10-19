@@ -357,10 +357,9 @@ var halfPath = regexp.MustCompile(`\.\./(wiki|usecase|needs|brief|guide)/[\s]*([
 // Two exemptions, both from what follows the token. The label of a markdown
 // link, because the link beside it carries the path and that is what gets
 // checked. And a design-time skill: those reference each other as
-// "`db-query` skill", which is the convention in that directory, and one skill
-// name - `knowledge-base` - is also the name of an extract. That collision is
-// real and is on `wiki/glossary.md`; what it must not do is make this check
-// rewrite a correct sentence.
+// "`db-query` skill", which is the convention in that directory. A skill's name
+// can be the same as a document's, and the exemption keeps this check from
+// rewriting that sentence.
 var nameOnly = regexp.MustCompile("`([a-z0-9]+(?:-[a-z0-9]+)+)`(\\]\\(| skill)?")
 
 // checkBare reports a document named without its command, where the name

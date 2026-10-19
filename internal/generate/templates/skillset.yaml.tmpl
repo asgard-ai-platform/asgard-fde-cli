@@ -77,6 +77,12 @@ spec:
   timeZone: Asia/Taipei
   git:
     repoUrl: "<<.Repo>>"
+    # When this is the engagement repository, narrow the clone to its skills,
+    # so references/, docs/ and assets/drives/ stay off the platform. Folders
+    # keep their place, so searchPaths stay git/assets/skills/<skill>/. Every
+    # entry must be a folder at the synced revision, or the run fails.
+    # includePaths:
+    #   - assets/skills/
 <<if .Private>>    # Pinning the release tag means the tag must be pushed before the Syncer can
     # find its commit, and a local helm upgrade breaks it.
     revision: {{ .Chart.AppVersion | quote }}

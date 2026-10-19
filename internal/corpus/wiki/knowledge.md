@@ -12,10 +12,12 @@ than anything the platform has announced.
 |---|---|---|
 | status | live | live - no deprecation marker on any of its four CRDs, and the console ships the feature |
 | CRs | `SourceSet` (+ `Syncer`) | `KnowledgeBase` + `Loader` + `Indexer` + `Source` |
-| retrieval | a Context Index knowledge graph | RAG over chunks |
+| retrieval | the agent reads the files: a written wiki from its `index.md`, or a Context Index knowledge graph | RAG over chunks |
 
-Start new knowledge on a Drive with a Context Index. The recommendation comes
-from one deployment that moved off `KnowledgeBase` + `Loader` + a retrieval
+Start new knowledge on a Drive. When you do not know how to build it, start
+with a written wiki and no Context Index, and put a Context Index over raw feeds
+nobody writes pages from - `../usecase/knowledge-drive.md` has both shapes.
+Preferring a Drive comes from one deployment that moved off `KnowledgeBase` + `Loader` + a retrieval
 workflow and found the Drive simpler to keep correct. It does not mean the
 platform is retiring Knowledge Base. Before repeating it to a
 customer as platform direction, ask the platform team, because nothing in the

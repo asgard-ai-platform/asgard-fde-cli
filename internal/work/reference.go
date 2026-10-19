@@ -16,7 +16,7 @@ import (
 // which is the convention this file makes use of rather than invents.
 var ReferenceIndex = filepath.Join(ReferenceDir, "_index.md")
 
-// Reference is one filed document.
+// Reference is one filed source: a document, or a reading off a running system.
 type Reference struct {
 	// Path is relative to references/, so a document filed under a system
 	// directory keeps that directory in its name.
@@ -25,10 +25,11 @@ type Reference struct {
 	// codes, as their support team uses them" is worth more than "rma.xlsx".
 	What string
 	// From is who supplied it. A role rather than a person where possible -
-	// "their ERP vendor" outlives "their ERP vendor's integration lead".
+	// "their ERP vendor" outlives "their ERP vendor's integration lead". For a
+	// reading it is the system and the query or command that produced it.
 	From string
-	// Dated is the document's own date, which is the one that decides whether
-	// it is stale. Empty when the document does not carry one, and that is
+	// Dated is the document's own date, or the day a reading was taken, which
+	// is the one that decides whether it is stale. Empty when the document does not carry one, and that is
 	// itself worth recording.
 	Dated string
 	// Filed is the day it entered the repository.
@@ -43,10 +44,11 @@ type Reference struct {
 // files a customer document should not carry an empty table telling it to.
 const referenceHeader = `# What is filed here, and where it came from
 
-One row per document in ` + "`references/`" + `. The documents themselves are kept
-**byte-identical to what the customer supplied**, so that a re-supplied version
-can be diffed against the filed one - which is why the provenance lives here
-rather than in a header pasted into their file.
+One row per source in ` + "`references/`" + `: a document the customer supplied, or a
+reading off a running system. Each is kept **byte-identical to what was
+supplied or read**, so that a re-supplied version or a later reading can be
+diffed against the filed one - which is why the provenance lives here rather
+than in a header pasted into the file.
 
 | document | what it is | from | dated | filed | verified |
 |---|---|---|---|---|---|
@@ -55,7 +57,8 @@ rather than in a header pasted into their file.
 const referenceRules = `
 ## The columns that earn their place
 
-**dated** is the document's own date, not the day you received it. It is the one
+**dated** is the document's own date, not the day you received it; for a
+reading, the day it was read. It is the one
 that decides whether the material is stale, and a document with no date on it is
 worth recording as such: material a customer wrote for their own staff describes
 the system they believe they have, and a stale page reads exactly like a current
@@ -64,10 +67,13 @@ one.
 **verified** starts as ` + "`no`" + ` on every row and is meant to be edited. A row
 marked no is worth more than a plausible one, because the reader knows which to
 trust. Change it when you have held a claim against the running system, and say
-which claim - "status codes checked, field lengths not" beats "yes".
+which claim and which filed reading - "status codes checked against
+erp/rma-status-codes.txt, field lengths not" beats "yes". A reading's own row
+is the running system as of its date.
 
 **from** outlives people. A role - "their ERP vendor", "the support team" -
-still means something when the person has moved on.
+still means something when the person has moved on. For a reading it names the
+system and the query or command, so the reading can be taken again.
 `
 
 // AddReference files a document and records where it came from.

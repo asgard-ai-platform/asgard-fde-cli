@@ -1,11 +1,13 @@
 ---
 group: Read paths
-description: knowledge that is documents, not rows
+description: knowledge that is documents, not rows - a written wiki read with no index when you do not know which to build, and a knowledge graph over raw feeds
 ---
 # Knowledge drive
 
-Unstructured knowledge - documents, FAQs, web pages - as a mounted `SourceSet`
-with a knowledge graph over it.
+Unstructured knowledge - documents, FAQs, web pages - as a mounted `SourceSet`.
+When you do not know how to build it, start with a written wiki the agent reads
+directly; put a knowledge graph over the Drive when the material is raw feeds
+nobody writes pages from.
 
 **Seen in:** a public widget whose knowledge comes from a product catalogue
 database, a crawl of its own marketing site, and manually uploaded documents.
@@ -22,8 +24,22 @@ that the web Syncer deletes nothing against asgard-syncer `internal/syncer/web.g
 (`writePageFile`) at the same commit.
 `contextIndex.includePaths` - its path rules, and that narrowing keeps what a
 wider index built - against asgard-kube `3f9f6c8` `pkg/apis/asgard/v1alpha1/types.go`.
+For the written wiki: the git Syncer's `includePaths` - its path rules, that
+folders keep their place in the repository layout, what cone mode brings along,
+and that a missing folder fails the run - against asgard-kube `1652e80`
+`pkg/apis/asgard/v1alpha1/types.go` (`GitSyncerSpec`); the
+`subPath` path rules, and that only a writable mount's missing directory is
+created, against
+asgard-core `f411b561` `internal/bpoperator/reconciler/sb_reconciler.go`
+(`validateSourceSetMemberSubPath`, `ensureWritableSourceSetMountDirs`).
 
 **Unchecked:** whether the three things listed for `contextIndex.prompt` are the ones that improve a given graph. That shows only against the customer's own files.
+How asgard-syncer carries out a git Syncer's `includePaths` (partial clone and
+cone sparse checkout, per asgard-kube `aab2d34`): only the contract was read,
+not asgard-syncer.
+The written wiki runs in a deployment, per the platform team, but this page was
+not written from that deployment: how its agent read the wiki and how well it
+answered are not recorded here.
 
 Read the platform side first: `../wiki/knowledge.md` covers Drive, Context
 Index, and how Knowledge Base differs. This page assumes you have read it.
@@ -53,6 +69,118 @@ Context Index (TASK-013). An older chart containing one is not automatically
 wrong; somebody chose that shape before that migration happened. Ask the
 platform team before telling a customer the mechanism is going away.
 
+## When unsure: a written wiki, with no index
+
+Use this shape first when you do not know how to build the knowledge. Move to a
+Context Index only in the cases listed at the end of this section.
+
+The shape is the following, and nothing else is required:
+
+1. The Drive holds pages somebody has written, kept as an LLM wiki, with an
+   `index.md` in each folder that says what each page is for. The pages are
+   already the synthesis, so the agent reads them directly.
+2. The SourceSet has no `contextIndex`. Leaving the field out is the whole
+   switch: no index, no derived CRs, no graph. `asgard-cli add knowledgedrive
+   <drive> --repo <this repository>` writes this shape, and writes the field
+   only when `--connector` is also given. The suspend label is a different
+   thing: it pauses an index that exists and keeps its derived CRs and its
+   graph.
+3. The consuming agent's prompt says where to start, or it reads every file:
+
+       先讀 /knowledge/index.md,照裡面的連結只打開跟問題有關的頁面 ——
+       不要自己遍歷整個目錄逐檔閱讀。
+
+### Where the pages live
+
+In the engagement repository, the pages go in `assets/drives/<drive>/`, one
+directory per Drive, for example `assets/drives/customer-service/`. The
+customer's own files go in `references/` through `asgard-cli reference add`,
+and the pages written from them name which file and date they came from.
+`asgard-cli init` writes `assets/drives/README.md`, which says what goes
+there and what does not. Do not invent another directory: the `subPath` in every
+chart, and the next agent looking for the pages, depend on this one.
+
+The repository reaches the Drive through a git Syncer on this repository:
+`destinationPath: "git/"`, `revision` pinned to the release tag for a private
+repository, and `includePaths: ["assets/drives/<drive>/"]`, which is what
+`add knowledgedrive --repo` writes. The folder keeps its place in the
+repository layout, so the pages are at `git/assets/drives/<drive>/` in the
+volume, and that is the `subPath` to mount.
+
+`includePaths` decides what reaches the volume. With it, `references/`,
+`docs/` and every other Drive's folder stay off; git's cone mode still brings
+the files directly in the repository root and directly in `assets/drives/`,
+so keep nothing there that the platform must not hold. Without it, the whole
+repository is cloned. Every entry has to be a folder at the synced revision:
+a missing one fails the run and leaves the Drive as it was, so commit
+`assets/drives/<drive>/index.md` before the release tag. Give the Drive its own
+SourceSet and Syncer rather than reusing a SkillSet's, which the platform UI
+expects to belong to that SkillSet alone.
+
+```yaml
+  sourceSetMounts:
+    value: '[{"sourceSetName": "ss-<drive>", "subPath": "git/assets/drives/<drive>/", "mountPath": "/knowledge", "readOnly": true}]'
+```
+
+Keep the pages somewhere else only when the customer writes and maintains them
+in their own tool, such as a Google Drive folder. Then a Syncer of that class
+fills the Drive, and nothing goes under `assets/drives/`.
+
+Everything else is the same as any Drive. The pages arrive through any Syncer
+class - git, Google Drive, OneDrive, SFTP and the rest - or by upload, and a
+SourceSet can be split whichever way the audiences need. To give different
+agents different knowledge, choose between these:
+
+| | one SourceSet per audience | one SourceSet, a `subPath` per agent |
+|---|---|---|
+| how | each SourceSet has its own Syncer, from its own source or from this repository narrowed by `includePaths` to that audience's folder; each agent mounts its own | one Drive holds every folder; each agent's `sourceSetMounts` entry takes a `subPath` |
+| separation | a separate volume per audience; an agent cannot reach another's files | every folder is on one volume; the separation is only in what is mounted |
+| cost | one sync per SourceSet | one sync |
+| use it when | the sources differ, or one audience's material must not sit beside another's | one source is split by folder for different agents |
+
+For the `subPath` route:
+
+  - `subPath` is relative to the Drive's root, with no leading `/`, no `.` or
+    `..` segment and no `//`. `contextIndex.includePaths` cannot do this job: it
+    narrows what an index reads, and the agent still sees the whole Drive. A
+    SkillSet cannot either, because it always mounts the whole SourceSet - see
+    `../usecase/conventions.md`.
+  - A git Syncer's `includePaths` lists every folder the Drive holds, and a
+    `subPath` then picks one per agent. Material that must not reach the
+    platform at all goes in another repository: this one is also synced by its
+    SkillSets, whose Syncers narrow only if they set `includePaths` themselves -
+    see `../usecase/skill-set.md`.
+  - Mount every folder at the same relative place under one root, so links
+    between pages still resolve: with `git/assets/drives/sales/` at
+    `/knowledge/sales` and `git/assets/drives/common/` at
+    `/knowledge/common`, a sales page's `../common/x.md` opens.
+
+Run the Syncers before the first conversation. The platform creates a missing
+`subPath` directory only for a writable mount, so a read-only mount of a folder
+that has not been synced yet has nothing in it.
+
+How good the answers are depends on the pages, and on each `index.md` saying
+what its pages are for. Writing and maintaining them is the work this shape
+asks for, and the `llm-wiki` skill under `.agents/skills/` describes it:
+`assets/drives/` is part of the wiki it maintains, and `references/` holds
+the raw sources the pages are written from.
+
+Move to a Context Index, as in the rest of this page, when:
+
+  - the material is something nobody writes pages from: rows a database Syncer
+    exports, crawled pages, uploaded PDFs. There is no `index.md` to start from,
+    and the graph takes its place.
+  - there are too many pages for an agent to find the right one by following
+    `index.md` and searching the files.
+
+The two can share one Drive: a wiki folder mounted with a `subPath`, and a raw
+feed in another folder that an index reads through `includePaths`.
+
+This shape is the platform team's recommendation for when the right one is not
+clear. It is not a platform rule. After the first deploy, ask the agent a few
+questions with `asgard-cli operate chat send` and check that it opens
+`index.md` first.
+
 ## The shape
 
     SourceSet  ss-<name>-knowledge     declares no members - the paths its
@@ -68,7 +196,12 @@ mount the Drive writable and run the indexer on a cron.
 
 ## Generate it
 
-    asgard-cli add knowledgedrive <name> --connector dc-<name>
+    asgard-cli add knowledgedrive <drive> --repo <this repository's git url>   # the written wiki
+    asgard-cli add knowledgedrive <name> --connector dc-<name>                  # a raw feed with a graph
+
+Both flags together write both into one Drive, with the index narrowed to the
+database Syncer's `data/` folder. `--private` pins the git Syncer to the
+release tag and adds the PAT. The rest of this section is the raw-feed shape.
 
 That writes the structure below with the fields that fail silently already in
 place. Those fields get lost when a skeleton is copied by hand, and nothing

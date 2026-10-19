@@ -209,17 +209,23 @@ triggers:
 `,
 	},
 	{
-		Name: "knowledgedrive", Summary: "a SourceSet Drive with a knowledge graph, for documents",
-		Prefix:  "ss-",
-		Files:   []File{{Dir: "source_set", Template: "knowledgedrive.yaml.tmpl"}},
-		Needs:   []string{"--connector dc-<name> for the database Syncer"},
+		Name: "knowledgedrive", Summary: "a SourceSet Drive for documents: a written wiki, a raw feed with a knowledge graph, or both",
+		Prefix: "ss-",
+		Files:  []File{{Dir: "source_set", Template: "knowledgedrive.yaml.tmpl"}},
+		Needs: []string{
+			"--repo <this repository's git url> for a written wiki under assets/drives/<name>/ (the default when unsure; add --private if it needs a PAT)",
+			"--connector dc-<name> for a database feed with a knowledge graph",
+		},
 		Extract: "knowledge-drive",
 		Wiki:    "knowledge",
 		After: []string{
-			"Mount it read-only from the blueprint, and tell the agent in its prompt",
-			"  to query the graph first and then read only the files it points at -",
-			"  otherwise it crawls the whole Drive.",
-			"Documents nobody can sync have to be uploaded after deploy, and the",
+			"Mount it read-only from the blueprint. For the wiki, mount subPath",
+			"  git/assets/drives/<name>/ and tell the agent to start at index.md; for",
+			"  a graph, tell it to query the graph first and read only the files it",
+			"  points at. Either way, without the prompt it crawls the whole Drive.",
+			"The wiki's folder has to exist at the synced revision, or its Syncer",
+			"  fails: commit assets/drives/<name>/index.md before the release tag.",
+			"Documents nobody can sync have to be uploaded after deploy, and an",
 			"  index has to run once. Until then the knowledge answers are poor: put",
 			"  it in the chart README as a post-deploy step with an owner.",
 		},
@@ -227,6 +233,7 @@ triggers:
 # <<.DisplayName>>
 <<.ValuesKey>>:
   timeZone: "Asia/Taipei"
+<<- if .Connector>>
   dbSync:
     # Ordinary five-field cron, or an @descriptor: the value is copied
     # verbatim into the derived CronJob, so the grammar is batch/v1's. The
@@ -237,6 +244,7 @@ triggers:
   contextIndex:
     schedule: "0 10 * * *"
     suspend: "false"
+<<- end>>
 `,
 	},
 	{

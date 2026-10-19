@@ -49,7 +49,7 @@ func Deployability(docs []Doc, opts Options) Result {
 			"asgard-ai.com/auto-fire-on-rollout and waits for them, so with none there is nothing after "+
 			"the dry run that proves the platform accepted any of it - a succeeded run means helm returned. "+
 			"`asgard-cli add skillset base --project %s --repo <git url>` creates one, as does "+
-			"`asgard-cli add knowledgedrive <name> --project %s`. When the shape genuinely has "+
+			"`asgard-cli add knowledgedrive <name> --project %s --repo <git url>`. When the shape genuinely has "+
 			"none - a DataConnector and a SemanticLayer is one - the read-back is "+
 			"`asgard-cli pipeline manifest --release <name> --status`, which says what is on the "+
 			"cluster and which of the kinds there can report anything at all",

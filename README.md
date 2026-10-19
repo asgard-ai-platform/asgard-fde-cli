@@ -396,14 +396,18 @@ specification. The list comes from the repository itself - the chart paths the
 declaration names, and the directories under `projects/` - so there is no
 second copy of it.
 
-### `reference` - filing what the customer hands over
+### `reference` - filing a source: a customer document, or a reading off a running system
 
     asgard-cli reference add <file> --what "<what it is>" \
       --from "<who supplied it>" --dated <the document's own date>
 
-`references/` is background for humans and spec-writing agents. The running
-agent does not read it: domain knowledge the agent needs at run time belongs in
-a skill, because a skill is synced into the platform and this directory is not.
+`references/` holds the raw sources the engagement's pages are written from,
+for humans and spec-writing agents. A reading off a running system - a query
+and its result, a dumped CR - is saved to a file and filed the same way, with
+`--from` naming the system and the query and `--dated` the day it was read. The
+running agent does not read this directory: nothing mounts it, though a git
+Syncer on the repository without `includePaths` copies it onto a volume. Rules the agent applies belong in a skill
+under `assets/skills/`, and pages it answers from under `assets/drives/<drive>/`.
 
 Every engagement files documents, and without a command each invented its own
 provenance table and directory name. This command copies the file
@@ -411,7 +415,7 @@ byte-identical, so a later version can be diffed against the filed one, and
 puts the provenance in `references/_index.md` rather than in a header pasted
 into the customer's own file.
 
-`--dated` is the document's own date, not today. That date decides whether the
+`--dated` is the document's own date, not today, or the day a reading was taken. That date decides whether the
 material is stale; record a document that carries no date as carrying none.
 `asgard-cli check` warns about rows that are short.
 
@@ -653,7 +657,7 @@ always run. It exits non-zero when anything fails, and warnings do not fail it.
 
 It cannot see two pages that contradict each other, a claim a newer source
 superseded, or a concept every document explains in passing and none owns;
-those need a reader. The `knowledge-base` skill under `.agents/skills/` in the
+those need a reader. The `llm-wiki` skill under `.agents/skills/` in the
 generated repo is the pass for that.
 
 ### `render`, `verify`, `doctor`

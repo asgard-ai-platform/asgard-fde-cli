@@ -11,6 +11,7 @@ SourceSet(又稱 Drive)的 volume —— 有時是單純的知識素材,有時�
 ```
 assets/
   skills/<skill>/SKILL.md    # runtime 技能(見下)
+  drives/<drive>/            # 每個知識 Drive 的頁面,agent 拿來回答問題(見下)
 ```
 
 ## 這裡不是什麼
@@ -34,6 +35,12 @@ assets/
 免得每個 engagement 各自發明一個路徑,讓 `SkillSet` 的 `searchPaths`
 每個 repo 都不一樣。
 
+## `drives/` — 知識 Drive 的頁面
+
+一個知識 Drive 一個目錄,裡面是整理好的頁面,每個資料夾一份 `index.md`。agent
+要套用的規則放 `skills/`,agent 要拿來查、拿來引用的文件放這裡。詳細見
+[`drives/README.md`](drives/README.md)。
+
 ## 怎麼生效
 
 ```
@@ -42,8 +49,10 @@ commit → Syncer 把這個 repo 同步進 SourceSet 的 volume
        → Agent 或 SandboxBlueprint 綁定 SkillSet
 ```
 
-`searchPaths` 指的是 volume 裡的路徑,而 Syncer 把整個 repo clone 到 `git/` 底下,
-所以路徑帶著這個 repo 的目錄名:
+`searchPaths` 指的是 volume 裡的路徑,而 Syncer 把 repo clone 到 `git/` 底下,保留 repo
+裡的目錄結構,所以路徑帶著這個 repo 的目錄名。Syncer 設了 `includePaths: ["assets/skills/"]`
+的話,volume 上只有這個資料夾(加上 repo 根目錄和 `assets/` 這一層的檔案),`references/`
+和 `docs/` 不會上平台:
 
 ```yaml
 spec:

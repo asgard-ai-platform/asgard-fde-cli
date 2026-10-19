@@ -20,7 +20,7 @@ and a `web` Loader on a cron schedule - and against the CRD.
 
 `asgard-cli add` writes none of these, deliberately. The four
 CRs here are a shape to read rather than one to reach for -
-`../wiki/knowledge.md` recommends a Drive with a Context Index for new work, so
+`../wiki/knowledge.md` recommends a Drive for new work, so
 a generator for `KnowledgeBase` would make the older shape the easy one, against
 that recommendation. This page is for reading a chart that already has them; do
 not write new ones.

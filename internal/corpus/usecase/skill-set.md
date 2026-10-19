@@ -14,7 +14,9 @@ several skill sets sharing one store in an older one.
 in every deployment that converted to it on 2026-09-13, each Syncer
 carrying both labels below. How a SkillSet reaches a sandbox against
 asgard-core `478cf5d6` `internal/bpoperator/reconciler/sb_reconciler.go`; what
-`searchPaths` means against asgard-kube `3da0365` `crd/asgard-ai.com_skillsets.yaml`.
+`searchPaths` means against asgard-kube `3da0365` `crd/asgard-ai.com_skillsets.yaml`;
+the git Syncer's `includePaths` against asgard-kube `1652e80`
+`pkg/apis/asgard/v1alpha1/types.go`.
 How a searchPath resolves against asgard-agent-sandbox `9bda069c`:
 asgard-agent-sandbox `internal/skill/discover.go` (`rootsForSet` joins each path
 to the SkillSet's mount, `walkRoot` walks it for every `SKILL.md`), and against
@@ -226,6 +228,12 @@ spec:
   timeZone: Asia/Taipei
   git:
     repoUrl: "https://github.com/<org>/<repo>.git"
+    # Only these folders reach the volume, at their place in the repository:
+    # for the engagement repository, assets/skills/, so references/ and docs/
+    # stay off the platform. A folder missing at the synced revision fails the
+    # run. Absent syncs the whole repository.
+    includePaths:
+      - skills/
     # A public repo: pin main. This repo, private: pin the release tag, which
     # means the tag has to exist before the Syncer can find its commit.
     revision: "main"

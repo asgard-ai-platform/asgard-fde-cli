@@ -57,11 +57,12 @@ func init() {
 // Everything else a kind takes is enumerated, so this names only what would
 // otherwise turn a variant into an error.
 var requiredArgs = map[string][]string{
-	"semanticlayer": {"connector"},
-	"httptool":      {"toolset"},
-	"querytool":     {"connector", "toolset"},
-	"skillset":      {"repo"},
-	"plugin":        {"connector"},
+	"semanticlayer":  {"connector"},
+	"httptool":       {"toolset"},
+	"querytool":      {"connector", "toolset"},
+	"skillset":       {"repo"},
+	"knowledgedrive": {"repo"},
+	"plugin":         {"connector"},
 }
 
 // sampleValue is what to pass to a flag that takes one. The value decides which

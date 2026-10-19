@@ -1149,7 +1149,7 @@ func wikiPage(rel string) bool {
 
 // checkOrphans reports pages nothing links to.
 //
-// It is the one part of a knowledge base's decay that is mechanical. A page
+// It is the one part of a wiki's decay that is mechanical. A page
 // with no inbound link is not read, and the person who wrote it never finds
 // out, because the file is still sitting there: a decision nobody applied, a
 // module missing from its index, a task spec that fell out of the queue.
@@ -1160,7 +1160,7 @@ func wikiPage(rel string) bool {
 // the middle of ordinary work. The three kinds of rot that are NOT mechanical -
 // two pages that contradict each other, a claim a newer source superseded, and
 // a concept discussed everywhere but owned by no page - need a reader, and the
-// knowledge-base skill under .agents/skills/ is how that pass is run.
+// llm-wiki skill under .agents/skills/ is how that pass is run.
 func (c *checker) checkOrphans() error {
 	linked := map[string]bool{}
 	var pages []string

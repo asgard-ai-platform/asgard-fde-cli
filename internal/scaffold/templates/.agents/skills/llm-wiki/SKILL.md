@@ -39,8 +39,8 @@ in the `spec-workflow` skill. Do not restate either here.
 
 | layer | who changes it | in this repository |
 |---|---|---|
-| raw sources | nobody: they are added and never edited | `references/`, `docs/meeting-notes/`, `docs/decisions/` |
-| the wiki | you, in every change | `docs/spec/<slug>/`, `docs/open-questions.md`, `assets/skills/` |
+| raw sources | nobody: they are added and never edited | `references/` (customer documents and readings off a running system), `docs/meeting-notes/`, `docs/decisions/` |
+| the wiki | you, in every change | `docs/spec/<slug>/`, `docs/open-questions.md`, `assets/skills/`, `assets/drives/<drive>/` |
 | the schema | a person, deliberately | `AGENTS.md`, `docs/README.md`, `requirements/README.md`, `references/README.md` |
 
 `requirements/` is in none of the three. It is a work queue: a task spec is read
@@ -75,15 +75,30 @@ should be reversed. Bring those back rather than resolving them quietly.
 A source is a document the customer hands over, a meeting, or something you
 read off a running system. Fold it in this way:
 
-1. File the raw source first. A document goes in through
-   `asgard-cli reference add`, which records who supplied it and when. A
-   meeting goes in `docs/meeting-notes/` under a dated filename. Do not edit a
-   raw source afterwards, to correct it or to bring it up to date.
-   Nothing under `references/` reaches the deployed agent. When the agent is
-   meant to answer from the material, suggest a knowledge Drive to the person
-   you are working with, and when they do not know how to build one, the
-   written wiki with no index first: "When unsure: a written wiki, with no
-   index" in `../asgard-platform/usecase/knowledge-drive.md`.
+1. File the raw source first, whatever kind it is, so that every claim the
+   wiki makes can be traced to something on disk:
+     - a document goes in through `asgard-cli reference add`, which records
+       who supplied it and when.
+     - a reading off a running system - a query and its result, a CR or a
+       config dumped from the cluster, an API response, a command's output -
+       is saved to a file and filed the same way: `--from` names the system and
+       how it was read (which database, which query or command), `--dated` is
+       the day it was read, and `--what` says what it was read to establish.
+       Its row in `references/_index.md` is the running system as of that day,
+       so set it to verified by hand. Take out credentials and personal data
+       before filing, and keep only the part that supports the claim: this
+       repository is committed, and a git Syncer on it without
+       `includePaths` copies `references/` onto the platform.
+     - a meeting goes in `docs/meeting-notes/` under a dated filename.
+   Do not edit a raw source afterwards, to correct it or to bring it up to
+   date. A newer reading is a new file, and the two together show what
+   changed.
+   The deployed agent never reads `references/`. When the agent is meant to
+   answer from the material, suggest a knowledge Drive to the person you are
+   working with, and when they do not know how to build one, the written wiki
+   with no index first: pages in `assets/drives/<drive>/`, written from the
+   filed source - "When unsure: a written wiki, with no index" in
+   `../asgard-platform/usecase/knowledge-drive.md`.
 2. Read it once and list every wiki page it changes: a spec module, an open
    question it answers or raises, a runtime skill that says something it
    contradicts. One source usually changes several pages. Updating only the
@@ -91,9 +106,10 @@ read off a running system. Fold it in this way:
 3. Edit the affected passages. Do not rewrite a whole page to change part of
    it: a rewrite drops sentences nobody meant to remove.
 4. Write provenance into each claim, in the form `requirements/README.md`
-   gives: how it was established and when. A claim taken from a customer
-   document says "not verified" until somebody checks it against the running
-   system.
+   gives: how it was established and when, and the path of the filed source it
+   came from. A claim taken from a customer document says "not verified" until
+   somebody checks it against the running system, and that check is itself a
+   reading, filed as in step 1.
 5. When the source contradicts a decision record, leave the record as it is.
    Put the conflict in `docs/open-questions.md`, or write a new dated decision
    if somebody has settled it.
@@ -196,7 +212,8 @@ and the page did not.
     long enough ago that nobody should rely on it unchecked.
 
 Verify before reporting where verifying is cheap: a schema claim against the
-database, a CR field against the platform's CRD. Where it is not cheap, say what
+database, a CR field against the platform's CRD, and file what you read as in
+Ingest step 1. Where it is not cheap, say what
 would settle it and leave it as an open question with an owner. Do not record a
 guess as a finding.
 

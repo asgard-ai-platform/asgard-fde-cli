@@ -189,7 +189,7 @@ Build —— 寫出 repo 與裡面的 CR
   request / add / target / ready / done    客戶要的東西
   task / add / ready / start / done        task spec
   decision add           寫一份帶日期的決議紀錄
-  reference add          歸檔客戶自己的素材，連同出處
+  reference add          歸檔一份 source（客戶文件，或從執行中系統讀到的東西），連同出處
   local-env              開一頁表單，讓握有憑證的人自己填進 .env
 
 Check —— 這台機器能檢查的全部
@@ -370,19 +370,22 @@ Projects:
 
 它只列出每份 chart 有什麼，不列出缺什麼。以前會對照每個 project 記錄的「形狀」來報告缺什麼，但報出「這個形狀要 X 而 X 不在」，等於把某人記下的意圖當成這支工具能檢查的規格。清單直接來自 repo（宣告檔指名的 chart 路徑，加上 `projects/` 底下的目錄），所以沒有第二份會漂移。
 
-### `reference` —— 歸檔客戶交過來的東西
+### `reference` —— 歸檔一份 source：客戶交過來的文件，或從執行中系統讀到的東西
 
     asgard-cli reference add <file> --what "<這是什麼>" \
       --from "<誰給的>" --dated <文件自己的日期>
 
-`references/` 是給人和寫 spec 的 agent 看的背景，不是執行中的 agent 讀的東西。
-agent 在 runtime 需要的領域知識屬於 skill，因為 skill 會同步進平台，這個目錄不會。
+`references/` 放的是 engagement 頁面所根據的原始來源，給人和寫 spec 的 agent 看。
+從執行中系統讀到的東西（查詢和結果、dump 出來的 CR）先存成檔案，用同一個指令歸檔：
+`--from` 寫哪個系統、哪個查詢或指令，`--dated` 寫讀取的那一天。執行中的 agent 不讀
+這個目錄：沒有東西掛載它，不過沒設 `includePaths` 的 git Syncer 會把它跟整個 repo 一起帶上 volume。agent 要套用的規則放
+`assets/skills/` 的 skill，agent 要拿來回答的頁面放 `assets/drives/<drive>/`。
 
 每個案子都會歸檔文件，但做法各不相同，每個都自己發明一套出處表，其中一個發明的目錄名後來
 被當成了慣例，所以有這個指令。它逐位元組複製檔案，之後的版本可以跟歸檔的那份 diff；出處寫進
 `references/_index.md`，不會在客戶自己的檔案裡加 header。
 
-`--dated` 是那份文件自己的日期，不是今天，因為素材是否過期取決於文件日期。沒有日期的文件，
+`--dated` 是那份文件自己的日期，不是今天；讀取系統得到的，就是讀取的那一天。素材是否過期取決於這個日期。沒有日期的文件，
 就記下它沒有日期。`asgard-cli check` 會對欄位不全的列提出警告。
 
 ### `local-env` —— 一頁表單,因為密碼不能進 transcript

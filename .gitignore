@@ -92,7 +92,7 @@ __pycache__/
 /.agents/skills/asgard-platform/
 /.agents/skills/asgard-fde-onboarding/
 /.agents/skills/db-query/
-/.agents/skills/knowledge-base/
+/.agents/skills/llm-wiki/
 /.agents/skills/plain-chinese/
 /.agents/skills/proposal-deck/
 /.agents/skills/semantic-layer-modeling/

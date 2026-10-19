@@ -58,6 +58,7 @@ A map of what answers what, in no particular order.
 | about to talk to the customer | `../asgard-platform/brief/customer-meeting.md` - what gets said wrong to a customer, each entry because somebody said it. What is said in a meeting leaves no trace in this repo, so nothing in the repo will remind you |
 | about to touch a chart, or hand it over | `../asgard-platform/brief/write-chart.md`, `../asgard-platform/brief/handover.md` |
 | anything, first | `asgard-cli question`, then `request`, `task` and `project` |
+| somebody wants to build knowledge for the agent, or hands over documents it should answer from | file the documents with `asgard-cli reference add`, then suggest a knowledge Drive to them. When they do not know how to build one, propose the written wiki with no index first: pages in `assets/drives/<drive>/`, which `assets/drives/README.md` describes, and "When unsure: a written wiki, with no index" in `../asgard-platform/usecase/knowledge-drive.md` |
 | the customer said something and you have to turn it into work | `../asgard-platform/guide/requirements.md` - the interview, then `asgard-cli request add "<their words>"` |
 | looking something up | `grep -ril "<term>" ../asgard-platform/` - and read `../asgard-platform/aliases.md` first if the question came in the customer's own words |
 | about to write a CR | `../asgard-platform/usecase/<shape>.md` - the skeleton and its traps |
@@ -80,7 +81,7 @@ A map of what answers what, in no particular order.
 | a slide deck for the customer | `proposal-deck` skill |
 | any 繁體中文 the customer will read - a slide, a reply to their question, a cube `description`, an agent's prompt | `plain-chinese` skill. Load it for the second pass, not while drafting |
 | registering a new project | `asgard-cli project add <slug>` - it writes the chart skeleton too |
-| the repo has drifted: contradictions, stale claims, a term nobody owns | `knowledge-base` skill, after `asgard-cli check` |
+| a customer document or a meeting has to be folded in, or the repo has drifted: contradictions, stale claims, a term nobody owns | `llm-wiki` skill, after `asgard-cli check` |
 
 ## The question behind the three big decisions
 

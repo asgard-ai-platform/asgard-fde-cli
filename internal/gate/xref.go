@@ -235,12 +235,12 @@ func (x *xref) checkEntrypoint(where, workflow, entry string) {
 var remedy = map[string]string{
 	"Agent":            "asgard-cli add agent %s --project %s",
 	"DataConnector":    "asgard-cli add dataconnector %s --project %s --db-class postgres|mssql",
-	"KnowledgeBase":    "asgard-cli add knowledgedrive %s --project %s",
+	"KnowledgeBase":    "asgard-cli add knowledgedrive %s --project %s --repo <git url>",
 	"Plugin":           "asgard-cli add plugin %s --project %s",
 	"SandboxBlueprint": "asgard-cli add flowagent %s --project %s",
 	"SemanticLayer":    "asgard-cli add semanticlayer %s --project %s --connector dc-<name>",
 	"SkillSet":         "asgard-cli add skillset %s --project %s --repo <git url>",
-	"SourceSet":        "asgard-cli add knowledgedrive %s --project %s",
+	"SourceSet":        "asgard-cli add knowledgedrive %s --project %s --repo <git url>",
 	"Toolset":          "asgard-cli add querytool %s --project %s",
 	"Workflow":         "asgard-cli add flowagent %s --project %s",
 }

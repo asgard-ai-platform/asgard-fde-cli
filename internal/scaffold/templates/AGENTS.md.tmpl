@@ -327,10 +327,24 @@ first.
 
 ### 3. Unstructured knowledge: a SourceSet Drive
 
-Use a `SourceSet` with `spec.contextIndex`, mounted read-only on the
-`SandboxBlueprint`, queried with the sandbox's builtin graphify skill.
+Use a `SourceSet` Drive, in the shape the material calls for:
 
-This is a recommendation, not a platform rule. `KnowledgeBase`, `Loader`,
+  - When you do not know how to build it, or the knowledge is pages somebody
+    writes: a Drive of written pages with an `index.md` in each folder, and no
+    `contextIndex`. The agent reads from `index.md`. In this repository the
+    pages go in `assets/drives/<drive>/`, and nowhere else - see
+    `assets/drives/README.md`. `asgard-cli add knowledgedrive <drive> --repo
+    <this repository>` writes it, with a git Syncer whose `includePaths` brings
+    only that folder. The SourceSets can be split however the audiences need.
+    After the first deploy, ask the agent a few questions and check that it
+    opens `index.md` first.
+  - When the material is raw feeds nobody writes pages from - database rows,
+    crawled pages, PDFs: `spec.contextIndex`, mounted read-only on the
+    `SandboxBlueprint`, queried with the sandbox's builtin graphify skill.
+
+`.agents/skills/asgard-platform/usecase/knowledge-drive.md` has both.
+
+Preferring a Drive is a recommendation, not a platform rule. `KnowledgeBase`, `Loader`,
 `Indexer` and `Source` are all live CRDs with no deprecation marker, and the
 console ships the feature. The recommendation rests on one engagement that
 built the Loader-and-retrieval-workflow way and rebuilt it on a Drive. An older
@@ -530,7 +544,7 @@ than a bad sentence, and a column without a description is effectively
 invisible to the model.
 
 
-## This repo is a knowledge base, and you maintain it
+## This repo is an LLM wiki, and you maintain it
 
 Most of what is here is not code. It is what this engagement learned about one
 customer's systems, and this repository is the only place it exists — the next
@@ -567,14 +581,15 @@ Three rules follow:
 `asgard-cli check` audits the mechanical half — pages nothing links to, a module
 missing from its index, undated filenames, links that do not resolve. The half
 it cannot see (pages that contradict each other, claims a newer source
-superseded, concepts nobody owns) is the `knowledge-base` skill under
+superseded, concepts nobody owns) is the `llm-wiki` skill under
 `.agents/skills/`. Run that pass when picking up a repo somebody else worked on,
 before a handover, or after a burst of decisions.
 
 Where a fact belongs when it is not obvious:
 [`requirements/README.md`](requirements/README.md) for `requirements/`,
 [`docs/README.md`](docs/README.md) for the layers,
-[`references/README.md`](references/README.md) for the customer's own material.
+[`references/README.md`](references/README.md) for the raw sources: the
+customer's own material, and readings off a running system.
 
 
 ## Two kinds of skills — design time vs runtime

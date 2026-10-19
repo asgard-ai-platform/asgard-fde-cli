@@ -208,8 +208,8 @@ Run "asgard-cli add" with no arguments to list the kinds.`,
 	cmd.Flags().StringVar(&opts.Layer, "layer", "", "SemanticLayer to mount")
 	cmd.Flags().StringSliceVar(&layers, "layers", nil, "SemanticLayers a scheduled run mounts, repeatable")
 	cmd.Flags().StringVar(&opts.Toolset, "toolset", "", "Toolset to create alongside the tool")
-	cmd.Flags().StringVar(&opts.Repo, "repo", "", "git repository the skills come from")
-	cmd.Flags().BoolVar(&opts.Private, "private", false, "the skills repo is private and needs a PAT")
+	cmd.Flags().StringVar(&opts.Repo, "repo", "", "git repository a skillset's skills, or a knowledgedrive's written wiki, come from")
+	cmd.Flags().BoolVar(&opts.Private, "private", false, "the --repo repository is private and needs a PAT")
 	cmd.Flags().BoolVar(&opts.Write, "write", false, "this tool has a side effect, so gate it with requestConsent")
 	cmd.Flags().BoolVar(&opts.Public, "public", false, "the entry point serves anonymous visitors (authMode: none)")
 	cmd.Flags().BoolVar(&opts.Supervisor, "supervisor", false,
@@ -233,6 +233,13 @@ func requiredFlags(kind generate.Kind, opts generate.Options) error {
 	case "skillset":
 		if opts.Repo == "" {
 			return fmt.Errorf("skillset needs --repo <git url>")
+		}
+	case "knowledgedrive":
+		if opts.Repo == "" && opts.Connector == "" {
+			return fmt.Errorf("knowledgedrive needs --repo <this repository's git url> for a written wiki under assets/drives/<name>/,\n" +
+				"or --connector dc-<name> for a database feed with a knowledge graph, or both.\n" +
+				"When unsure, the wiki: see \"When unsure: a written wiki, with no index\" in\n" +
+				"`.agents/skills/asgard-platform/usecase/knowledge-drive.md`")
 		}
 	}
 	if kind.Name == "httptool" || kind.Name == "querytool" {

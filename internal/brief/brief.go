@@ -264,7 +264,7 @@ built, and reversed. The same obvious choice is tempting each time.`,
 			{
 				"where unstructured knowledge goes",
 				"a KnowledgeBase with Loaders and a retrieval workflow",
-				"A SourceSet Drive with `contextIndex`. Both are live; the Drive is the recommendation for new work",
+				"A SourceSet Drive: a written wiki with no `contextIndex` when unsure, and `contextIndex` over raw feeds. Both are live; the Drive is the recommendation for new work",
 				"../usecase/knowledge-drive.md",
 			},
 			{

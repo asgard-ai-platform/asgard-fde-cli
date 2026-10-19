@@ -58,7 +58,7 @@ no grouping at all. The CR shapes below are independent of that choice.
 |---|---|
 | [`semantic-layer.md`](../usecase/semantic-layer.md) | internal audience, open-ended questions |
 | [`fixed-query-tools.md`](../usecase/fixed-query-tools.md) | public audience, a known set of questions |
-| [`knowledge-drive.md`](../usecase/knowledge-drive.md) | knowledge that is documents, not rows |
+| [`knowledge-drive.md`](../usecase/knowledge-drive.md) | knowledge that is documents, not rows - a written wiki read with no index when you do not know which to build, and a knowledge graph over raw feeds |
 | [`external-api.md`](../usecase/external-api.md) | a source that is an HTTP API, not a database - and the credential that decides whether the agent calls it from a Workflow or from its sandbox |
 | [`browser-operation.md`](../usecase/browser-operation.md) | a system with no database and no API - only a web UI. The last resort |
 
