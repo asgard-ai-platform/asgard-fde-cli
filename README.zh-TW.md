@@ -191,6 +191,7 @@ Build —— 寫出 repo 與裡面的 CR
   decision add           寫一份帶日期的決議紀錄
   reference add          歸檔客戶自己的素材，連同出處
   local-env              開一頁表單，讓握有憑證的人自己填進 .env
+  extension get / update / lint    從本機路徑取 Extension、再同步；作者發佈前的檢查
 
 Check —— 這台機器能檢查的全部
   gate [release ...]     ★ 一個指令跑完下面所有能跑的
@@ -432,6 +433,23 @@ asgard-cli decision add "官網一律走固定查詢工具讀取" --module archi
 | decision | `docs/decisions/YYYY-MM-DD-<topic>.md` ＋ 一列追溯 | 檔名裡的日期、它改動的模組 |
 
 這些做成指令，而不是「請寫一個檔」的指示，是因為每筆紀錄都存在不只一個地方。一個 task 的狀態在 queue 表格裡、在 spec 自己的 `Meta` 裡、也在 spec 的執行紀錄裡；一個 request 的目標 project 在 registry 的 Spec 欄與它的 `Meta` 裡。手動改一次要動三到四處，而其中兩處互相矛盾時，下一個讀的人無法判斷哪個是現況。這裡每個指令都一次改完全部，日期由指令填入，不用問。
+
+### `extension` —— 一個外部系統的教材
+
+    asgard-cli extension get ../asgard-ext-foo    從本機路徑複製一份 Extension
+    asgard-cli extension update asgard-ext-foo    Extension 改過之後再複製一次
+    asgard-cli extension lint                     檢查目前目錄的 Extension
+
+Extension 是一個外部系統或一種領域知識的設計期教材，自己一個 git repo，名稱一律
+`asgard-ext-` 開頭。它落在 `.agents/skills/<id>/`，agent 讀它的 SKILL.md 選路線、寫 CR。
+repo 根目錄的 `.asgard-extensions.json` 記錄這個 repo 拿了哪些 Extension，要 commit。
+
+`get` 與 `update` 從本機路徑取 Extension，這是作者在發佈前測試的方式：Extension 在自己
+的 repo，旁邊另開一個 FDE repo，由另一個 coding agent session 來測。只複製 Extension
+會發出去的檔、不用 symlink；目的地有被改過的檔時，不加 `--force` 就不覆蓋。
+
+`lint` 給作者用，不需要帳號。它檢查 registry 提供某個版本前會檢查的事，並 render
+`examples/chart/`、對結果跑 gate 的檢查。
 
 ### `add`
 

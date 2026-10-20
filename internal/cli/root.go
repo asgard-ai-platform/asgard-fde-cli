@@ -218,6 +218,7 @@ Run "asgard-cli <command> --help" for details on an individual command.`,
 		newTaskCmd(),
 		newDecisionCmd(),
 		newReferenceCmd(),
+		newExtensionCmd(),
 	)
 	addTo(cmd, groupCheck,
 		newGateCmd(),

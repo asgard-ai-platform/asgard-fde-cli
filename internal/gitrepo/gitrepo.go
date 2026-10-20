@@ -66,6 +66,16 @@ func HeadSHA(ctx context.Context, dir string) (string, error) {
 	return run(ctx, dir, "rev-parse", "HEAD")
 }
 
+// Dirty reports whether the working tree has uncommitted changes, untracked
+// files included.
+func Dirty(ctx context.Context, dir string) (bool, error) {
+	out, err := run(ctx, dir, "status", "--porcelain")
+	if err != nil {
+		return false, err
+	}
+	return out != "", nil
+}
+
 // scpLike matches git's abbreviated ssh syntax, which is not a URL and cannot
 // be parsed as one: the colon separates host from PATH, not host from port.
 //
