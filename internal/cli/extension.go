@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -15,12 +14,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/asgard-ai-platform/asgard-fde-cli/internal/extension"
-	"github.com/asgard-ai-platform/asgard-fde-cli/internal/gate"
 	"github.com/asgard-ai-platform/asgard-fde-cli/internal/gitrepo"
-	"github.com/asgard-ai-platform/asgard-fde-cli/internal/render"
 	"github.com/asgard-ai-platform/asgard-fde-cli/internal/repo"
 	"github.com/asgard-ai-platform/asgard-fde-cli/internal/skills"
-	"github.com/asgard-ai-platform/asgard-fde-cli/internal/tool"
 )
 
 func newExtensionCmd() *cobra.Command {
@@ -226,10 +222,7 @@ func copyExtension(cmd *cobra.Command, root, src string, force bool) error {
 }
 
 func newExtensionLintCmd() *cobra.Command {
-	var (
-		noRender  bool
-		formatOut string
-	)
+	var formatOut string
 	cmd := &cobra.Command{
 		Use:   "lint [dir]",
 		Short: "Check an Extension before it is published",
@@ -244,11 +237,13 @@ holds exactly one document per declared route - and what the FDE Agent relies
 on: an id starting with ` + "`" + extension.Prefix + "`" + `, no route using an OAuth client
 Asgard registers, and every example saying in its first line that it is one.
 
-When examples/chart/ holds a chart, it is rendered with helm against
-examples/chart/values.example.yaml and the platform's reserved values, and the
-same checks ` + "`asgard-cli gate`" + ` runs on a release are run on the result. An
-example the FDE Agent reads has to be one the platform would accept.
-` + "`--no-render`" + ` skips that, for a machine without helm.
+Examples are pseudo charts, one folder per set of CRs under examples/, and
+they are not rendered: placeholders like <chart> and <fde-repo-git-url> stand
+for what only the FDE repository knows. What is checked is their shape - an
+examples/README.md, a README in each set, each set named after a route and
+referenced from a route document, the EXAMPLE banner on every file. Whether an
+example is right is found out by transcribing it into a real chart in a test
+FDE repository and running ` + "`asgard-cli gate`" + ` there.
 
 Exit status is 1 when anything is an error. Warnings do not fail it.`,
 		Args: cobra.MaximumNArgs(1),
@@ -261,9 +256,6 @@ Exit status is 1 when anything is an error. Warnings do not fail it.`,
 				dir = args[0]
 			}
 			findings, meta := extension.Lint(dir)
-			if !noRender {
-				findings = append(findings, lintExamples(cmd.Context(), dir)...)
-			}
 			failed := extension.Failed(findings)
 
 			if formatOut == formatJSON {
@@ -298,60 +290,8 @@ Exit status is 1 when anything is an error. Warnings do not fail it.`,
 			return nil
 		},
 	}
-	cmd.Flags().BoolVar(&noRender, "no-render", false, "skip rendering examples/chart/ with helm and checking the result")
 	cmd.Flags().StringVar(&formatOut, formatFlag, formatText, formatUsage)
 	return cmd
-}
-
-// exampleRelease is the release name the example chart is rendered as.
-const exampleRelease = "example"
-
-// lintExamples renders examples/chart and runs the gate's checks on it.
-func lintExamples(ctx context.Context, dir string) []extension.Finding {
-	const where = "examples/chart"
-	chart := filepath.Join(dir, "examples", "chart")
-	if _, err := os.Stat(chart); err != nil {
-		return nil
-	}
-	if _, err := os.Stat(filepath.Join(chart, "Chart.yaml")); err != nil {
-		return []extension.Finding{{Level: extension.Error, Path: where, Message: "no Chart.yaml, so it cannot be rendered; the examples have to be a chart the platform would accept"}}
-	}
-
-	injected, err := render.AsgardValuesFile(exampleRelease, render.Placeholder)
-	if err != nil {
-		return []extension.Finding{{Level: extension.Error, Path: where, Message: err.Error()}}
-	}
-	defer os.Remove(injected)
-
-	args := []string{"template", render.HelmReleaseName(exampleRelease), chart, "--namespace", render.Placeholder}
-	if values := filepath.Join(chart, "values.example.yaml"); fileExists(values) {
-		args = append(args, "-f", values)
-	}
-	args = append(args, "-f", injected)
-	helm, err := tool.Helm.Command(ctx, args...)
-	if err != nil {
-		return []extension.Finding{{Level: extension.Error, Path: where, Message: fmt.Sprintf("cannot render: %v (install helm, or pass --no-render)", err)}}
-	}
-	var stdout, stderr bytes.Buffer
-	helm.Stdout, helm.Stderr = &stdout, &stderr
-	if err := helm.Run(); err != nil {
-		return []extension.Finding{{Level: extension.Error, Path: where, Message: "helm template failed: " + helmError(stderr.String())}}
-	}
-	docs, err := gate.Read(&stdout)
-	if err != nil {
-		return []extension.Finding{{Level: extension.Error, Path: where, Message: err.Error()}}
-	}
-
-	var out []extension.Finding
-	for _, c := range gates(docs, gate.Options{Release: exampleRelease}) {
-		for _, p := range c.Problems {
-			out = append(out, extension.Finding{Level: extension.Error, Path: where, Message: c.Name + ": " + p})
-		}
-		for _, w := range c.Warnings {
-			out = append(out, extension.Finding{Level: extension.Warning, Path: where, Message: c.Name + ": " + w})
-		}
-	}
-	return out
 }
 
 // fdeRepoRoot is the FDE repository the current directory is in.
@@ -416,11 +356,4 @@ func rel(root, path string) string {
 func fileExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
-}
-
-// helmError is helm's diagnosis on one line: the paragraph before its advice
-// about --debug, which is where the file, the position and the cause are.
-func helmError(stderr string) string {
-	para, _, _ := strings.Cut(strings.TrimSpace(stderr), "\n\n")
-	return strings.Join(strings.Fields(para), " ")
 }

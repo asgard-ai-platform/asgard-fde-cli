@@ -448,8 +448,9 @@ repo 根目錄的 `.asgard-extensions.json` 記錄這個 repo 拿了哪些 Exten
 的 repo，旁邊另開一個 FDE repo，由另一個 coding agent session 來測。只複製 Extension
 會發出去的檔、不用 symlink；目的地有被改過的檔時，不加 `--force` 就不覆蓋。
 
-`lint` 給作者用，不需要帳號。它檢查 registry 提供某個版本前會檢查的事，並 render
-`examples/chart/`、對結果跑 gate 的檢查。
+`lint` 給作者用，不需要帳號。它檢查 registry 提供某個版本前會檢查的事，以及
+`examples/` 的結構：一套 CR 一個資料夾的 pseudo chart，不 render。範例寫得對不對，
+要謄寫進測試用的 FDE repo、在那裡跑 `gate` 才知道。
 
 ### `add`
 

@@ -497,8 +497,9 @@ the testing. Only what an Extension publishes is copied, never linked, and a
 file edited in the destination stops the copy until `--force`.
 
 `lint` is for the author and needs no account. It checks what the registry
-checks before offering a version, and renders `examples/chart/` and runs the
-gate's checks on the result.
+checks before offering a version, and the shape of `examples/`: pseudo charts,
+one folder per set of CRs, which are not rendered. An example is checked by
+transcribing it into a test FDE repository and running `gate` there.
 
 ### `add`
 

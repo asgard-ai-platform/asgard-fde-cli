@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -71,7 +72,7 @@ func Lint(dir string) ([]Finding, *Meta) {
 		l.oauth(meta)
 		l.files()
 	}
-	l.examples()
+	l.examples(meta)
 	sort.SliceStable(l.out, func(i, j int) bool {
 		if l.out[i].Level != l.out[j].Level {
 			return l.out[i].Level == Error
@@ -294,8 +295,8 @@ func (l *linter) files() {
 			}
 			return nil
 		}
-		if d.Name() == "SKILL.md" && rel != "SKILL.md" && !strings.HasPrefix(rel, "examples/assets/skills/") {
-			l.warnf(rel, "a SKILL.md outside examples/assets/skills/; a runtime skill template belongs there, where it is not loaded as a design-time skill")
+		if d.Name() == "SKILL.md" && rel != "SKILL.md" && !runtimeSkillPath(rel) {
+			l.warnf(rel, "a SKILL.md outside examples/<set>/assets/skills/; a runtime skill template belongs there, where it is not loaded as a design-time skill")
 		}
 		if d.Name() == ".env" || (strings.HasPrefix(d.Name(), ".env.") && d.Name() != ".env.example") {
 			l.errorf(rel, "an environment file in an Extension; it is committed into every customer repository that takes this Extension")
@@ -304,10 +305,47 @@ func (l *linter) files() {
 	})
 }
 
-// examples checks that each example says it is one. The FDE Agent copies what
-// looks finished, so the first line has to say otherwise.
-func (l *linter) examples() {
+// examples checks the shape of examples/: pseudo charts, one folder per set
+// of CRs, named after the route it shows and referenced from that route's
+// document. They are not rendered - placeholders stand for what only the FDE
+// repository knows - so the shape is what can be checked here, and each file
+// has to say in its first line that it is an example.
+func (l *linter) examples(meta *Meta) {
 	root := filepath.Join(l.dir, "examples")
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		return
+	}
+	if !l.exists("examples/README.md") {
+		l.warnf("examples", "no README.md; it lists each set, the route it belongs to, and what each <placeholder> stands for")
+	}
+
+	routeDocs := l.routeDocs()
+	routes := map[string]bool{}
+	if meta != nil {
+		for _, r := range meta.Routes {
+			routes[r.ID] = true
+		}
+	}
+	for _, e := range entries {
+		rel := "examples/" + e.Name()
+		if !e.IsDir() {
+			if e.Name() != "README.md" {
+				l.warnf(rel, "a file directly in examples/; each set of CRs is a folder of its own")
+			}
+			continue
+		}
+		if !l.exists(rel + "/README.md") {
+			l.warnf(rel, "no README.md; it says how the CRs connect, which asgard-cli add to run first, and where each file goes in the FDE repository")
+		}
+		if meta != nil && !routes[setRoute(e.Name(), routes)] {
+			l.warnf(rel, "named after no declared route; a set is <route-id> or <route-id>.<purpose>")
+		}
+		if !regexp.MustCompile(regexp.QuoteMeta(rel) + `([^A-Za-z0-9._-]|$)`).MatchString(routeDocs) {
+			l.warnf(rel, "no document under routes/ refers to it, so the FDE Agent is never sent there")
+		}
+	}
+
 	_ = filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
 			return nil
@@ -328,10 +366,43 @@ func (l *linter) examples() {
 	})
 }
 
+// setRoute is the route a set's folder name names: the whole name, or the
+// part before the last dot-separated suffix.
+func setRoute(name string, routes map[string]bool) string {
+	if routes[name] {
+		return name
+	}
+	for i := len(name) - 1; i > 0; i-- {
+		if name[i] == '.' && routes[name[:i]] {
+			return name[:i]
+		}
+	}
+	return name
+}
+
+// routeDocs is every route document, concatenated, for finding references.
+func (l *linter) routeDocs() string {
+	var b strings.Builder
+	entries, _ := os.ReadDir(filepath.Join(l.dir, "routes"))
+	for _, e := range entries {
+		if data, err := os.ReadFile(filepath.Join(l.dir, "routes", e.Name())); err == nil {
+			b.Write(data)
+			b.WriteByte('\n')
+		}
+	}
+	return b.String()
+}
+
+// runtimeSkillPath reports whether rel is under examples/<set>/assets/skills/.
+func runtimeSkillPath(rel string) bool {
+	parts := strings.Split(rel, "/")
+	return len(parts) > 4 && parts[0] == "examples" && parts[2] == "assets" && parts[3] == "skills"
+}
+
 func textExample(name string) bool {
 	switch strings.ToLower(filepath.Ext(name)) {
 	case ".yaml", ".yml", ".md", ".tpl", ".txt", ".py", ".sh", ".json":
-		return name != "Chart.yaml" && name != ".helmignore"
+		return name != "README.md" && name != ".helmignore"
 	}
 	return false
 }
