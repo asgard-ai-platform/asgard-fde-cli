@@ -59,6 +59,7 @@ are no line counts, because they go stale with every change.
 | `render` | renders via `helm template`, with the reserved `asgard` block supplied as placeholders |
 | `binding` | reads and writes `.asgard-cli.yaml`, the checkout's platform binding |
 | `gitrepo` | the checkout's root and its remotes, read and never compared to anything |
+| `extension` | an Extension: the index in its README frontmatter, what `extension lint` checks, which files leave its repository, and `.asgard-extensions.json` - the record of which Extensions an FDE repository holds. Not a design-time skill this binary ships; an Extension is its own git repository |
 | `needs` | what a shape has to be given by the customer, written into a repository beside the extracts |
 | `repo` | what a customer repository is made of, by looking at it |
 | `pipelineconfig` | reads `.asgard-pipeline.yaml`, the deployment declaration |

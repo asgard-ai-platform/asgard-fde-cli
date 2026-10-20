@@ -478,6 +478,28 @@ rather than asking for it.
 `asgard-cli question`, `request`, `task` and `project` read them back, each with
 `--format json`.
 
+### `extension` - teaching material for one external system
+
+    asgard-cli extension get ../asgard-ext-foo    copy an Extension from a path
+    asgard-cli extension update asgard-ext-foo    copy it again after it changed
+    asgard-cli extension lint                     check the Extension in this directory
+
+An Extension is design-time material for one external system or one body of
+domain knowledge, kept in its own git repository whose name starts with
+`asgard-ext-`. It lands in `.agents/skills/<id>/`, and the agent reads its
+SKILL.md to choose a route and write the CRs. `.asgard-extensions.json` at the
+repository root records which ones the repository holds; commit it.
+
+`get` and `update` take an Extension from a path on this machine. That is how
+its author tests it before publishing: the Extension in its own repository, a
+separate FDE repository beside it, and a different coding agent session doing
+the testing. Only what an Extension publishes is copied, never linked, and a
+file edited in the destination stops the copy until `--force`.
+
+`lint` is for the author and needs no account. It checks what the registry
+checks before offering a version, and renders `examples/chart/` and runs the
+gate's checks on the result.
+
 ### `add`
 
 Write a CR skeleton into a project's chart, correct in the parts that fail
