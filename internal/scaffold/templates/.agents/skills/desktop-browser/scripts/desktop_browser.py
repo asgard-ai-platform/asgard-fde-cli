@@ -5,6 +5,7 @@ Run from the repository root:
 
     .venv/bin/python .agents/skills/desktop-browser/scripts/desktop_browser.py start [<url>]
     .venv/bin/python .agents/skills/desktop-browser/scripts/desktop_browser.py info
+    .venv/bin/python .agents/skills/desktop-browser/scripts/desktop_browser.py reset [--all]
 
 and from a script, after `sys.path.insert(0, ".agents/skills/desktop-browser/scripts")`:
 
@@ -18,9 +19,17 @@ so neither `start` nor a script built on these helpers can run in the wrong plac
 The window is started detached, with its own profile, so it outlives the command
 that started it and every later script connects to the same one. It is never
 launched from a script: a browser a script launches closes when the script ends.
+
+It is started with the switches Playwright passes to every browser it launches
+itself, so it never asks the operating system for anything: no keychain prompt on
+macOS, no keyring on Linux. The cost is that the profile's cookies are not
+protected by the system keychain, so the profile directory is the person's alone
+(0700), the browser does not offer to save passwords, and `reset` signs every
+console out by deleting it.
 """
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -99,15 +108,47 @@ def chromium():
     return path
 
 
+# Playwright passes these to every Chromium it launches. Without them Chromium keeps
+# the key that encrypts cookies in the system keychain, and macOS stops the person
+# with a password dialog about "Chromium Safe Storage" they have no reason to trust.
+NO_OS_KEYCHAIN = ["--use-mock-keychain", "--password-store=basic"]
+
+# With no keychain behind it, a password the browser saved would sit in the profile
+# all but readable, and the agent drives this browser. So it never offers to.
+PREFS = {
+    "credentials_enable_service": False,
+    "profile": {"password_manager_enabled": False},
+    "autofill": {"profile_enabled": False, "credit_card_enabled": False},
+}
+
+
+def merge(into, extra):
+    for key, value in extra.items():
+        if isinstance(value, dict) and isinstance(into.get(key), dict):
+            merge(into[key], value)
+        else:
+            into[key] = value
+
+
 def seed_profile():
-    """On first use, point the profile's downloads at DOWNLOADS without a prompt."""
+    """Before the window opens: a profile only this user can read, downloads going to
+    DOWNLOADS without a prompt (first use only), and no saved passwords or autofill
+    (every start, since the person can switch them back on)."""
     prefs = PROFILE / "Default" / "Preferences"
-    if prefs.exists():
-        return
     prefs.parent.mkdir(parents=True, exist_ok=True)
     DOWNLOADS.mkdir(parents=True, exist_ok=True)
-    prefs.write_text(json.dumps({"download": {"default_directory": str(DOWNLOADS), "prompt_for_download": False}}),
-                     encoding="utf-8")
+    if sys.platform != "win32":
+        os.chmod(PROFILE, 0o700)
+    data = {}
+    if prefs.exists():
+        try:
+            data = json.loads(prefs.read_text(encoding="utf-8"))
+        except ValueError:
+            data = {}
+    else:
+        data = {"download": {"default_directory": str(DOWNLOADS), "prompt_for_download": False}}
+    merge(data, PREFS)
+    prefs.write_text(json.dumps(data), encoding="utf-8")
 
 
 def start(url=None):
@@ -124,6 +165,7 @@ def start(url=None):
             "--user-data-dir=%s" % PROFILE,
             "--no-first-run",
             "--no-default-browser-check",
+            *NO_OS_KEYCHAIN,
             url or "about:blank"]
     kwargs = {"stdin": subprocess.DEVNULL, "stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
     if sys.platform == "win32":
@@ -139,6 +181,22 @@ def start(url=None):
     sys.stderr.write("Chromium was started but %s does not answer. Another program may hold port %d; "
                      "set ASGARD_DESKTOP_BROWSER_PORT to another port and start again.\n" % (CDP_URL, PORT))
     return 1
+
+
+def reset(everything=False):
+    """Delete the profile, which signs every console out. With everything, the workspace
+    and downloads go too: screenshots and files from an admin console carry the
+    customer's data. Refuses while the window is open, so nothing is deleted under it."""
+    if running():
+        sys.stderr.write("The window is still open. Ask the person to close it (quit Chromium), then reset again.\n")
+        return 1
+    targets = [PROFILE] + ([WORKSPACE, DOWNLOADS] if everything else [])
+    for path in targets:
+        if path.exists():
+            shutil.rmtree(path)
+            print("deleted:   %s" % path)
+    print("The next start opens a new profile; the person signs in again.")
+    return 0
 
 
 def print_info():
@@ -233,7 +291,9 @@ def main(argv):
         return start(argv[1] if len(argv) > 1 else None)
     if cmd == "info":
         return print_info()
-    sys.stderr.write("usage: desktop_browser.py start [<url>] | info\n")
+    if cmd == "reset":
+        return reset("--all" in argv[1:])
+    sys.stderr.write("usage: desktop_browser.py start [<url>] | info | reset [--all]\n")
     return 2
 
 

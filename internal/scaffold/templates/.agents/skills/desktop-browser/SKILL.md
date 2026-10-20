@@ -37,6 +37,7 @@ Everything goes through one script, run from the repository root:
 ```bash
 .venv/bin/python .agents/skills/desktop-browser/scripts/desktop_browser.py start [<url>]
 .venv/bin/python .agents/skills/desktop-browser/scripts/desktop_browser.py info
+.venv/bin/python .agents/skills/desktop-browser/scripts/desktop_browser.py reset [--all]
 ```
 
 - **`start`** opens the window when it is not running, and otherwise leaves it as
@@ -45,6 +46,19 @@ Everything goes through one script, run from the repository root:
   workspace directory and the downloads directory. Tell the person a Chromium
   window has opened and that it is the one you will be working in.
 - **`info`** prints the same without opening anything, and whether it is running.
+- **`reset`** deletes the profile, which signs every console out; `--all` also
+  deletes the workspace and downloads directories. It refuses while the window is
+  open. Offer it when the person is done with a console they will not come back to,
+  or before the computer changes hands.
+- **What the profile keeps, and why it is safe to keep it.** The window never asks
+  the operating system for anything: it starts with the switches Playwright gives
+  every browser it launches (`--use-mock-keychain`, `--password-store=basic`), so
+  macOS shows no keychain dialog. That also means its cookies are not protected by
+  the system keychain, so the profile directory is readable by this user only, the
+  browser does not offer to save passwords or autofill, and the person stays
+  signed in to a console until they sign out or you run `reset`. If the person
+  still sees a keychain dialog, the window was opened by something else: have them
+  choose Deny, quit it, and `start` again.
 - **Connect over CDP**, never launch from a script. Every script imports the
   helpers in `scripts/desktop_browser.py` (`connect`, `live_page`, `snapshot`,
   `screenshot`), which also refuse to run in the sandbox. Never call
@@ -245,6 +259,10 @@ Chromium the person signs in to, driven over CDP, secrets masked before
 anything is read - walked an Intercom Developer Hub end to end on 2026-10-20.
 The contract and the rules are the sandbox's built-in `browser` skill's
 (asgard-agent-sandbox `7f93dab`), with the browser section rewritten.
+
+Started without `--use-mock-keychain`, the window raised macOS's "Chromium
+Safe Storage" keychain dialog on its first Google sign-in (2026-10-20); with the
+switch it signed in to Google Cloud and stayed signed in with no dialog.
 
 **Unchecked:** Windows and Linux desktops; the downloads directory the profile
 is seeded with; a console that refuses a browser it can tell is automated, or
