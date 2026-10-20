@@ -164,7 +164,24 @@ spec:
       to: {processor: proc-response}
     - from: {processor: proc-call, relationName: failure}
       to: {processor: proc-error}
----
+<<if .ToolsetExists>># The Toolset <<.Toolset>> already exists in this chart, so it is not written
+# again here: two CRs with one name means whichever applies last replaces the
+# other, and the tools in the discarded copy are silently gone.
+#
+# Add this tool to the existing set instead - one entry under its `tools`:
+#
+#     - entrypoint:
+#         entry: entry-main
+#         workflow: <<.CRName>>
+#       requestConsent: <<if .Write>>true<<else>>false<<end>>
+#
+# Those two fields are the whole entry. A Toolset tool carries no name and no
+# description - writing them here adds unknown fields the apiserver drops
+# silently, and the tool reaches the model unnamed.
+<<if .Write>>#
+# This tool writes. If the existing set holds read tools a Trigger uses, put it
+# in a set of its own instead: a scheduled run cannot answer requestConsent.
+<<end>><<else>>---
 apiVersion: asgard-ai.com/v1alpha1
 kind: Toolset
 metadata:
@@ -201,3 +218,4 @@ spec:
         entry: entry-main
         workflow: <<.CRName>>
       requestConsent: <<if .Write>>true<<else>>false<<end>>
+<<end>>
