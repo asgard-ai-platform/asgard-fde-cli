@@ -3,6 +3,7 @@ package gate
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 )
@@ -194,11 +195,89 @@ func Processors(docs []Doc, opts Options) Result {
 			}
 
 		}
+
+		branchRules(d, procs, warnf)
 	}
 
 	sort.Strings(problems)
 	sort.Strings(warnings)
 	return Result{Problems: problems, Warnings: warnings, Summary: fmt.Sprintf("%d processor(s)", seen)}
+}
+
+// httpResponseRef finds the context variable an http-request writes, as a
+// word rather than a substring, so `lastHttpResponseAt` does not match.
+var httpResponseRef = regexp.MustCompile(`\bhttpResponse\b`)
+
+// branchRules holds a Workflow's failure relationships against the two facts
+// about them that the material states and a chart keeps getting wrong.
+//
+// **Both are warnings, and neither comes from a table of outputs.** The table
+// processorDef used to carry was removed because `StaticRelationships` is wrong
+// in both directions (see processorDef), and the catalogue `skill update`
+// fetches is generated from it, so it still says `http-request` has no Failure.
+// What these rules rest on is narrower: the two places where the written
+// documentation, the code and production charts agree. A platform that later
+// gives `update-context` a Failure makes W7 wrong, which is why it warns.
+//
+// They were written after an Extension's examples shipped both mistakes in four
+// Workflows. A coding agent transcribing those examples into a chart reproduced
+// them, `gate` was green, and the agent that caught them did so by reading
+// `wiki/processors.md` - which is not a step anybody can rely on.
+func branchRules(d Doc, procs []any, warnf func(string, ...any)) {
+	types := map[string]string{}
+	byName := map[string]map[string]any{}
+	for _, raw := range procs {
+		p := mapOf(raw)
+		name := digStr(p, "name")
+		types[name] = digStr(p, "type")
+		byName[name] = p
+	}
+
+	for _, raw := range digList(d.Spec, "relationships") {
+		r := mapOf(raw)
+		if digStr(r, "from", "relationName") != "failure" {
+			continue
+		}
+		from := digStr(r, "from", "processor")
+		to := digStr(r, "to", "processor")
+
+		switch types[from] {
+		case "update-context":
+			// W7. `update-context` only ever emits Success: `wiki/processors.md`
+			// says it is the one processor documented that way, and the fetched
+			// catalogue agrees. The branch is dead, and the design that wanted
+			// it - validate the arguments, throw, report the error - does not
+			// work either: a processor with no Failure that throws stops the
+			// run, and a tool that returns nothing is read by the model as an
+			// empty answer.
+			warnf("W7 Workflow/%s processor %q: a failure relationship leaves an update-context, which only ever emits success, so it never runs. "+
+				"An expression that throws there stops the run and the tool returns nothing. Check the arguments in the entry's inputSchema, which the platform validates before the first processor, and branch with a router",
+				d.Name, from)
+		case "http-request":
+			// W8. A failed http-request does not touch `httpResponse`: it is
+			// still the last successful call's, or absent when there was none
+			// (`usecase/api-oauth.md`, against asgard-core's http_request.go).
+			// A failure branch that reads its status reports the previous
+			// call's - in an OAuth chain, the token response's 200.
+			if p := byName[to]; p != nil && readsHTTPResponse(p) {
+				warnf("W8 Workflow/%s processor %q reads httpResponse on the failure branch of %q. A failed http-request leaves httpResponse as the last successful call's, or absent; read prevError there",
+					d.Name, to, from)
+			}
+		}
+	}
+}
+
+// readsHTTPResponse reports whether any config of p mentions httpResponse.
+func readsHTTPResponse(p map[string]any) bool {
+	for _, raw := range digList(p, "configs") {
+		c := mapOf(raw)
+		for _, field := range []string{"value", "expression", "template"} {
+			if httpResponseRef.MatchString(digStr(c, field)) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // narrows says what a config entry narrows by table name, or "" when it does

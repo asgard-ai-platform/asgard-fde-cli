@@ -17,6 +17,7 @@ import (
 	"github.com/asgard-ai-platform/asgard-fde-cli/internal/auth"
 	"github.com/asgard-ai-platform/asgard-fde-cli/internal/binding"
 	"github.com/asgard-ai-platform/asgard-fde-cli/internal/check"
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/extension"
 	"github.com/asgard-ai-platform/asgard-fde-cli/internal/gate"
 	"github.com/asgard-ai-platform/asgard-fde-cli/internal/gitrepo"
 	"github.com/asgard-ai-platform/asgard-fde-cli/internal/pipelineconfig"
@@ -183,6 +184,13 @@ Exits non-zero if any step failed.`,
 			// the one file every one of them has.
 			root, err := repoRoot()
 			if err != nil {
+				// An agent that has worked in FDE repositories runs this out of
+				// habit, and an Extension repository has a gate of its own.
+				if cwd, werr := os.Getwd(); werr == nil {
+					if _, id := extension.RepoID(cwd); id != "" {
+						return fmt.Errorf("this is the Extension repository %s, not an FDE repository, so there is no chart to gate. Its gate is:\n    asgard-cli extension gate", id)
+					}
+				}
 				return err
 			}
 			releases, err := releasesToVerify(root, args)

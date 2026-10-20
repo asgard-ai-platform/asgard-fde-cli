@@ -36,13 +36,14 @@ recorded in ` + "`" + extension.LockName + "`" + ` at its root, which is committ
 
     asgard-cli extension get ../asgard-ext-foo    copy an Extension from a path
     asgard-cli extension update asgard-ext-foo    copy it again after it changed
-    asgard-cli extension lint                     check the Extension in this directory
+    asgard-cli extension gate                     check the Extension in this directory
+    asgard-cli extension lint                     its first step, on its own
 
 This build copies from a path on this machine, which is how an author tests an
 Extension before it is published. Fetching a published one by name comes with
 the registry.`,
 	}
-	cmd.AddCommand(newExtensionGetCmd(), newExtensionUpdateCmd(), newExtensionLintCmd())
+	cmd.AddCommand(newExtensionGetCmd(), newExtensionUpdateCmd(), newExtensionGateCmd(), newExtensionLintCmd())
 	return cmd
 }
 
@@ -241,9 +242,10 @@ Examples are pseudo charts, one folder per set of CRs under examples/, and
 they are not rendered: placeholders like <chart> and <fde-repo-git-url> stand
 for what only the FDE repository knows. What is checked is their shape - an
 examples/README.md, a README in each set, each set named after a route and
-referenced from a route document, the EXAMPLE banner on every file. Whether an
-example is right is found out by transcribing it into a real chart in a test
-FDE repository and running ` + "`asgard-cli gate`" + ` there.
+referenced from a route document, the EXAMPLE banner on every file.
+
+It is the first step of ` + "`asgard-cli extension gate`" + `, which also holds every CR
+under examples/ against the checks that need no chart. Run that one.
 
 Exit status is 1 when anything is an error. Warnings do not fail it.`,
 		Args: cobra.MaximumNArgs(1),
@@ -284,9 +286,12 @@ Exit status is 1 when anything is an error. Warnings do not fail it.`,
 			}
 			if warns > 0 {
 				fmt.Fprintf(out, "ok, %d warning(s)\n", warns)
-				return nil
+			} else {
+				fmt.Fprintln(out, "ok")
 			}
-			fmt.Fprintln(out, "ok")
+			// A lint that passes is when an author stops, and the CRs under
+			// examples/ are not what it looked at.
+			fmt.Fprintln(out, "That was the structure. `asgard-cli extension gate` also checks the CRs under examples/.")
 			return nil
 		},
 	}
@@ -326,13 +331,18 @@ func isLocalPath(arg string) bool {
 }
 
 func printFindings(out io.Writer, findings []extension.Finding) {
+	for _, f := range sortedFindings(findings) {
+		fmt.Fprintf(out, "%-7s %s: %s\n", f.Level, f.Path, f.Message)
+	}
+}
+
+// sortedFindings puts the errors first and keeps the order within each level.
+func sortedFindings(findings []extension.Finding) []extension.Finding {
 	sorted := append([]extension.Finding(nil), findings...)
 	sort.SliceStable(sorted, func(i, j int) bool {
 		return sorted[i].Level == extension.Error && sorted[j].Level != extension.Error
 	})
-	for _, f := range sorted {
-		fmt.Fprintf(out, "%-7s %s: %s\n", f.Level, f.Path, f.Message)
-	}
+	return sorted
 }
 
 func count(findings []extension.Finding) (errs, warns int) {
