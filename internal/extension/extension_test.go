@@ -258,3 +258,20 @@ func TestLockRoundTrip(t *testing.T) {
 		t.Errorf("Find local = %q %v", k, ok)
 	}
 }
+
+// scripts/ runs on the FDE person's machine; a runtime skill's scripts run in
+// the platform's Linux sandbox and may be shell.
+func TestLintRefusesShellScriptsInScripts(t *testing.T) {
+	files := good()
+	files["scripts/read.sh"] = "#!/bin/sh\n"
+	files["scripts/read.py"] = "#!/usr/bin/env python3\n"
+	files["examples/shared-account.oauth-customer.runtime-skill/assets/skills/acme-api/scripts/fetch.sh"] = "# EXAMPLE\n"
+	findings, _ := Lint(writeTree(t, files))
+	errs := messages(findings, Error)
+	if !strings.Contains(errs, "scripts/read.sh: a shell script in scripts/") {
+		t.Errorf("no error for scripts/read.sh:\n%s", errs)
+	}
+	if strings.Contains(errs, "read.py") || strings.Contains(errs, "fetch.sh") {
+		t.Errorf("an error for a Python script or a runtime skill's script:\n%s", errs)
+	}
+}
