@@ -1063,8 +1063,12 @@ workspace when the customer's was meant costs a confusing error, and the reverse
 deploys to a customer.
 
 A secret's value can only be given with `--from-file` (or `--from-file -` for
-standard input): a value typed as an argument is in the shell history and in the
-process list. Files are read verbatim, so a PEM keeps its newlines.
+standard input), `--from-env <KEY>` or `--random`: a value typed as an argument
+is in the shell history and in the process list. Files are read verbatim, so a
+PEM keeps its newlines. `--from-env` reads the key from this repository's `.env`,
+where `asgard-cli local-env` put it - the way to send a design-time credential to
+the platform that works on every operating system, since PowerShell's pipe
+re-encodes what passes through it and adds a CRLF.
 
 ### `workbench`
 

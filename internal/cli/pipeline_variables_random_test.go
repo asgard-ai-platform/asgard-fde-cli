@@ -13,7 +13,7 @@ import (
 func TestRandomVariableValue(t *testing.T) {
 	cmd := &cobra.Command{}
 
-	a, err := readVariableValue(cmd, []string{"asgard_resource_api_key"}, kindSecret, "", true)
+	a, err := readVariableValue(cmd, []string{"asgard_resource_api_key"}, kindSecret, "", "", true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -23,7 +23,7 @@ func TestRandomVariableValue(t *testing.T) {
 	if _, err := hex.DecodeString(a); err != nil {
 		t.Errorf("not hex: %q", a)
 	}
-	b, _ := readVariableValue(cmd, []string{"asgard_resource_api_key"}, kindSecret, "", true)
+	b, _ := readVariableValue(cmd, []string{"asgard_resource_api_key"}, kindSecret, "", "", true)
 	if a == b {
 		t.Error("two generated values are the same")
 	}
@@ -40,7 +40,7 @@ func TestRandomVariableValue(t *testing.T) {
 		"and --from-file": {[]string{"k"}, kindSecret, "-"},
 		"chart value":     {[]string{"k"}, kindChartValue, ""},
 	} {
-		if _, err := readVariableValue(cmd, tc.args, tc.kind, tc.fromFile, true); err == nil {
+		if _, err := readVariableValue(cmd, tc.args, tc.kind, tc.fromFile, "", true); err == nil {
 			t.Errorf("%s: accepted", name)
 		}
 	}

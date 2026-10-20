@@ -10,6 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/asgard-ai-platform/asgard-fde-cli/internal/localenv"
 	"github.com/asgard-ai-platform/asgard-fde-cli/internal/platform"
 )
 
@@ -204,6 +205,7 @@ func newVariablesSetCmd() *cobra.Command {
 		v           variableFlags
 		kind        string
 		fromFile    string
+		fromEnv     string
 		random      bool
 		description string
 	)
@@ -217,16 +219,24 @@ func newVariablesSetCmd() *cobra.Command {
     asgard-cli pipeline variables set --release dev --kind config recipients a@x,b@y
     asgard-cli pipeline variables set --release dev --kind secret db_password --from-file ./pw
     printf '%s' "$PASSWORD" | asgard-cli pipeline variables set --release dev --kind secret db_password --from-file -
+    asgard-cli pipeline variables set --release dev --kind secret intercom_access_token --from-env INTERCOM_ACCESS_TOKEN
     asgard-cli pipeline variables set --release dev --kind secret asgard_resource_api_key --random
 
 --kind is chart_value by default, and is what the declaration lists the key
 under: chartValues, appSecret or appConfigMap.
 
-A secret's value cannot be an argument. It has to come from --from-file, or from
-standard input with --from-file -, because a value typed as an argument is in
-the shell history and in the process list of every other user on the machine.
+A secret's value cannot be an argument. It has to come from --from-file, from
+standard input with --from-file -, or from this repository's .env with
+--from-env, because a value typed as an argument is in the shell history and in
+the process list of every other user on the machine.
 Reading from a file also keeps a PEM intact: a file is read verbatim, with its newlines
 and its trailing newline, and neither is trimmed.
+
+--from-env <KEY> takes the value somebody already put in .env with
+` + "`asgard-cli local-env`" + ` - usually at design time, before the same credential goes to
+the platform. It is the recipe that works on every operating system: the obvious
+one sources .env in a shell and pipes the value into --from-file -, and
+PowerShell's pipe re-encodes the text and adds a CRLF that nothing trims.
 
 --random is for a secret nobody issues - a key whose value only has to be
 unguessable, like asgard_resource_api_key. It generates 32 random bytes as 64
@@ -243,7 +253,7 @@ Saving changes only the platform's copy. A run is what sends it to the cluster.`
 				return fmt.Errorf("no kind %q; one of %s, %s, %s", kind, kindChartValue, kindSecret, kindConfig)
 			}
 
-			value, err := readVariableValue(cmd, args, kind, fromFile, random)
+			value, err := readVariableValue(cmd, args, kind, fromFile, fromEnv, random)
 			if err != nil {
 				return err
 			}
@@ -278,6 +288,8 @@ Saving changes only the platform's copy. A run is what sends it to the cluster.`
 		"which list the declaration names this key under: chart_value, secret or config")
 	cmd.Flags().StringVar(&fromFile, "from-file", "",
 		"read the value from this file verbatim, or from standard input with -; required for a secret unless --random")
+	cmd.Flags().StringVar(&fromEnv, "from-env", "",
+		"read the value of this key from the repository's .env; never printed")
 	cmd.Flags().BoolVar(&random, "random", false,
 		"generate the value: 32 random bytes as hex, for a secret nobody issues; never printed")
 	cmd.Flags().StringVar(&description, "description", "",
@@ -287,8 +299,21 @@ Saving changes only the platform's copy. A run is what sends it to the cluster.`
 
 // readVariableValue takes the value from an argument or a file, and refuses the
 // combinations that would be ambiguous or unsafe.
-func readVariableValue(cmd *cobra.Command, args []string, kind, fromFile string, random bool) (string, error) {
+func readVariableValue(cmd *cobra.Command, args []string, kind, fromFile, fromEnv string, random bool) (string, error) {
 	hasArg := len(args) == 2
+
+	sources := 0
+	for _, given := range []bool{hasArg, fromFile != "", fromEnv != "", random} {
+		if given {
+			sources++
+		}
+	}
+	if sources > 1 {
+		return "", fmt.Errorf("the value is given more than one way (an argument, --from-file, --from-env, --random); one of them is being ignored, so say which")
+	}
+	if fromEnv != "" {
+		return valueFromEnv(fromEnv)
+	}
 
 	// **Generated here, not by a shell.** The obvious recipe pipes `openssl
 	// rand` through `tr` into --from-file -, and neither exists on a stock
@@ -315,9 +340,9 @@ func readVariableValue(cmd *cobra.Command, args []string, kind, fromFile string,
 		return "", fmt.Errorf(
 			"a secret's value cannot be an argument: it would be in the shell history and in the process\n" +
 				"list of every other user on this machine. Use --from-file <path>, --from-file - to read\n" +
-				"it from standard input, or --random to generate one")
+				"it from standard input, --from-env <KEY> to take it from .env, or --random to generate one")
 	case !hasArg && fromFile == "":
-		return "", fmt.Errorf("no value; pass one as an argument, --from-file <path>, or --random for a secret nobody issues")
+		return "", fmt.Errorf("no value; pass one as an argument, --from-file <path>, --from-env <KEY>, or --random for a secret nobody issues")
 	case hasArg:
 		return args[1], nil
 	}
@@ -429,4 +454,32 @@ Keys added from the wrong config will be marked Orphan.`,
 	}
 	v.register(cmd)
 	return cmd
+}
+
+// valueFromEnv reads one key's value from the .env of the repository the
+// current directory is in, the file ` + "`asgard-cli local-env`" + ` fills.
+//
+// **An empty value is refused**, not sent. A key that is in .env with nothing
+// after the = is the placeholder local-env writes before anybody has typed
+// the credential, and storing it would put an empty secret on the platform that
+// fails at runtime with an authentication error nobody traces back here.
+func valueFromEnv(key string) (string, error) {
+	root, err := envRoot()
+	if err != nil {
+		return "", err
+	}
+	file, err := localenv.Load(root)
+	if err != nil {
+		return "", err
+	}
+	for _, e := range file.Entries() {
+		if e.Key != key {
+			continue
+		}
+		if e.Value == "" {
+			return "", fmt.Errorf("%s is in %s but has no value yet; have it filled in with `asgard-cli local-env --focus %s`", key, localenv.FileName, key)
+		}
+		return e.Value, nil
+	}
+	return "", fmt.Errorf("%s is not in %s; have it filled in with `asgard-cli local-env --focus %s`", key, file.Path, key)
 }
