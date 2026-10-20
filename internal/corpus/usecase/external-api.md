@@ -219,9 +219,14 @@ spec:
         display_name: Error
       configs:
         - name: payload
+          # prevError reaches this step as a plain object - message, code,
+          # inner - because the step's context travels as JSON. String(prevError)
+          # is therefore "[object Object]", and the model never sees what the
+          # API said. message carries it: for a failed call, the method, the URL
+          # and the response body.
           expression: |-
             (() => {
-              return { error: (prevError && String(prevError)) || "the request failed" };
+              return { error: (prevError && prevError.message) || "the request failed" };
             })()
 
   # **`relationships` is what runs the chain.** Without it the run starts at

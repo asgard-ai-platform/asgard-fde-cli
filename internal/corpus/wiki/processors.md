@@ -73,7 +73,7 @@ expression, and it reads its input as `payload`.
 | `prevMessage` | string | the previous user message |
 | `prevBlobs` | array of Blob | files attached to it |
 | `prevPayload` | object | the payload from whatever called in - this is what a BotProvider passes through, and what `pluginNames` and `sourceSetMounts` expressions read |
-| `prevError` | | the previous step's error, on a Failure branch |
+| `prevError` | `{message, code, inner, location}` | the previous step's error, on a Failure branch. A plain object by the time an expression reads it, so `String(prevError)` is `[object Object]`; read `prevError.message` |
 | `customChannelId` | string | the conversation key, chosen by the caller |
 | `customMessageId` | string | the message id, optional |
 | `prevToolCalls` | array | what the agent just called, and what came back - from the last LLM processor, always an array, empty when it called nothing. Not in the documentation |
