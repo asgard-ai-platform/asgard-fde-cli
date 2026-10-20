@@ -130,6 +130,19 @@ func CredentialRefs(docs []Doc, opts Options) Result {
 
 	for _, d := range docs {
 		walk(d.Spec, d.Kind, d.Name)
+		// **An OAuthProvider reads two keys it never names.** Its secretRef
+		// names only the Secret; the platform reads `client_id` and
+		// `client_secret` out of it by those fixed names. A chart that
+		// declares them for a customer's own client was told nothing read
+		// them, which is the one reader this walk cannot see.
+		if d.Kind == "OAuthProvider" {
+			if ref := mapOf(d.Spec["secretRef"]); ref != nil {
+				if got, _ := ref["name"].(string); got != "" && (want["secretKeyRef"] == "" || got == want["secretKeyRef"]) {
+					read["secretKeyRef"]["client_id"] = true
+					read["secretKeyRef"]["client_secret"] = true
+				}
+			}
+		}
 	}
 
 	// **The other direction, and it is the quieter one.** A key that is

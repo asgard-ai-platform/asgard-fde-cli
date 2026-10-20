@@ -89,3 +89,29 @@ func TestSummaryNamesEachLayerOnce(t *testing.T) {
 		t.Fatalf("summary = %q, want %q", got, want)
 	}
 }
+
+// R1b counts every capability source the Agent CRD has. Mounted files are one:
+// an Agent that reads a Syncer's copy of a drive has sourceSetMounts and
+// nothing else, which is the brake the Google Drive Extension recommends.
+func TestNoCapabilityCountsMountedFiles(t *testing.T) {
+	mounted := Doc{Kind: "Agent", Name: "ag-purchasing", Spec: map[string]any{
+		"managed": map[string]any{"sourceSetMounts": []any{
+			map[string]any{"sourceSetName": "ss-drive", "mountPath": "/mnt/drive", "readOnly": true},
+		}},
+	}}
+	if res := AgentSplit([]Doc{mounted}, Options{}); !res.OK() {
+		t.Fatalf("an Agent with only sourceSetMounts was refused: %q", res.Problems)
+	}
+
+	empty := Doc{Kind: "Agent", Name: "ag-empty", Spec: map[string]any{"managed": map[string]any{}}}
+	res := AgentSplit([]Doc{empty}, Options{})
+	found := false
+	for _, p := range res.Problems {
+		if strings.Contains(p, "R1b ag-empty") && strings.Contains(p, "no sourceSetMounts") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("an Agent with nothing was not refused by R1b: %q", res.Problems)
+	}
+}
