@@ -110,3 +110,66 @@ func TestDesktopBrowserExitsInTheSandbox(t *testing.T) {
 		t.Errorf("info outside the sandbox = %q, want it to say nothing is running", out)
 	}
 }
+
+// **The window never asks the operating system for anything.** Without
+// Playwright's two switches, Chromium keeps its cookie key in the system
+// keychain and macOS stops a non-engineer with a password dialog about
+// "Chromium Safe Storage". With them, the profile is all that protects the
+// cookies, so it is the user's alone and the browser saves no passwords.
+func TestDesktopBrowserLeavesTheKeychainAlone(t *testing.T) {
+	script, err := fs.ReadFile(templates, desktopBrowser+"/scripts/desktop_browser.py")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		`"--use-mock-keychain"`, `"--password-store=basic"`, "*NO_OS_KEYCHAIN",
+		`"credentials_enable_service": False`, `"password_manager_enabled": False`, "0o700",
+	} {
+		if !bytes.Contains(script, []byte(want)) {
+			t.Errorf("desktop_browser.py no longer has %s", want)
+		}
+	}
+}
+
+// reset deletes the profile (and with --all the workspace and downloads), and
+// only when no window is running on the port.
+func TestDesktopBrowserReset(t *testing.T) {
+	python, err := exec.LookPath("python3")
+	if err != nil {
+		t.Skip("no python3 on PATH")
+	}
+	script, err := fs.ReadFile(templates, desktopBrowser+"/scripts/desktop_browser.py")
+	if err != nil {
+		t.Fatal(err)
+	}
+	dir := t.TempDir()
+	path := filepath.Join(dir, "desktop_browser.py")
+	if err := os.WriteFile(path, script, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	home := filepath.Join(dir, "home")
+	for _, sub := range []string{"profile/Default", "work/task", "downloads"} {
+		if err := os.MkdirAll(filepath.Join(home, "desktop-browser", sub), 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	run := func(args ...string) {
+		cmd := exec.Command(python, append([]string{"-I", path}, args...)...)
+		cmd.Env = append(os.Environ(), "ASGARD_SANDBOX_MODE=", "ASGARD_BROWSER_CDP_URL=", "ASGARD_CLI_HOME="+home, "ASGARD_DESKTOP_BROWSER_PORT=9")
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("%v: %v\n%s", args, err, out)
+		}
+	}
+	exists := func(sub string) bool {
+		_, err := os.Stat(filepath.Join(home, "desktop-browser", sub))
+		return err == nil
+	}
+	run("reset")
+	if exists("profile") || !exists("work") || !exists("downloads") {
+		t.Errorf("reset: profile gone %v, work kept %v, downloads kept %v; want true, true, true", !exists("profile"), exists("work"), exists("downloads"))
+	}
+	run("reset", "--all")
+	if exists("work") || exists("downloads") {
+		t.Errorf("reset --all left work %v, downloads %v", exists("work"), exists("downloads"))
+	}
+}
