@@ -154,3 +154,23 @@ func TestPlatformInternalReadDoesNotSatisfyADeclaration(t *testing.T) {
 		t.Errorf("a declaration satisfied only by the platform's own Secret passed:\n%s", got)
 	}
 }
+
+// **An OAuthProvider reads client_id and client_secret without naming them.**
+// Its secretRef names the release's Secret and the platform reads those two
+// keys from it, so a chart that declares them for a customer's own Google
+// client is not declaring keys "read by nothing".
+func TestCredentialRefsCountsTheOAuthProviderKeys(t *testing.T) {
+	oap := Doc{Kind: "OAuthProvider", Name: "oap-google-drive", Spec: map[string]any{
+		"secretRef": map[string]any{"name": "iac-purchasing-dev-app-secret"},
+	}}
+	opts := Options{Release: "purchasing-dev", DeclaredKeys: map[string]map[string]bool{
+		"secretKeyRef": {"client_id": true, "client_secret": true}, "configMapKeyRef": {},
+	}}
+	if got := Placeholder(CredentialRefs([]Doc{oap}, opts)); strings.Contains(got, "nothing in this render reads it") {
+		t.Errorf("the OAuthProvider's two keys were reported as unread:\n%s", got)
+	}
+	// Without the OAuthProvider they are unread, and still said to be.
+	if got := Placeholder(CredentialRefs([]Doc{{Kind: "Agent", Name: "ag-x", Spec: map[string]any{}}}, opts)); !strings.Contains(got, `"client_id" and nothing in this render reads it`) {
+		t.Errorf("an unread client_id was not reported:\n%s", got)
+	}
+}

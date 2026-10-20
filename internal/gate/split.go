@@ -24,7 +24,10 @@ const (
 //	     quietly. **SkillSet was missing from that list and the rule was wrong
 //	     about a running deployment**: every Agent of a flow-agent supervisor
 //	     mounts skills and nothing else, and nine of them were told they had no
-//	     capability at all.
+//	     capability at all. **So were mounted files**: an Agent whose capability
+//	     is a Syncer's copy of a drive, mounted read-only and read with grep and
+//	     pdftotext, has sourceSetMounts and nothing else, and the rule called it
+//	     empty.
 //	R4   no Agent sets allowedCubes, which keeps the standing decision that a
 //	     bound layer is queryable in full.
 //	R7   a published Agent has at least two sampleQuestions. Published is the
@@ -128,10 +131,14 @@ func AgentSplit(docs []Doc, opts Options) Result {
 		// and the message said it had "no source of capability at all" while it
 		// had one. Found by running the gate over the reference deployments
 		// rather than over a chart this tool generated.
+		// So are mounted files: the CRD lists sourceSetMounts among what one
+		// area of work needs, and an Agent that reads a Syncer's copy of a
+		// drive has those and nothing else.
 		if len(layers) == 0 &&
 			len(strList(managed["toolsetNames"])) == 0 &&
-			len(strList(managed["skillSetNames"])) == 0 {
-			errf("R1b %s: has no semanticLayers, no toolsetNames and no skillSetNames, so this Agent has no source of capability at all", a.Name)
+			len(strList(managed["skillSetNames"])) == 0 &&
+			len(digList(managed, "sourceSetMounts")) == 0 {
+			errf("R1b %s: has no semanticLayers, no toolsetNames, no skillSetNames and no sourceSetMounts, so this Agent has no source of capability at all", a.Name)
 		}
 
 		// R13 is per Agent, so what counts as "already" resets here. Two Agents
