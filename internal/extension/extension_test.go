@@ -62,9 +62,13 @@ func good() map[string]string {
 		"README.md":                          goodReadme,
 		"SKILL.md":                           goodSkill,
 		"routes/build-time.static-secret.md": "# route\n",
-		"routes/shared-account.oauth-customer.md": "# route\n",
-		"setup/acme-client.md":                    "# setup\n",
-		"examples/chart/values.example.yaml":      "# EXAMPLE - not to be applied as is.\nx: 1\n",
+		"routes/shared-account.oauth-customer.md":                                              "# route\nSee ../examples/shared-account.oauth-customer/ and ../examples/shared-account.oauth-customer.runtime-skill/.\n",
+		"setup/acme-client.md":                                                                 "# setup\n",
+		"examples/README.md":                                                                   "# examples\n",
+		"examples/shared-account.oauth-customer/README.md":                                     "# set\n",
+		"examples/shared-account.oauth-customer/templates/wf-acme.yaml":                        "# EXAMPLE - target projects/<project>/chart/app/templates/wf-acme.yaml\nkind: Workflow\n",
+		"examples/shared-account.oauth-customer.runtime-skill/README.md":                       "# set\n",
+		"examples/shared-account.oauth-customer.runtime-skill/assets/skills/acme-api/SKILL.md": "---\nname: acme-api\ndescription: d\n---\n<!-- EXAMPLE - target assets/skills/acme-api/SKILL.md -->\n",
 	}
 }
 
@@ -142,26 +146,44 @@ func TestLintErrors(t *testing.T) {
 
 func TestLintWarnings(t *testing.T) {
 	files := good()
-	files["examples/chart/templates/x.yaml"] = "apiVersion: v1\n"
-	files["examples/assets/skills/acme-api/SKILL.md"] = "---\nname: acme-api\ndescription: d\n---\n<!-- EXAMPLE - not to be applied as is. -->\n"
+	files["examples/shared-account.oauth-customer/templates/ts-acme.yaml"] = "kind: Toolset\n"
 	files["knowledge/SKILL.md"] = "---\nname: x\ndescription: d\n---\n"
 	files["AGENTS.md"] = "# notes for the author's agent\n"
+	files["examples/loose.yaml"] = "# EXAMPLE\n"
+	files["examples/personal-account.oauth-customer/README.md"] = "# set\n"
+	files["examples/whatever/README.md"] = "# set\n"
 	findings, _ := Lint(writeTree(t, files))
 	if Failed(findings) {
 		t.Fatalf("warnings only, got errors:\n%s", messages(findings, Error))
 	}
 	w := messages(findings, Warning)
-	if !strings.Contains(w, "examples/chart/templates/x.yaml: first line does not say EXAMPLE") {
-		t.Errorf("missing banner warning:\n%s", w)
+	for _, want := range []string{
+		"examples/shared-account.oauth-customer/templates/ts-acme.yaml: first line does not say EXAMPLE",
+		"knowledge/SKILL.md: a SKILL.md outside examples/<set>/assets/skills/",
+		"examples/loose.yaml: a file directly in examples/",
+		"examples/whatever: named after no declared route",
+		"examples/personal-account.oauth-customer: named after no declared route",
+		"examples/whatever: no document under routes/ refers to it",
+	} {
+		if !strings.Contains(w, want) {
+			t.Errorf("missing warning %q in:\n%s", want, w)
+		}
 	}
-	if strings.Contains(w, "acme-api") {
-		t.Errorf("a banner after frontmatter counts:\n%s", w)
+	for _, unwanted := range []string{"acme-api", "AGENTS.md", "examples/shared-account.oauth-customer.runtime-skill: no document", "examples/shared-account.oauth-customer: no document"} {
+		if strings.Contains(w, unwanted) {
+			t.Errorf("unexpected warning about %q:\n%s", unwanted, w)
+		}
 	}
-	if !strings.Contains(w, "knowledge/SKILL.md") {
-		t.Errorf("a SKILL.md outside examples/assets/skills is warned about:\n%s", w)
-	}
-	if strings.Contains(w, "AGENTS.md") {
-		t.Errorf("an author's AGENTS.md is allowed:\n%s", w)
+}
+
+func TestLintExamplesNeedReadme(t *testing.T) {
+	files := good()
+	delete(files, "examples/README.md")
+	delete(files, "examples/shared-account.oauth-customer/README.md")
+	findings, _ := Lint(writeTree(t, files))
+	w := messages(findings, Warning)
+	if !strings.Contains(w, "examples: no README.md") || !strings.Contains(w, "examples/shared-account.oauth-customer: no README.md") {
+		t.Errorf("missing README warnings:\n%s", w)
 	}
 }
 
