@@ -301,8 +301,22 @@ func (l *linter) files() {
 		if d.Name() == ".env" || (strings.HasPrefix(d.Name(), ".env.") && d.Name() != ".env.example") {
 			l.errorf(rel, "an environment file in an Extension; it is committed into every customer repository that takes this Extension")
 		}
+		if strings.HasPrefix(rel, "scripts/") && shellScript(d.Name()) {
+			l.errorf(rel, "a shell script in scripts/; it runs on the FDE person's own machine, whatever its operating system. Write it in Python")
+		}
 		return nil
 	})
+}
+
+// shellScript reports whether name is a script for one operating system's
+// shell. Only scripts/ is held to it: a runtime skill's scripts run in the
+// platform's Linux sandbox, where a shell script is fine.
+func shellScript(name string) bool {
+	switch strings.ToLower(filepath.Ext(name)) {
+	case ".sh", ".bash", ".zsh", ".ps1", ".bat", ".cmd":
+		return true
+	}
+	return false
 }
 
 // examples checks the shape of examples/: pseudo charts, one folder per set
