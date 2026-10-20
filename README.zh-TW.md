@@ -438,7 +438,8 @@ asgard-cli decision add "官網一律走固定查詢工具讀取" --module archi
 
     asgard-cli extension get ../asgard-ext-foo    從本機路徑複製一份 Extension
     asgard-cli extension update asgard-ext-foo    Extension 改過之後再複製一次
-    asgard-cli extension lint                     檢查目前目錄的 Extension
+    asgard-cli extension gate                     檢查目前目錄的 Extension
+    asgard-cli extension lint                     只跑 gate 的第一步
 
 Extension 是一個外部系統或一種領域知識的設計期教材，自己一個 git repo，名稱一律
 `asgard-ext-` 開頭。它落在 `.agents/skills/<id>/`，agent 讀它的 SKILL.md 選路線、寫 CR。
@@ -448,9 +449,13 @@ repo 根目錄的 `.asgard-extensions.json` 記錄這個 repo 拿了哪些 Exten
 的 repo，旁邊另開一個 FDE repo，由另一個 coding agent session 來測。只複製 Extension
 會發出去的檔、不用 symlink；目的地有被改過的檔時，不加 `--force` 就不覆蓋。
 
-`lint` 給作者用，不需要帳號。它檢查 registry 提供某個版本前會檢查的事，以及
-`examples/` 的結構：一套 CR 一個資料夾的 pseudo chart，不 render。範例寫得對不對，
-要謄寫進測試用的 FDE repo、在那裡跑 `gate` 才知道。
+`lint` 檢查 registry 提供某個版本前會檢查的事，以及
+`examples/` 的結構：一套 CR 一個資料夾的 pseudo chart，不 render。它是 `gate` 的第一步。
+`gate` 給作者用，不需要帳號、網路或 helm，是 Extension repo 的 build step，就像
+`asgard-cli gate` 之於 FDE repo：改了任何東西就跑，commit 與打 tag 前都跑。第二步把
+`examples/` 底下每個 CR 拿去跑 `asgard-cli gate` 一次只看一個 CR 的那些檢查，template
+與 `<placeholder>` 先換成替身。需要整份 chart 才看得出來的，要謄寫進測試用的 FDE repo、
+在那裡跑 `gate`。在 Extension repo 裡跑 `asgard-cli gate`，它會指出該跑哪一個。
 
 ### `add`
 

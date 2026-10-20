@@ -14,7 +14,10 @@ Every processor except one has a Failure output. Only
 a 4xx or 5xx status or a network error and produces `prevError` - a 2xx or 3xx
 other than 200 is Success - and `query-database`,
 `retrieve-knowledge`, `execute-script` and `push-message` all document one too.
-Draw the error branch.
+Draw the error branch. `asgard-cli verify` warns on the two branch mistakes
+that keep shipping: a failure relationship off an `update-context`, which never
+runs (W7), and a failure branch off an `http-request` that reads `httpResponse`,
+which is still the last successful call's (W8).
 
 `ProcessorDefinitions`' `StaticRelationships` is incomplete, so do not treat it
 as the contract. It gives some processors a Failure relation and the rest

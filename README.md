@@ -482,7 +482,8 @@ rather than asking for it.
 
     asgard-cli extension get ../asgard-ext-foo    copy an Extension from a path
     asgard-cli extension update asgard-ext-foo    copy it again after it changed
-    asgard-cli extension lint                     check the Extension in this directory
+    asgard-cli extension gate                     check the Extension in this directory
+    asgard-cli extension lint                     the gate's first step, on its own
 
 An Extension is design-time material for one external system or one body of
 domain knowledge, kept in its own git repository whose name starts with
@@ -496,10 +497,16 @@ separate FDE repository beside it, and a different coding agent session doing
 the testing. Only what an Extension publishes is copied, never linked, and a
 file edited in the destination stops the copy until `--force`.
 
-`lint` is for the author and needs no account. It checks what the registry
-checks before offering a version, and the shape of `examples/`: pseudo charts,
-one folder per set of CRs, which are not rendered. An example is checked by
-transcribing it into a test FDE repository and running `gate` there.
+`gate` is for the author and needs no account, no network and no helm. It is
+an Extension repository's build step, as `asgard-cli gate` is an FDE
+repository's: run it after changing anything, and before every commit and tag.
+Its first step is `lint` - what the registry checks before offering a version,
+and the shape of `examples/`: pseudo charts, one folder per set of CRs, which
+are not rendered. Its second holds every CR under `examples/` against the
+checks `asgard-cli gate` runs on one CR at a time, with template actions and
+`<placeholders>` stood in for. What needs the rest of a chart is checked by
+transcribing an example into a test FDE repository and running `gate` there.
+`asgard-cli gate` run in an Extension repository says which gate it has.
 
 ### `add`
 
