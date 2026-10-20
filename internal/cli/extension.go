@@ -197,10 +197,7 @@ func copyExtension(cmd *cobra.Command, root, src string, force bool) error {
 
 	entry := lock.Extensions[key]
 	entry.Source = extension.SourceLocal
-	entry.Path = src
-	if r, err := filepath.Rel(root, src); err == nil {
-		entry.Path = filepath.ToSlash(r)
-	}
+	entry.Path = recordedPath(root, src)
 	entry.Commit, entry.Dirty = sourceState(cmd.Context(), src)
 	entry.FetchedAt = time.Now().UTC().Format(time.RFC3339)
 	entry.Files = digests
@@ -366,4 +363,20 @@ func rel(root, path string) string {
 func fileExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
+}
+
+// recordedPath is how the lock spells where a local copy came from: relative
+// when the source sits beside the repository or inside it, so the record reads
+// the same on every machine that keeps the two side by side, and absolute
+// otherwise, where a chain of ../ would only describe this machine's layout.
+func recordedPath(root, src string) string {
+	r, err := filepath.Rel(root, src)
+	if err != nil {
+		return src
+	}
+	r = filepath.ToSlash(r)
+	if strings.HasPrefix(r, "../..") {
+		return src
+	}
+	return r
 }
