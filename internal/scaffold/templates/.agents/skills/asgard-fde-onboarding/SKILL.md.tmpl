@@ -78,6 +78,7 @@ A map of what answers what, in no particular order.
 | before committing anything under `projects/*/chart` or `assets/` | `asgard-cr-verification` skill (`asgard-cli skill update` writes it) |
 | work that needs a spec before implementation | `spec-workflow` skill |
 | a slide deck for the customer | `proposal-deck` skill |
+| a web page the person has to watch or take over - an external system's admin console, an Extension's `setup/` | `desktop-browser` skill on this computer; in the Workbench assistant's sandbox (`ASGARD_SANDBOX_MODE=true`) the sandbox's built-in `browser` skill instead |
 | any 繁體中文 the customer will read - a slide, a reply to their question, a cube `description`, an agent's prompt | `plain-chinese` skill. Load it for the second pass, not while drafting |
 | registering a new project | `asgard-cli project add <slug>` - it writes the chart skeleton too |
 | the repo has drifted: contradictions, stale claims, a term nobody owns | `knowledge-base` skill, after `asgard-cli check` |

@@ -67,6 +67,8 @@ so keeping it in the query only adds a term that matches nothing.
 | 投影片 | deck, slides - and the proposal-deck design-time skill |
 | 簡報 | deck, slides - and the proposal-deck design-time skill |
 | 截圖 | screenshot - and `wiki/screenshots.md` |
+| 瀏覽器 | browser, CDP - and the desktop-browser design-time skill (on a desktop; the Workbench sandbox has its own) |
+| 後台 | admin console - and the desktop-browser design-time skill |
 | 語意層 | semantic layer |
 | 資料庫 | database, DataConnector |
 | 技能 | skill, SkillSet |
