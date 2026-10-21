@@ -78,16 +78,18 @@ a command's output only when the command ends, and one command runs at most ten
 minutes:
 
     asgard-cli local-env --focus UOF_DB_PASSWORD   serves the form in the background,
-                                                   opens it in the sandbox's browser,
-                                                   and ends
+                                                   opens it in a new tab of the
+                                                   sandbox's browser, and ends
     (the agent calls open_sandbox_browser, so the member takes over that browser)
     asgard-cli local-env --wait                    waits for the save; after a few
                                                    minutes says it is still waiting,
                                                    and is run again
 
 The member fills the form in the sandbox's browser, because the page listens on
-the sandbox's 127.0.0.1 and nothing else can reach it. --terminal has no terminal
-to ask at there.`,
+the sandbox's 127.0.0.1 and nothing else can reach it. It opens in a new tab, so
+the tab that was in front - often an admin console that has just shown a secret
+it will not show again - stays as it was; --wait closes the form's tab when it
+returns. --terminal has no terminal to ask at there.`,
 		Args:    cobra.NoArgs,
 		GroupID: groupBuild,
 		RunE: func(cmd *cobra.Command, args []string) error {

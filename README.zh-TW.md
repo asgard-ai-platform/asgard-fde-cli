@@ -643,7 +643,7 @@ OAuth 2.0 authorization code ＋ PKCE，走 loopback redirect，這是 RFC 8252 
 - 每一次改動都會通知畫面。 有設 `ASGARD_CLI_SIDE_EFFECT_TIMESTAMP_FILE` 時（image 設成 `/work/.asgard/side-effect-at`），只要一個呼叫在平台上改了東西，就會把 `{"at":"<RFC 3339 UTC>"}` 覆寫進那個檔，監看這個檔的 Workbench 頁面就會 refetch。算改動的包括：開 issue、留言、寫 pipeline 或 release、approve Run、出現新的 connection。讀取、被拒絕的請求，以及 git 要的 repo token 都不算。資料夾不存在時會自動建立；寫不進去只印 warning，不會讓指令失敗。檔案內容只保證有 `at`，讀的一方遇到不認得的 key 要忽略。
 - git 走 workspace 的 GitHub Connection：`asgard-cli pipeline git-auth` 讓這個 CLI 成為 git 在 github.com 唯一的 credential helper，每次 fetch／push 拿一張只限那個 repo、由 GitHub App 簽的 token，不寫進磁碟。push 要 workspace 管理權限；`asgard-cli pipeline repo create` 在組織的 Connection 底下建新 repo。
 - `init` 拒絕在 `/work` 本身執行，那裡並排放著所有 repo。
-- 不會開本機瀏覽器，因為沒有本機。 網際網路上的頁面（GitHub 的安裝與授權頁）印成連結，給成員在自己的瀏覽器開：`pipeline connect --account <login>` 印出連結就結束，`pipeline connect --continue` 等 Connection 出現。帳號指的是 App 安裝所在的組織或使用者，不是按授權的人，要由成員自己指定：沒帶帳號、也沒有 origin remote 可以拿時，connect 不會開始，而是提醒先去問成員；之後用 `--continue --account <login>` 補上即可，沿用同一次授權；指定的帳號還沒裝 App 的話，會接著給安裝頁。只有 sandbox 連得到的頁面（`local-env` 在 127.0.0.1 的表單）用 CDP 在 sandbox 瀏覽器、成員看得到的那個分頁打開；助手用 `open_sandbox_browser` 交給成員，`local-env --wait` 每次等幾分鐘直到存檔。兩步之間表單 server 在背景跑。
+- 不會開本機瀏覽器，因為沒有本機。 網際網路上的頁面（GitHub 的安裝與授權頁）印成連結，給成員在自己的瀏覽器開：`pipeline connect --account <login>` 印出連結就結束，`pipeline connect --continue` 等 Connection 出現。帳號指的是 App 安裝所在的組織或使用者，不是按授權的人，要由成員自己指定：沒帶帳號、也沒有 origin remote 可以拿時，connect 不會開始，而是提醒先去問成員；之後用 `--continue --account <login>` 補上即可，沿用同一次授權；指定的帳號還沒裝 App 的話，會接著給安裝頁。只有 sandbox 連得到的頁面（`local-env` 在 127.0.0.1 的表單）用 CDP 在 sandbox 瀏覽器開一個新分頁，成為成員看到的那一頁；原本在前面的分頁（例如剛顯示只出現一次的密鑰的後台）保持原樣。助手用 `open_sandbox_browser` 交給成員，`local-env --wait` 每次等幾分鐘直到存檔，並關掉表單那個分頁。兩步之間表單 server 在背景跑。
 
 ### `profile`
 

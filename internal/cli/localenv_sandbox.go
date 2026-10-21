@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -101,6 +102,7 @@ func startLocalEnvInSandbox(cmd *cobra.Command, root string, focus []string, tim
 		// closed the tab. One form per repository, the newest.
 		stopProcess(prev.PID)
 	}
+	closeFormTab(cmd, statePath)
 	_ = os.Remove(statePath)
 
 	self, err := os.Executable()
@@ -144,12 +146,18 @@ func startLocalEnvInSandbox(cmd *cobra.Command, root string, focus []string, tim
 	// The URL carries the form's one-time token. It is printed only when the
 	// browser could not be sent to it: the page is for the member, and the
 	// agent's transcript is kept.
-	if _, err := browser.Present(cmd.Context(), st.URL, false); err != nil {
+	_, tab, err := browser.PresentTab(cmd.Context(), st.URL, false)
+	if tab != "" {
+		// Kept beside the state file, not in it: the form server rewrites that
+		// file whole when the form ends, and would drop a field it never set.
+		_ = os.WriteFile(statePath+".tab", []byte(tab), 0o600)
+	}
+	if err != nil {
 		fmt.Fprintf(out, "The form for %s is served, but the sandbox's browser could not be sent to it (%v).\n"+
 			"Open this in the sandbox's browser, then hand it over as below:\n\n    %s\n\n",
 			filepath.Join(root, localenv.FileName), err, st.URL)
 	} else {
-		fmt.Fprintf(out, "The form for %s is open in the sandbox's browser.\n\n", filepath.Join(root, localenv.FileName))
+		fmt.Fprintf(out, "The form for %s is open in a new tab of the sandbox's browser; the tab that was in front is left as it was.\n\n", filepath.Join(root, localenv.FileName))
 	}
 	fmt.Fprintf(out, "Next, in this order:\n\n"+
 		"  1. Call the open_sandbox_browser tool, so the member can take over the sandbox's\n"+
@@ -200,6 +208,7 @@ func waitLocalEnvInSandbox(cmd *cobra.Command, root string, wait time.Duration) 
 			return err
 		}
 		if st.Done {
+			closeFormTab(cmd, statePath)
 			_ = os.Remove(statePath)
 			_ = os.Remove(statePath + ".log")
 			if st.Result == nil {
@@ -210,6 +219,7 @@ func waitLocalEnvInSandbox(cmd *cobra.Command, root string, wait time.Duration) 
 			return nil
 		}
 		if !processAlive(st.PID) {
+			closeFormTab(cmd, statePath)
 			_ = os.Remove(statePath)
 			return errors.New("the form server is gone and left no result; the sandbox may have been stopped while it waited. " +
 				"`asgard-cli local-env` opens the form again; nothing was written")
@@ -225,4 +235,17 @@ func waitLocalEnvInSandbox(cmd *cobra.Command, root string, wait time.Duration) 
 		case <-time.After(time.Second):
 		}
 	}
+}
+
+// closeFormTab closes the tab the form was opened in, once nothing is left to
+// fill in there. The tab the member was working in before is untouched. A tab
+// the member already closed, or a browser that cannot be reached, leaves at
+// most a stale tab behind, which is not worth failing the command for.
+func closeFormTab(cmd *cobra.Command, statePath string) {
+	tab, err := os.ReadFile(statePath + ".tab")
+	if err != nil {
+		return
+	}
+	_ = browser.CloseSandboxTab(cmd.Context(), strings.TrimSpace(string(tab)))
+	_ = os.Remove(statePath + ".tab")
 }

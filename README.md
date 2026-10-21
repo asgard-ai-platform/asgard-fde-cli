@@ -924,9 +924,11 @@ talking to it. The image sets `ASGARD_SANDBOX_MODE=true`, and then:
   supplies it later on the same authorization, and an account that does not have
   the app yet leads to its install page. A page only the sandbox
   can reach - `local-env`'s form on 127.0.0.1 - is opened in the sandbox's browser
-  over CDP, in the tab the member sees; the agent hands it over with
-  `open_sandbox_browser`, and `local-env --wait` waits for the save, a few minutes
-  per call. The form server runs in the background between the two.
+  over CDP, in a new tab that becomes the one the member sees, so the tab that was
+  in front (an admin console that has just shown a one-time secret, say) is left
+  as it was; the agent hands it over with `open_sandbox_browser`, and
+  `local-env --wait` waits for the save, a few minutes per call, and closes the
+  form's tab. The form server runs in the background between the two.
 
 ### `profile`
 
