@@ -1210,6 +1210,25 @@ One run produces binaries for linux / darwin / windows x amd64 / arm64, `.deb` /
 changelog is grouped automatically from conventional commit messages (`feat:`,
 `fix:`).
 
+A tag with `-dev` in it is not a release, and `release.yml` skips it. It names
+an unreleased commit for something that installs by tag before the release is
+out - the Workbench sandbox's image, with
+`go install github.com/asgard-ai-platform/asgard-fde-cli/cmd/asgard-cli@v0.2.0-dev.1` -
+and it reports a version an Extension's `requires.asgard_cli` understands,
+where a bare commit reports a pseudo-version named after the last release.
+
+```bash
+git tag -a v0.2.0-dev.1 -m "v0.2.0-dev.1"
+git push origin v0.2.0-dev.1
+```
+
+- Number them, and never move or reuse one: the Go checksum database keeps the
+  commit a tag named the first time anybody fetched it.
+- Put it on a commit that already has the `!v*-dev*` line in `release.yml`.
+  GitHub reads the workflow from the commit the tag points at, so a dev tag on an
+  older commit publishes a release.
+- The next release's changelog starts at the last release, not at a dev tag.
+
 To verify locally without publishing anything (output lands in `dist/`):
 
 ```bash
