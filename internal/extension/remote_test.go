@@ -242,3 +242,22 @@ func TestLintLogo(t *testing.T) {
 		t.Errorf("a logo over the limit: %s", got)
 	}
 }
+
+func TestLintSummaryOnOneLine(t *testing.T) {
+	for summary, warns := range map[string]bool{
+		"summary: 讓 Agent 查 Acme 的紀錄，不需要 OAuth。":                        false,
+		"summary: Let the Agent read Acme records.":                     false,
+		"summary: >-\n  讓 Agent 查 Acme 的紀錄，\n  不需要 OAuth。":              true,
+		"summary: |\n  Let the Agent read\n  Acme records.":             true,
+		"summary: 讓 Agent 查 Acme 的紀錄，\n  不需要 OAuth。":                    true,
+		"summary: >-\n  Let the Agent read Acme records,\n  and reply.": false,
+	} {
+		files := good()
+		files["README.md"] = strings.Replace(goodReadme, "summary: Let the Agent read Acme records.", summary, 1)
+		findings, _ := Lint(writeTree(t, files))
+		got := strings.Contains(messages(findings, Warning), "write it on one line")
+		if got != warns {
+			t.Errorf("%q: warned %v, want %v\n%s", summary, got, warns, messages(findings, Warning))
+		}
+	}
+}

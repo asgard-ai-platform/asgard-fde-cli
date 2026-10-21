@@ -58,6 +58,11 @@ var (
 // summaryLimit is how long a gallery card's line can be before it is cut.
 const summaryLimit = 80
 
+// foldedCJK is a space between two CJK characters (or CJK punctuation): what a
+// folded YAML line becomes in Chinese or Japanese, where words are not
+// separated by spaces.
+var foldedCJK = regexp.MustCompile(`[\p{Han}\p{Hiragana}\p{Katakana}\x{3000}-\x{303F}\x{FF00}-\x{FFEF}] +[\p{Han}\p{Hiragana}\p{Katakana}\x{3000}-\x{303F}\x{FF00}-\x{FFEF}]`)
+
 // Lint checks an extension repository at dir against what the FDE Agent relies
 // on. It is the only check of an Extension's content: the registry takes a
 // version in on its identity alone. It does not render the examples: that
@@ -152,6 +157,9 @@ func (l *linter) readme() *Meta {
 		l.errorf(p, "summary: required")
 	case n > summaryLimit:
 		l.warnf(p, "summary: %d characters; a gallery card shows about %d", n, summaryLimit)
+	}
+	if strings.Contains(strings.TrimSpace(meta.Summary), "\n") || foldedCJK.MatchString(meta.Summary) {
+		l.warnf(p, "summary: write it on one line. A YAML block (>- or |) or a continued line keeps the line break, or turns it into a space, which shows on the gallery card between two Chinese characters")
 	}
 	if !kinds[meta.Kind] {
 		l.errorf(p, "kind: %q must be one of %s", meta.Kind, keysOf(kinds))
