@@ -74,30 +74,42 @@ const (
 // sandbox there is no desktop and two browsers that are not this process's:
 // the member's own, which can open anything on the internet, and the sandbox's,
 // which is the only one that can reach a server listening on 127.0.0.1 here.
-// So a loopback URL is opened in the sandbox's browser over CDP, and anything
-// else is left for the member's own. Every caller prints the URL either way.
+// So a loopback URL is opened in a new tab of the sandbox's browser over CDP,
+// and anything else is left for the member's own. Every caller prints the URL
+// either way.
 func Present(ctx context.Context, rawURL string, noBrowser bool) (Handoff, error) {
+	h, _, err := PresentTab(ctx, rawURL, noBrowser)
+	return h, err
+}
+
+// PresentTab is Present, and also returns the id of the sandbox browser's tab
+// it opened, for a caller that closes it when it is done with the page. The id
+// is empty for every other Handoff.
+func PresentTab(ctx context.Context, rawURL string, noBrowser bool) (Handoff, string, error) {
 	if sandbox.Enabled() {
 		if !isLoopback(rawURL) {
-			return ForTheMember, nil
+			return ForTheMember, "", nil
 		}
-		cdp := os.Getenv(EnvCDPURL)
+		cdp := lookupCDP()
 		if cdp == "" {
-			return NotOpened, errors.New("this sandbox has no browser (" + EnvCDPURL + " is not set); its SandboxBlueprint has to enable one")
+			return NotOpened, "", errors.New("this sandbox has no browser (" + EnvCDPURL + " is not set); its SandboxBlueprint has to enable one")
 		}
-		if err := navigateCDP(ctx, cdp, rawURL); err != nil {
-			return NotOpened, err
+		id, err := openCDPTab(ctx, cdp, rawURL)
+		if err != nil {
+			return NotOpened, "", err
 		}
-		return OpenedInSandbox, nil
+		return OpenedInSandbox, id, nil
 	}
 	if noBrowser {
-		return NotOpened, nil
+		return NotOpened, "", nil
 	}
 	if err := Open(rawURL); err != nil {
-		return NotOpened, err
+		return NotOpened, "", err
 	}
-	return OpenedLocally, nil
+	return OpenedLocally, "", nil
 }
+
+func lookupCDP() string { return os.Getenv(EnvCDPURL) }
 
 // isLoopback reports whether a URL points at this machine.
 func isLoopback(rawURL string) bool {
