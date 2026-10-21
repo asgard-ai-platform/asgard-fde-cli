@@ -4,6 +4,13 @@ on:
   push:
     tags:
       - "v*"
+      # **A dev tag is not a release.** `v0.2.0-dev.1` names an unreleased
+      # commit so that something installing by tag - the Workbench sandbox's
+      # image - gets exactly that commit, and a version `requires.asgard_cli`
+      # reads as 0.2.0 rather than the pseudo-version of a bare commit. GitHub
+      # reads this file from the commit the tag points at, so a dev tag stays
+      # quiet only on a commit that already has this line.
+      - "!v*-dev*"
 
 permissions:
   contents: write
@@ -21,6 +28,20 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+
+      # **The previous release is the previous tag that is not a dev tag.**
+      # GoReleaser compares against the nearest tag below this one, and after a
+      # dev tag that is the dev tag: the changelog and the "Full diff" link
+      # would start there instead of at the last release. Skipping tags in its
+      # own config (`git.ignore_tags`) is GoReleaser Pro only.
+      - name: Find the previous release
+        run: |
+          set -eu
+          prev=$(git tag --list 'v*' --merged "${GITHUB_REF_NAME}^" --sort=-version:refname | grep -v -e '-dev' | sed -n 1p) || true
+          if [ -n "$prev" ]; then
+            echo "GORELEASER_PREVIOUS_TAG=$prev" >> "$GITHUB_ENV"
+          fi
+          echo "previous release: ${prev:-none}"
 
       - uses: goreleaser/goreleaser-action@v6
         with:

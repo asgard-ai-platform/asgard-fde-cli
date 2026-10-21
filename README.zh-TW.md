@@ -826,6 +826,17 @@ git push origin v0.1.0
 
 一次執行產出 linux / darwin / windows × amd64 / arm64 的 binary、`.deb` / `.rpm` / `.apk` 套件與 checksum，全部掛在 GitHub Release 上。changelog 從 conventional commit（`feat:`、`fix:`）自動分組。
 
+帶 `-dev` 的 tag 不是 release，`release.yml` 會跳過它。它替一個還沒發佈的 commit 取名字，給在 release 出來之前就要照 tag 安裝的地方用，例如 Workbench sandbox 的 image：`go install github.com/asgard-ai-platform/asgard-fde-cli/cmd/asgard-cli@v0.2.0-dev.1`。這樣裝出來的版本，Extension 的 `requires.asgard_cli` 看得懂；直接裝某個 commit 的話，版本會是照上一個 release 命名的 pseudo-version。
+
+```bash
+git tag -a v0.2.0-dev.1 -m "v0.2.0-dev.1"
+git push origin v0.2.0-dev.1
+```
+
+- 要編號，打了就不搬、不重用：Go 的 checksum 資料庫會記住這個 tag 第一次被抓時指的 commit。
+- 打在 `release.yml` 已經有 `!v*-dev*` 那一行的 commit 上。GitHub 讀的是 tag 指的那個 commit 裡的 workflow，打在更早的 commit 上就會發 release。
+- 下一次 release 的 changelog 從上一個 release 算起，不從 dev tag 算。
+
 本機驗證而不發佈任何東西（產出落在 `dist/`）：
 
 ```bash
