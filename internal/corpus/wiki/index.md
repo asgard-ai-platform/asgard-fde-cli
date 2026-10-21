@@ -105,7 +105,7 @@ Each is written on the page it affects:
 | the UI's Flow Agent is three CRs; `agentClass` has one value | `../wiki/agents.md` |
 | the Drive Syncer UI offers five sources, the CRD supports ten | `../wiki/knowledge.md` |
 | Knowledge Base and Drive both exist and which one new work should use | `../wiki/knowledge.md` |
-| Connection's "For Trigger" group names removed trigger classes | `../wiki/automation.md`, `../wiki/settings.md` |
+| Connection's page was built around preset providers the platform now deletes | `../wiki/settings.md`, `../wiki/automation.md` |
 | Semantic Model lists six data sources, the settings page nine (unexplained) | `../wiki/semantic-model.md` |
 | the four `integration-with-asgard/` pages are `draft` and name an older UI | `../wiki/integration.md` |
 | the glossary's Processor list does not match the current `ProcessorType` | `../wiki/operations.md` |

@@ -955,7 +955,7 @@ there is no import step on the Sindri side. Two things on that page prevent
 common errors in a handover deck:
 
   - An HTTP API's credential has no home under Settings. Data Source is nine
-    database providers; Connection is OAuth to five named services. A deck that
+    database providers; Connection is OAuth with the customer's own client. A deck that
     shows their API key going into Data Source teaches them something that
     does not work
   - Nothing is published to Sindri manually. Every Managed Agent is there

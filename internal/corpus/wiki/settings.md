@@ -12,7 +12,7 @@ else.
 | Completion Model | agents, workflows, Semantic Models | `CompletionModel` |
 | Embedding Model | semantic search and retrieval | `EmbeddingModel` |
 | Data Source | Semantic Models and agent queries | `DataConnector` |
-| Connection | Syncers and Loaders needing third-party authorisation | `OAuthProvider` + `OAuthCredential` |
+| Connection | Syncers, sandboxes and Workflows that act on a third-party account | `OAuthProvider` + `OAuthCredential` |
 
 ## Completion Model
 
@@ -153,7 +153,7 @@ both set on the platform per release. The password is only ever a secretKeyRef, 
 comes from `.Values.asgard.appSecretName` - a literal name in a template points at nothing.
 
 An HTTP API does not go here. Data Source is these nine database providers
-and nothing else, and Connection below is OAuth to five named services. A REST
+and nothing else, and Connection below is OAuth with a client the chart declares. A REST
 API with a key or a bearer token is configured on the tool that calls it - an
 `http-request` step in a Workflow, or an MCP Server's environment variables.
 [`setup-path.md`](../wiki/setup-path.md) has the fork; `../usecase/external-api.md`
@@ -161,37 +161,47 @@ has the shape.
 
 ## Connection
 
-Manages authorisation to third-party apps and services over OAuth, as distinct
-from a Data Source's host-and-password. The form has only Name and Type, and the
-button says Authorize.
+Authorisation to a third-party account over OAuth, as distinct from a Data
+Source's host-and-password. Two CRs: an `OAuthProvider` is the client - the
+vendor's endpoints, the scopes, and the client ID and secret - and an
+`OAuthCredential` is one grant of it, whose token a Syncer, a sandbox's
+`credentialMounts` or a Workflow reads.
 
-The Type list is grouped by purpose:
+The platform puts no provider in a namespace. It used to create nine
+`preset-*` ones, backed by Asgard's own clients, and now deletes them, so a
+provider exists only where a chart declares one, with the customer's own
+client. `spec.clientId` and `spec.clientSecret` are values of the same shape as
+a DataConnector's password: `valueFrom.secretKeyRef` to a key of this
+release's Secret, declared under `appSecret`. The key names are the chart's to
+choose, so one release can hold the clients of several providers.
+`spec.secretRef` is deprecated and read by nothing; a provider that has only
+that has no client.
 
-| group | options |
-|---|---|
-| For Syncer | Google Drive, OneDrive, Dropbox |
-| For Trigger | Google Sheets, OneDrive Workbook (Excel), Google Drive, OneDrive |
+An `OAuthCredential` names its provider and how to refresh, and nothing else.
+Its tokens - `access_token`, `refresh_token` and `expires_at` - are in a Secret
+with the credential's own name, which the platform creates and owns, and
+`spec.secretRef` is deprecated and read by nothing. A Workflow reads the token
+as a variable, `valueFrom.secretKeyRef` with `name` the credential's name and
+`key: access_token`, and the platform keeps that Secret current as it
+refreshes. A chart cannot declare a Secret, so a collision is a Secret of that
+name that something else made first: the credential then stays Failed, says
+so in its status, and never writes to it. Rename the credential.
 
-The same service appears in both groups, so the services that can actually be
-authorised are Dropbox, Google Drive, OneDrive, Google Sheets and OneDrive
-Workbook - five. The options themselves come from the Platform API; the Console
-only groups and orders them, and offers no group for the Loader.
-
-The "For Trigger" group outlived the trigger classes it was named for - only
-cron is left, see [`automation.md`](../wiki/automation.md) - and is kept on
-purpose: a credential made from it is handed to a sandbox as a file through a
-blueprint's `credentialMounts`, which `../usecase/external-api.md` covers.
+The Console's Connection page was built around the presets - its Type list
+grouped them by name - and is being redesigned, so a chart's credential is
+granted from here rather than there.
 
 ## Before writing the chart
 
 `../usecase/semantic-layer.md` has the DataConnector fields - coordinates in
 a platform variable, password always a secretKeyRef. Connection has no extract of
-its own. A chart can declare the `OAuthCredential` a Syncer names, but not the
-grant: a token exists only once somebody signs in to the service and consents.
-Until then the credential is PENDING and the Syncer fails at runtime while
-every check before it passes. The grant is a post-deploy step, started with
+its own. A chart can declare the `OAuthProvider` and the `OAuthCredential` that
+a Syncer or a Workflow reads, but not the grant: a token exists only once
+somebody signs in to the service and consents. Until then the credential is
+PENDING and whatever reads it fails at runtime while every check before it
+passes. The grant is a post-deploy step, started with
 `asgard-cli operate oauth-credential authorize <name> --release <release>`;
-whoever signs in decides whose data the Syncer reads, and the platform does not
+whoever signs in decides whose data it reads, and the platform does not
 check which account it was.
 
 ## Sources
@@ -216,14 +226,15 @@ enums, the immutability rules, the ExactlyOneOf validations, the required
 deployments that declare their own model; against asgard-core `478cf5d6`
 asgard-core `internal/constants.go` for the `preset-*` names and the
 `preset-fast` effort guard, and asgard-core `internal/processor/component/model_router_client.go` for
-the model router's URL shape; that an OAuthCredential stays PENDING until a grant writes its Secret against asgard-core `7346d2e5` `internal/bpoperator/reconciler/oac_reconciler.go`; against `asgard-router`'s README;
+the model router's URL shape; that an OAuthCredential stays PENDING until a grant writes its Secret, that the Secret has the credential's name and is created and owned by it, that one it does not own is left alone, and that the presets are deleted against asgard-core `6d855e88` `internal/shared/oauthcred`, `internal/bpoperator/reconciler/oac_reconciler.go` and `ns_reconciler.go`; the provider's and the credential's fields against asgard-kube `v1.2.0`; against `asgard-router`'s README;
 against every `CompletionModel` CR in those three deployments held against every
-reference to a model name in the same charts. The form fields and the
-Connection Type list against the Console's own source,
-asgard-ai-platform-web `e59474e7`: `src/constants/oauth-provider.ts`
-(`OAUTH_PROVIDER_GROUPS`), `src/constants/trigger.ts`,
+reference to a model name in the same charts. The form fields against the
+Console's own source, asgard-ai-platform-web `e59474e7`:
+`src/constants/trigger.ts`,
 `src/utils/data-source-ssh-tunnel.ts` and
 `settings/data-source/DataSourceForm.tsx`.
 
 **Unchecked:** the provider-specific fields of the model and data source forms,
 which the Platform API serves at run time and no repository here writes down.
+What the Console's Connection page shows for a provider a chart declared,
+while it is being redesigned.

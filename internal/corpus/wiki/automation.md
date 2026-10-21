@@ -40,9 +40,10 @@ them had the platform decide how to read a customer's data, which meant inventin
 conventions the customer then could not hold to. With cron the customer decides
 the shape of the data, and one firing can work through a whole batch.
 
-Settings -> Connection still lists a "For Trigger" group (Google Drive, Google
-Sheets, OneDrive, OneDrive Workbook). Those correspond to the removed classes,
-so that group is stale.
+Settings -> Connection listed a "For Trigger" group (Google Drive, Google
+Sheets, OneDrive, OneDrive Workbook) that matched the removed classes. Those
+were platform preset providers, which the platform now deletes -
+`../wiki/settings.md` has what replaced them.
 
 ### The schedule
 
