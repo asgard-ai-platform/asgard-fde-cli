@@ -136,6 +136,7 @@ does not will throw at run time on the turn where a user sends no file:
 | `xpathExtract(...)` | pull a value out of XML or HTML |
 | `vecToStr(...)` | a vector as a string |
 | `isoNow()` / `isoToday()` | the timestamp and the date |
+| `jwtSign(claims, privateKeyPem, alg, header?)` | sign a JWT, e.g. the client assertion a token endpoint wants, and return the compact string. `alg` is one of ES256/384/512, PS256/384/512, RS256/384/512, and an ES signature comes out as the raw R\|\|S a JWS needs, not DER. The key may be PKCS#8, SEC1 or PKCS#1 PEM, and literal `\n` in it - how a key read from a Secret often arrives - is turned back into newlines. `header` adds fields such as `kid`. JavaScript Expressions only, not Templates; an error never quotes the key (asgard-core #391, `dev-1.16.180`) |
 
 `history` affects the design. Feeding a whole conversation into a prompt is one
 call, and it also brings a run to the three-minute ceiling and the context
