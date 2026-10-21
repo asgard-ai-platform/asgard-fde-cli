@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -17,8 +18,8 @@ import (
 type Level string
 
 const (
-	// Error fails the lint. The registry refuses a version with the same
-	// problem, so it would not be offered for download.
+	// Error fails the lint. The registry does not check content, so a version
+	// tagged with one is offered anyway; this is the only place it is caught.
 	Error Level = "error"
 	// Warning does not.
 	Warning Level = "warning"
@@ -57,9 +58,10 @@ var (
 // summaryLimit is how long a gallery card's line can be before it is cut.
 const summaryLimit = 80
 
-// Lint checks an extension repository at dir against what the registry
-// accepts and what the FDE Agent relies on. It does not render the examples:
-// that needs helm and the gate, and the caller runs them.
+// Lint checks an extension repository at dir against what the FDE Agent relies
+// on. It is the only check of an Extension's content: the registry takes a
+// version in on its identity alone. It does not render the examples: that
+// needs helm and the gate, and the caller runs them.
 //
 // It returns the parsed index when README.md could be read, so a caller can
 // report what it was about.
@@ -70,6 +72,7 @@ func Lint(dir string) ([]Finding, *Meta) {
 		l.skill(meta.ID)
 		l.routes(meta)
 		l.oauth(meta)
+		l.logo(meta)
 		l.files()
 	}
 	l.examples(meta)
@@ -306,6 +309,38 @@ func (l *linter) files() {
 		}
 		return nil
 	})
+}
+
+// logoLimit is the largest logo the registry takes.
+const logoLimit = 256 << 10
+
+// logo checks the file `logo` names. The registry takes a version whose logo it
+// cannot use and simply shows none, so each problem only warns.
+func (l *linter) logo(meta *Meta) {
+	if meta.Logo == "" {
+		return
+	}
+	const p = "README.md"
+	rel := filepath.ToSlash(filepath.Clean(meta.Logo))
+	top, _, _ := strings.Cut(rel, "/")
+	ext := strings.ToLower(filepath.Ext(rel))
+	switch {
+	case filepath.IsAbs(meta.Logo) || strings.HasPrefix(rel, "../") || !slices.Contains(Shipped, top):
+		l.warnf(p, "logo %s is not among what the Extension ships (assets/ is where it goes); the gallery will show none", meta.Logo)
+		return
+	case ext != ".svg" && ext != ".png":
+		l.warnf(p, "logo %s is neither .svg nor .png; the gallery will show none", meta.Logo)
+		return
+	}
+	info, err := os.Stat(filepath.Join(l.dir, filepath.FromSlash(rel)))
+	switch {
+	case err != nil:
+		l.warnf(p, "logo %s does not exist; the gallery will show none", meta.Logo)
+	case !info.Mode().IsRegular():
+		l.warnf(p, "logo %s is not a regular file; the gallery will show none", meta.Logo)
+	case info.Size() > logoLimit:
+		l.warnf(p, "logo %s is %d KiB, over the %d KiB the registry takes; the gallery will show none", meta.Logo, info.Size()>>10, logoLimit>>10)
+	}
 }
 
 // shellScript reports whether name is a script for one operating system's

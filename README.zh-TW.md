@@ -191,7 +191,7 @@ Build —— 寫出 repo 與裡面的 CR
   decision add           寫一份帶日期的決議紀錄
   reference add          歸檔客戶自己的素材，連同出處
   local-env              開一頁表單，讓握有憑證的人自己填進 .env
-  extension get / update / lint    從本機路徑取 Extension、再同步；作者發佈前的檢查
+  extension search / show / get / status / update / record    找、取、更新外部系統的教材；作者發佈前的檢查
 
 Check —— 這台機器能檢查的全部
   gate [release ...]     ★ 一個指令跑完下面所有能跑的
@@ -436,20 +436,33 @@ asgard-cli decision add "官網一律走固定查詢工具讀取" --module archi
 
 ### `extension` —— 一個外部系統的教材
 
-    asgard-cli extension get ../asgard-ext-foo    從本機路徑複製一份 Extension
-    asgard-cli extension update asgard-ext-foo    Extension 改過之後再複製一次
-    asgard-cli extension gate                     檢查目前目錄的 Extension
-    asgard-cli extension lint                     只跑 gate 的第一步
+    asgard-cli extension search google drive          在這個平台找 Extension
+    asgard-cli extension show asgard-ext-google-drive  看一份的全部內容與各版本
+    asgard-cli extension get asgard-ext-google-drive   取進這個 repo
+    asgard-cli extension status                        這個 repo 有哪些、是不是最新
+    asgard-cli extension update asgard-ext-google-drive
+    asgard-cli extension record asgard-ext-google-drive --route <route>
+    asgard-cli extension get ../asgard-ext-foo         從本機路徑複製（作者測試用）
+    asgard-cli extension gate                          檢查目前目錄的 Extension
+    asgard-cli extension lint                          只跑 gate 的第一步
 
 Extension 是一個外部系統或一種領域知識的設計期教材，自己一個 git repo，名稱一律
 `asgard-ext-` 開頭。它落在 `.agents/skills/<id>/`，agent 讀它的 SKILL.md 選路線、寫 CR。
-repo 根目錄的 `.asgard-extensions.json` 記錄這個 repo 拿了哪些 Extension，要 commit。
+repo 根目錄的 `.asgard-extensions.json` 記錄這個 repo 拿了哪些 Extension、哪一版、哪個
+commit，以及每個檔的 digest，要 commit。
 
-`get` 與 `update` 從本機路徑取 Extension，這是作者在發佈前測試的方式：Extension 在自己
-的 repo，旁邊另開一個 FDE repo，由另一個 coding agent session 來測。只複製 Extension
-會發出去的檔、不用 symlink；目的地有被改過的檔時，不加 `--force` 就不覆蓋。
+`search`、`show`、`get <id>`、`update` 經平台取得（平台轉給它的 registry），所以這裡不需要
+Extension repo 的 git 權限；要登入，不用 workspace。`get` 不寫版本取最新的正式版。
+`show <id>@<版本>` 會讓 registry 當場 fetch 還沒看過的 tag，作者打完 tag 用它確認收了沒。
+目的地有被改過的檔時，`get` 與 `update` 不加 `--force` 就不覆蓋；Extension 的 `requires`
+會檢查，不符只警告。`record` 把這個 repo 走了哪些路線寫進鎖檔，不回報給任何人。
+`asgard-cli gate` 的 `extensions` 步驟比對鎖檔與磁碟。
 
-`lint` 檢查 registry 提供某個版本前會檢查的事，以及
+`get <路徑>` 與本機複本的 `update` 從本機路徑取 Extension，這是作者在發佈前測試的方式：
+Extension 在自己的 repo，旁邊另開一個 FDE repo，由另一個 coding agent session 來測。只複製
+Extension 會發出去的檔、不用 symlink。
+
+`lint` 是 Extension 內容唯一的檢查（registry 只看身分就收下一個版本），也檢查
 `examples/` 的結構：一套 CR 一個資料夾的 pseudo chart，不 render。它是 `gate` 的第一步。
 `gate` 給作者用，不需要帳號、網路或 helm，是 Extension repo 的 build step，就像
 `asgard-cli gate` 之於 FDE repo：改了任何東西就跑，commit 與打 tag 前都跑。第二步把

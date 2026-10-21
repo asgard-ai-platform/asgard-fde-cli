@@ -125,6 +125,12 @@ What it runs, in order:
            Needs a session; --offline skips the half that asks
   skills   whether the reference material here still describes the server this
            repository deploys to. Needs a session; --offline skips it
+  extensions
+           whether each Extension in .asgard-extensions.json is what is on
+           disk - no file edited, missing or not written by asgard-cli - and
+           no asgard-ext-* directory is missing from it; then whether a newer
+           version of one is out, which needs a session and --offline skips.
+           It only warns
   lint     helm lint on each chart, with the reserved asgard block and nothing
            else. That is what proves values.yaml declares a default for every
            .Values.* the chart itself owns; overlay an environment file and a
@@ -205,6 +211,7 @@ Exits non-zero if any step failed.`,
 			steps = append(steps, gateShipped(root))
 			steps = append(steps, gateBinding(cmd, root, profile, offline))
 			steps = append(steps, gateSkills(cmd, profile, offline))
+			steps = append(steps, gateExtensions(cmd, root, profile, offline))
 			steps = append(steps, gateCharts(cmd, root, releases, helmReady)...)
 
 			against := gateAgainst(profile, offline)
@@ -225,7 +232,7 @@ Exits non-zero if any step failed.`,
 			// Before the steps, because a verdict is only a verdict about
 			// something: some of these steps ask a platform, and reading their
 			// answer against the wrong one is the failure this line exists for.
-			fmt.Fprintf(out, "against   %s\n\n", against)
+			fmt.Fprintf(out, "against    %s\n\n", against)
 			printSteps(out, steps)
 			if !stepsOK(steps) {
 				return ErrSilent
@@ -236,7 +243,7 @@ Exits non-zero if any step failed.`,
 
 	addProfileFlag(cmd, &profile)
 	cmd.Flags().StringVar(&format, formatFlag, formatText, formatUsage)
-	cmd.Flags().BoolVar(&offline, "offline", false, "skip the steps that need the platform: binding and skills")
+	cmd.Flags().BoolVar(&offline, "offline", false, "skip the steps that need the platform: binding, skills and the newer-version half of extensions")
 	return cmd
 }
 
@@ -271,7 +278,7 @@ func stepsOK(steps []stepResult) bool {
 func printSteps(out io.Writer, steps []stepResult) {
 	failed, skipped := 0, 0
 	for _, s := range steps {
-		fmt.Fprintf(out, "%-9s %-5s %s\n", s.Name, s.Status, s.Summary)
+		fmt.Fprintf(out, "%-10s %-5s %s\n", s.Name, s.Status, s.Summary)
 		for _, d := range s.Details {
 			fmt.Fprintf(out, "  %s\n", wrapAt(d, 76, 2))
 		}

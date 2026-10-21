@@ -34,83 +34,127 @@ runtime skill: nothing here touches ` + "`assets/skills/`" + `.
 Every id starts with ` + "`" + extension.Prefix + "`" + `. What the repository holds is
 recorded in ` + "`" + extension.LockName + "`" + ` at its root, which is committed.
 
-    asgard-cli extension get ../asgard-ext-foo    copy an Extension from a path
-    asgard-cli extension update asgard-ext-foo    copy it again after it changed
-    asgard-cli extension gate                     check the Extension in this directory
-    asgard-cli extension lint                     its first step, on its own
+    asgard-cli extension search google drive          find one on this platform
+    asgard-cli extension show asgard-ext-google-drive  one in full, and its versions
+    asgard-cli extension get asgard-ext-google-drive   bring it into this repository
+    asgard-cli extension status                        what this repository holds
+    asgard-cli extension update asgard-ext-google-drive
+    asgard-cli extension record asgard-ext-google-drive --route <route>
 
-This build copies from a path on this machine, which is how an author tests an
-Extension before it is published. Fetching a published one by name comes with
-the registry.`,
+Published Extensions come through the platform, which relays its registry, so
+no git access to an Extension's repository is needed here.
+
+For an author:
+
+    asgard-cli extension get ../asgard-ext-foo    copy one from a path on this machine
+    asgard-cli extension gate                     check the Extension in this directory
+    asgard-cli extension lint                     its first step, on its own`,
 	}
-	cmd.AddCommand(newExtensionGetCmd(), newExtensionUpdateCmd(), newExtensionGateCmd(), newExtensionLintCmd())
+	cmd.AddCommand(newExtensionSearchCmd(), newExtensionShowCmd(), newExtensionGetCmd(), newExtensionStatusCmd(),
+		newExtensionUpdateCmd(), newExtensionRecordCmd(), newExtensionGateCmd(), newExtensionLintCmd())
 	return cmd
 }
 
 func newExtensionGetCmd() *cobra.Command {
-	var force bool
+	var (
+		force   bool
+		profile string
+	)
 	cmd := &cobra.Command{
-		Use:   "get <path>",
-		Short: "Copy an Extension from a path on this machine into this repository",
-		Long: `Copy an Extension from a path on this machine into this repository.
+		Use:   "get <id-or-path>[@<version>] | <local path>",
+		Short: "Bring an Extension into this repository, from the platform or from a path",
+		Long: `Bring an Extension into this repository, from the platform or from a path.
 
+    asgard-cli extension get asgard-ext-google-drive
+    asgard-cli extension get asgard-ext-google-drive@v1.3.0-rc.1
+    asgard-cli extension get github.com/asgard-ai-platform/asgard-ext-netsuite
     asgard-cli extension get ../asgard-ext-foo
 
-This is for an author testing an Extension that is not published yet: write it
+By id or full path it downloads from the platform. Without a version it takes
+the latest release; a pre-release (v1.3.0-rc.1) only when named, or when the
+Extension has no release at all. The download is checked against the digest the
+platform sends, and only what an Extension publishes is written - README.md,
+SKILL.md, CHANGELOG.md and routes/, brakes/, setup/, knowledge/, examples/,
+scripts/, verify/, assets/ - into the skills directory this repository already
+uses (` + "`.agents/skills/`" + `, or ` + "`.claude/skills/`" + `), under the Extension's id.
+` + "`" + extension.LockName + "`" + ` records the full path, the version, its commit and a digest
+of every file; commit both.
+
+The Extension's ` + "`requires`" + ` is checked against this repository and this
+asgard-cli, and a mismatch only warns: the copy goes ahead.
+
+A path starting with ./, ../ or / is a local copy instead, which is for an
+author testing an Extension that is not published yet: write it
 in its own repository, keep a separate FDE repository beside it for testing,
 and run this there. Test it with a coding agent session other than the one that
 wrote it.
 
-It copies, it does not link. Only what an Extension publishes is copied -
-README.md, SKILL.md, CHANGELOG.md and routes/, brakes/, setup/, knowledge/,
-examples/, scripts/, verify/, assets/ - so the test repository holds what a
-customer's would, and the session testing it cannot edit the Extension's own
-repository.
+A local copy copies, it does not link. Only what an Extension publishes is
+copied, so the test repository holds what a customer's would, and the session
+testing it cannot edit the Extension's own repository.
 
-The copy lands in the skills directory this repository already uses
-(` + "`.agents/skills/`" + `, or ` + "`.claude/skills/`" + ` where that holds the material), under
-the Extension's id. ` + "`" + extension.LockName + "`" + ` records it with ` + "`source: local`" + `,
+The copy lands where a fetched one does. ` + "`" + extension.LockName + "`" + ` records it with
+` + "`source: local`" + `,
 the path it came from, the source's commit and whether it had uncommitted
 changes. ` + "`asgard-cli extension update <id>`" + ` copies it again.
 
-The Extension is linted first. Problems are printed and the copy goes ahead:
-an Extension being written is often not complete yet.
+The local Extension is linted first. Problems are printed and the copy goes
+ahead: an Extension being written is often not complete yet.
 
-It fails, and writes nothing, when the destination holds files asgard-cli did
-not write or that were edited since. ` + "`--force`" + ` replaces them.`,
+Either way it fails, and writes nothing, when the destination holds files
+asgard-cli did not write or that were edited since. ` + "`--force`" + ` replaces them.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if !isLocalPath(args[0]) {
-				return fmt.Errorf("%q is not a path; this build copies an Extension from a path on this machine (start it with ./, ../ or /), and fetching a published one by name comes with the registry", args[0])
-			}
 			root, err := fdeRepoRoot()
 			if err != nil {
 				return err
 			}
-			return copyExtension(cmd, root, args[0], force)
+			if isLocalPath(args[0]) {
+				return copyExtension(cmd, root, args[0], force)
+			}
+			ext, ver, err := splitExtensionRef(args[0])
+			if err != nil {
+				return err
+			}
+			pc, err := resolveContext(cmd, contextOptions{Profile: profile})
+			if err != nil {
+				return err
+			}
+			return fetchExtension(cmd, root, pc, ext, ver, force)
 		},
 	}
+	addProfileFlag(cmd, &profile)
 	cmd.Flags().BoolVar(&force, "force", false, "replace files in the destination that were edited or not written by asgard-cli")
 	return cmd
 }
 
 func newExtensionUpdateCmd() *cobra.Command {
-	var force bool
+	var (
+		force   bool
+		profile string
+	)
 	cmd := &cobra.Command{
 		Use:   "update <id>",
-		Short: "Copy an Extension again from the path it was copied from",
-		Long: `Copy an Extension again from the path it was copied from.
+		Short: "Move an Extension to its latest version, or copy a local one again",
+		Long: `Move an Extension to its latest version, or copy a local one again.
 
-    asgard-cli extension update asgard-ext-foo
+    asgard-cli extension update asgard-ext-google-drive
 
-For an Extension taken with ` + "`asgard-cli extension get <path>`" + `: it reads the
+For an Extension fetched from the platform it asks for the latest version and,
+when that is newer than the one recorded in ` + "`" + extension.LockName + "`" + `, fetches it
+the way ` + "`asgard-cli extension get`" + ` does. The routes recorded for it are kept;
+read their route documents again after the update. To take a particular
+version, older or a pre-release, ` + "`asgard-cli extension get <id>@<version>`" + `.
+
+For one taken with ` + "`asgard-cli extension get <path>`" + `: it reads the
 path from ` + "`" + extension.LockName + "`" + ` and copies again, so an author who changed the
-Extension can test the change. Files the Extension no longer has are removed.
+Extension can test the change. It fails when the recorded path does not exist
+on this machine - in a clone of the test repository, say - and then changes
+nothing.
 
-It fails, and writes nothing, when a file in the destination was edited here
-or was not written by asgard-cli; ` + "`--force`" + ` replaces them. It also fails when
-the recorded path does not exist on this machine - in a clone of the test
-repository, say - and then changes nothing.`,
+Files the Extension no longer has are removed. It fails, and writes nothing,
+when a file in the destination was edited here or was not written by
+asgard-cli; ` + "`--force`" + ` replaces them.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			root, err := fdeRepoRoot()
@@ -126,8 +170,11 @@ repository, say - and then changes nothing.`,
 				return fmt.Errorf("%s records no Extension %q", extension.LockName, args[0])
 			}
 			entry := lock.Extensions[key]
-			if entry.Source != extension.SourceLocal || entry.Path == "" {
-				return fmt.Errorf("%s did not come from a path on this machine; updating a published Extension comes with the registry", key)
+			if entry.Source != extension.SourceLocal {
+				return updateFromPlatform(cmd, root, key, entry, profile, force)
+			}
+			if entry.Path == "" {
+				return fmt.Errorf("%s is committed here (source: local) with no path to copy it from, so there is nothing to update it from", key)
 			}
 			src := entry.Path
 			if !filepath.IsAbs(src) {
@@ -139,6 +186,7 @@ repository, say - and then changes nothing.`,
 			return copyExtension(cmd, root, src, force)
 		},
 	}
+	addProfileFlag(cmd, &profile)
 	cmd.Flags().BoolVar(&force, "force", false, "replace files in the destination that were edited or not written by asgard-cli")
 	return cmd
 }
@@ -174,7 +222,7 @@ func copyExtension(cmd *cobra.Command, root, src string, force bool) error {
 	}
 	key := meta.ID
 	if existing, ok := lock.Find(meta.ID); ok && existing != meta.ID {
-		return fmt.Errorf("%s already holds %s from a registry; a local copy would take the same directory", extension.LockName, existing)
+		return fmt.Errorf("%s already holds %s, fetched from the platform; a local copy would take the same directory", extension.LockName, existing)
 	}
 	skillsRoot := skills.Root(root, "")
 	dst := filepath.Join(skillsRoot, meta.ID)
@@ -229,11 +277,14 @@ func newExtensionLintCmd() *cobra.Command {
     asgard-cli extension lint             the Extension in this directory
     asgard-cli extension lint ../asgard-ext-foo
 
-It needs no account and no network. It checks what the registry checks before
-it offers a version - the index in README.md, SKILL.md's name, that routes/
-holds exactly one document per declared route - and what the FDE Agent relies
-on: an id starting with ` + "`" + extension.Prefix + "`" + `, no route using an OAuth client
-Asgard registers, and every example saying in its first line that it is one.
+It needs no account and no network. It is the only check of an Extension's
+content: the registry takes a version in when the tag is semver, README.md's
+frontmatter parses and the id matches the repository, and judges nothing else.
+So run it before every tag. It checks the index in README.md, SKILL.md's name,
+that routes/ holds exactly one document per declared route, the logo, and what
+the FDE Agent relies on: an id starting with ` + "`" + extension.Prefix + "`" + `, no route
+using an OAuth client Asgard registers, brakes from the catalogue this
+asgard-cli carries, and every example saying in its first line that it is one.
 
 Examples are pseudo charts, one folder per set of CRs under examples/, and
 they are not rendered: placeholders like <chart> and <fde-repo-git-url> stand

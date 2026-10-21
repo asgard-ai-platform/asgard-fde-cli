@@ -480,28 +480,45 @@ rather than asking for it.
 
 ### `extension` - teaching material for one external system
 
-    asgard-cli extension get ../asgard-ext-foo    copy an Extension from a path
-    asgard-cli extension update asgard-ext-foo    copy it again after it changed
-    asgard-cli extension gate                     check the Extension in this directory
-    asgard-cli extension lint                     the gate's first step, on its own
+    asgard-cli extension search google drive          find one on this platform
+    asgard-cli extension show asgard-ext-google-drive  one in full, and its versions
+    asgard-cli extension get asgard-ext-google-drive   bring it into this repository
+    asgard-cli extension status                        what this repository holds
+    asgard-cli extension update asgard-ext-google-drive
+    asgard-cli extension record asgard-ext-google-drive --route <route>
+    asgard-cli extension get ../asgard-ext-foo         copy one from a path (an author testing)
+    asgard-cli extension gate                          check the Extension in this directory
+    asgard-cli extension lint                          the gate's first step, on its own
 
 An Extension is design-time material for one external system or one body of
 domain knowledge, kept in its own git repository whose name starts with
 `asgard-ext-`. It lands in `.agents/skills/<id>/`, and the agent reads its
 SKILL.md to choose a route and write the CRs. `.asgard-extensions.json` at the
-repository root records which ones the repository holds; commit it.
+repository root records which ones the repository holds, at which version and
+commit, with a digest of every file; commit it.
 
-`get` and `update` take an Extension from a path on this machine. That is how
-its author tests it before publishing: the Extension in its own repository, a
-separate FDE repository beside it, and a different coding agent session doing
-the testing. Only what an Extension publishes is copied, never linked, and a
-file edited in the destination stops the copy until `--force`.
+`search`, `show`, `get <id>` and `update` go through the platform, which
+relays its registry, so nothing here needs git access to an Extension's
+repository; they need a session, and no workspace. `get` without a version
+takes the latest release. `show <id>@<version>` makes the registry fetch a tag
+it has not seen yet, which is how an author confirms one was taken in. A file
+edited in the destination stops `get` and `update` until `--force`, and the
+Extension's `requires` is checked and only warns. `record` writes which routes
+this repository took into the lock and reports nothing anywhere. `asgard-cli
+gate` checks the lock against the disk as its `extensions` step.
+
+`get <path>` and `update` of a local copy take an Extension from a path on this
+machine. That is how its author tests it before publishing: the Extension in its
+own repository, a separate FDE repository beside it, and a different coding
+agent session doing the testing. Only what an Extension publishes is copied,
+never linked.
 
 `gate` is for the author and needs no account, no network and no helm. It is
 an Extension repository's build step, as `asgard-cli gate` is an FDE
 repository's: run it after changing anything, and before every commit and tag.
-Its first step is `lint` - what the registry checks before offering a version,
-and the shape of `examples/`: pseudo charts, one folder per set of CRs, which
+Its first step is `lint`, the only check of an Extension's content - the
+registry takes a version in on its identity alone - and the shape of
+`examples/`: pseudo charts, one folder per set of CRs, which
 are not rendered. Its second holds every CR under `examples/` against the
 checks `asgard-cli gate` runs on one CR at a time, with template actions and
 `<placeholders>` stood in for. What needs the rest of a chart is checked by

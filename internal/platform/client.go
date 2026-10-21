@@ -127,6 +127,9 @@ func (e *APIError) Error() string {
 	if text, ok := operateErrorText(e, msg); ok {
 		return text
 	}
+	if text, ok := extensionErrorText(e, msg); ok {
+		return text
+	}
 	switch e.Status {
 	case http.StatusUnauthorized:
 		return fmt.Sprintf("the platform rejected the session (%d %s); run `asgard-cli login`", e.Status, msg)
@@ -264,6 +267,9 @@ type request struct {
 	// from the method: some POSTs only read (an audit query, a repository
 	// token for git).
 	sideEffect bool
+	// timeout replaces the per-call timeout, for a route that can legitimately
+	// take longer than it. Zero keeps the default.
+	timeout time.Duration
 }
 
 // do makes one call and unwraps the envelope.
@@ -308,7 +314,13 @@ func (c *Client) do(ctx context.Context, req request) error {
 		httpReq.Header.Set(ViaAssistantHeader, "true")
 	}
 
-	resp, err := c.http.Do(httpReq)
+	httpClient := c.http
+	if req.timeout > 0 {
+		copied := *c.http
+		copied.Timeout = req.timeout
+		httpClient = &copied
+	}
+	resp, err := httpClient.Do(httpReq)
 	if err != nil {
 		return fmt.Errorf("call %s %s: %w", req.method, endpoint, err)
 	}

@@ -23,6 +23,8 @@ type rawRequest struct {
 	viaAssistant bool
 	// noTimeout lifts the per-call timeout, for an answer that streams.
 	noTimeout bool
+	// noWorkspace skips the workspace header, for the routes that take none.
+	noWorkspace bool
 	// sideEffect: as request.sideEffect.
 	sideEffect bool
 	// project and environment: as request's.
@@ -43,12 +45,14 @@ func (c *Client) doRaw(ctx context.Context, req rawRequest) (*http.Response, err
 	if err != nil {
 		return nil, fmt.Errorf("build the request: %w", err)
 	}
-	if c.workspace == "" {
-		return nil, errors.New("no workspace selected; pass --workspace, or record one with `asgard-cli workspace use <id>`")
+	if !req.noWorkspace {
+		if c.workspace == "" {
+			return nil, errors.New("no workspace selected; pass --workspace, or record one with `asgard-cli workspace use <id>`")
+		}
+		httpReq.Header.Set(WorkspaceHeader, c.workspace)
 	}
 	httpReq.Header.Set("Authorization", "Bearer "+c.token)
 	httpReq.Header.Set(ClientHeader, clientValue())
-	httpReq.Header.Set(WorkspaceHeader, c.workspace)
 	if req.project != "" {
 		httpReq.Header.Set(ProjectHeader, req.project)
 	}
