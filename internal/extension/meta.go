@@ -97,6 +97,12 @@ func ReadMeta(path string) (Meta, []string, error) {
 	if err != nil {
 		return Meta{}, nil, err
 	}
+	return ParseMeta(data)
+}
+
+// ParseMeta is ReadMeta for a README.md already in memory, such as one read out
+// of an archive.
+func ParseMeta(data []byte) (Meta, []string, error) {
 	y, _, err := frontmatter(data)
 	if err != nil {
 		return Meta{}, nil, err

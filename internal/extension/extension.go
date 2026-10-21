@@ -28,9 +28,11 @@ var idPattern = regexp.MustCompile(`^asgard-ext-[a-z0-9]+(-[a-z0-9]+)*$`)
 // ValidID reports whether id has the shape every Extension id has.
 func ValidID(id string) bool { return idPattern.MatchString(id) }
 
-// Shipped are the top-level entries that leave an extension repository. A
-// registry archive carries these and nothing else, and so does a copy from a
-// local path, so what an author tests is what an FDE repository receives.
+// Shipped are the top-level entries that leave an extension repository. A copy
+// from a local path takes these and nothing else, and so does a fetch from the
+// platform: the registry builds its archive from a list of its own, and
+// whatever else an archive holds is left out here, so what an author tests is
+// what an FDE repository receives.
 //
 // Everything else in the repository stays there: `.git`, CI configuration, and
 // any AGENTS.md or CLAUDE.md the author keeps for their own coding agent. The
@@ -52,8 +54,8 @@ var Shipped = []string{
 // Brakes are the ids a route may name under `brakes:`. A brake points the FDE
 // Agent at a platform mechanism that fits better than the route it was about to
 // take, so the catalogue follows the platform rather than any one Extension.
-// On a Stack the registry server's catalogue is the one that decides; this copy
-// is what an author can check against offline.
+// This catalogue is the one that decides: the registry does not check brakes,
+// so `extension lint` is the only place a brake id is held against it.
 var Brakes = map[string]string{
 	"sourceset-syncer":            "a Syncer into a SourceSet, mounted into the sandbox, when the need is reading files",
 	"dataconnector-semanticlayer": "a DataConnector and a SemanticLayer, when the need is querying data the platform already has a class for",

@@ -10,8 +10,8 @@ A repository of CRs has no compiler, so the check an agent runs after every edit
 is one command whose definition lives in the binary. Run it and read what it
 reports; this file does not list a step count.
 
-It runs, in order: `tools`, `repo`, `shipped`, `binding`, `skills`, `lint`,
-`render`, `verify`. A skip is printed differently from a pass: the steps that
+It runs, in order: `tools`, `repo`, `shipped`, `binding`, `skills`,
+`extensions`, `lint`, `render`, `verify`. A skip is printed differently from a pass: the steps that
 need the platform report as skipped when there is no session. A skipped step
 did not pass.
 
