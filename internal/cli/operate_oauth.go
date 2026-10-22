@@ -73,7 +73,8 @@ returning at once. Otherwise follow up with
 "asgard-cli operate oauth-credential status <name> --wait 10m".
 
 A grant replaces the token, and with it whose data the Syncer reads. The
-platform does not check the account. Needs a member of the project.`,
+platform does not check the account. Needs oauth-credential/put in the project
+(Project Admin).`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if wait < 0 {

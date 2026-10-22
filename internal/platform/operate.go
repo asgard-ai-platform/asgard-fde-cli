@@ -164,6 +164,10 @@ func operateErrorText(e *APIError, msg string) (string, bool) {
 		needs = "running a SkillSet's sync takes skill-set/put, and reading its runs takes project-resource/read"
 	case strings.HasPrefix(e.Path, "/v1/source-set/"), strings.HasPrefix(e.Path, "/v1/syncer/"):
 		needs = "running a drive's Syncer takes source-set/put, and reading a Syncer or its runs takes project-resource/read"
+	case strings.HasPrefix(e.Path, "/v1/integration/oauth/providers"):
+		needs = "opening an OAuthProvider to members' own accounts, or closing it, takes oauth-provider/put (Project Admin), and listing them takes project-resource/read"
+	case strings.HasPrefix(e.Path, "/v1/integration/oauth/credentials"):
+		needs = "granting an OAuthCredential takes oauth-credential/put (Project Admin), and reading one takes project-resource/read"
 	default:
 		return "", false
 	}
@@ -419,4 +423,74 @@ func (c *Client) AuthorizeOAuthCredential(ctx context.Context, project, credenti
 		return "", fmt.Errorf("the platform started a grant for %s and returned no URL to complete it at", credential)
 	}
 	return out.AuthorizationURL, err
+}
+
+// OAuthProvider is what `operate oauth-provider` reads of an OAuthProvider:
+// whether members of the project may connect their own account through it
+// (the label asgard-ai.com/personal-account: eligible, the chart's), and
+// whether they can right now (Asgard Connector's switch, which no chart holds).
+type OAuthProvider struct {
+	ID                      string                 `json:"oauth_provider_id"`
+	DisplayName             string                 `json:"display_name,omitempty"`
+	PersonalAccountEligible bool                   `json:"personal_account_eligible"`
+	IndividualCredentials   *IndividualCredentials `json:"individual_credentials,omitempty"`
+}
+
+// IndividualCredentials is an eligible OAuthProvider's switch in Asgard
+// Connector, and how many members have connected.
+type IndividualCredentials struct {
+	// Status is one of the IndividualCredentials* values.
+	Status           string `json:"status"`
+	ConnectedCount   int32  `json:"connected_count"`
+	NeedsReauthCount int32  `json:"needs_reauth_count"`
+	UpdatedBy        *struct {
+		UserID      string `json:"user_id"`
+		DisplayName string `json:"display_name,omitempty"`
+		Email       string `json:"email,omitempty"`
+	} `json:"updated_by,omitempty"`
+	UpdatedAt string `json:"updated_at,omitempty"`
+}
+
+// The states of an OAuthProvider's switch. Closed is one that was opened
+// before; NotOpen has never been.
+const (
+	IndividualCredentialsOpen    = "open"
+	IndividualCredentialsClosed  = "closed"
+	IndividualCredentialsNotOpen = "not_open"
+)
+
+// The reason codes the platform answers opening one with when it may not be
+// opened (asgard-proto common.ErrorReasonCode).
+const (
+	ReasonConnectorProviderNotEligible        = 10001
+	ReasonConnectorProviderDisplayNameMissing = 10010
+)
+
+// ListOAuthProviders reads every OAuthProvider of the project. The switch
+// is missing from one whose project has no Asgard Connector, or when
+// Connector did not answer.
+func (c *Client) ListOAuthProviders(ctx context.Context, project string) ([]OAuthProvider, error) {
+	var out []OAuthProvider
+	err := c.do(ctx, request{
+		method:  http.MethodGet,
+		path:    "/v1/integration/oauth/providers",
+		project: project,
+		out:     &out,
+	})
+	return out, err
+}
+
+// SetIndividualCredentials opens an OAuthProvider to members' own accounts,
+// or closes it, and returns the switch as it now is.
+func (c *Client) SetIndividualCredentials(ctx context.Context, project, provider string, open bool) (*IndividualCredentials, error) {
+	var out IndividualCredentials
+	err := c.do(ctx, request{
+		method:     http.MethodPut,
+		path:       "/v1/integration/oauth/providers/" + url.PathEscape(provider) + "/individual-credentials",
+		project:    project,
+		body:       map[string]bool{"open": open},
+		out:        &out,
+		sideEffect: true,
+	})
+	return &out, err
 }
