@@ -19,12 +19,12 @@ called Data Source and people try to put every credential there.
 | what the customer handed over | where it goes |
 |---|---|
 | host, port, database, user, password | Data Source. Nine DB providers only - see [`settings.md`](../wiki/settings.md) |
-| an OAuth app for Dropbox / Google Drive / OneDrive / Google Sheets / OneDrive Workbook | Connection - [`settings.md`](../wiki/settings.md) |
+| the customer's own OAuth client for a vendor, and the account that grants it | Connection - [`settings.md`](../wiki/settings.md) |
 | an API key or token for an HTTP API | neither. It is a tool's config, not a data source |
 | a chat platform's channel secret and access token | a `BotProvider` - [`integration.md`](../wiki/integration.md) |
 
-An HTTP API has no home under Settings. Data Source takes nine database providers and nothing else; Connection is OAuth to
-five named services. A REST API with a bearer token is reached by a tool that
+An HTTP API has no home under Settings. Data Source takes nine database providers and nothing else; Connection is OAuth
+with a client the chart declares. A REST API with a bearer token is reached by a tool that
 carries its own credentials - either an `http-request` step inside a Workflow, or
 an MCP Server started with environment variables. `../usecase/external-api.md`
 is the whole shape, including which of the two to take and why.

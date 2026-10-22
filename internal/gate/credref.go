@@ -18,7 +18,10 @@ import (
 // `.Values.asgard.appConfigMapName`. A chart may not declare a Secret or a
 // ConfigMap of its own - the runner's kind whitelist rejects anything outside
 // the asgard-ai.com group - so those two names are the only ones a
-// `secretKeyRef` or `configMapKeyRef` can legitimately carry.
+// `secretKeyRef` or `configMapKeyRef` can legitimately carry. The one
+// exception is an OAuthCredential's tokens: they are in a Secret with the
+// credential's own name, which the platform creates and owns, and a Workflow
+// reads the token from there.
 //
 // Nothing else sees this. A name is a valid string, so the CR is valid, the
 // CRD's own rules pass, the server dry run passes, apply succeeds, and the
@@ -58,6 +61,19 @@ func CredentialRefs(docs []Doc, opts Options) Result {
 	// of the question `DeclaredKeys` answers.
 	read := map[string]map[string]bool{"secretKeyRef": {}, "configMapKeyRef": {}}
 
+	// **An OAuthCredential's token Secret is named by the render itself.** It
+	// has the credential's name, so it is known with or without a release
+	// name, and it holds three keys the platform writes - none of them
+	// declared, because nothing injects them.
+	tokenSecrets := map[string]bool{}
+	for _, d := range docs {
+		if d.Kind == "OAuthCredential" && d.Name != "" {
+			tokenSecrets[d.Name] = true
+		}
+	}
+	tokenRefs := 0
+	deprecated := 0
+
 	var walk func(v any, kind, name string)
 	walk = func(v any, kind, name string) {
 		switch t := v.(type) {
@@ -96,6 +112,19 @@ func CredentialRefs(docs []Doc, opts Options) Result {
 					continue
 				}
 
+				if ref == "secretKeyRef" && tokenSecrets[got] {
+					tokenRefs++
+					if key, _ := block["key"].(string); key != "" && !oauthTokenKeys[key] {
+						msg := fmt.Sprintf("%s/%s: %s reads key %q from the token Secret of OAuthCredential %s, which holds only access_token, refresh_token and expires_at",
+							kind, name, ref, key, got)
+						if !seen[msg] {
+							seen[msg] = true
+							warnings = append(warnings, msg)
+						}
+					}
+					continue
+				}
+
 				if key, _ := block["key"].(string); key != "" && (expect == "" || got == expect) {
 					read[ref][key] = true
 					if opts.DeclaredKeys != nil && !opts.DeclaredKeys[ref][key] {
@@ -130,17 +159,16 @@ func CredentialRefs(docs []Doc, opts Options) Result {
 
 	for _, d := range docs {
 		walk(d.Spec, d.Kind, d.Name)
-		// **An OAuthProvider reads two keys it never names.** Its secretRef
-		// names only the Secret; the platform reads `client_id` and
-		// `client_secret` out of it by those fixed names. A chart that
-		// declares them for a customer's own client was told nothing read
-		// them, which is the one reader this walk cannot see.
-		if d.Kind == "OAuthProvider" {
-			if ref := mapOf(d.Spec["secretRef"]); ref != nil {
-				if got, _ := ref["name"].(string); got != "" && (want["secretKeyRef"] == "" || got == want["secretKeyRef"]) {
-					read["secretKeyRef"]["client_id"] = true
-					read["secretKeyRef"]["client_secret"] = true
-				}
+		// **`secretRef` is read by nothing.** asgard-kube v1.2.0 deprecated it
+		// on both kinds. A provider's client is `clientId` and `clientSecret`,
+		// which the walk above follows like any other reference, and the CRD
+		// refuses a provider without them; a credential's tokens are in the
+		// Secret of its own name, and its `secretRef` is accepted and ignored,
+		// so a Workflow that reads the Secret it names reads nothing.
+		if d.Kind == "OAuthProvider" || d.Kind == "OAuthCredential" {
+			if mapOf(d.Spec["secretRef"]) != nil {
+				deprecated++
+				warnings = append(warnings, deprecatedSecretRef(d))
 			}
 		}
 	}
@@ -182,7 +210,9 @@ func CredentialRefs(docs []Doc, opts Options) Result {
 	if len(warnings) > 0 {
 		sort.Strings(warnings)
 		for i, w := range warnings {
-			if strings.Contains(w, "and nothing in this render reads it") {
+			if strings.Contains(w, "and nothing in this render reads it") ||
+				strings.Contains(w, "the platform no longer reads it") ||
+				strings.Contains(w, "from the token Secret of OAuthCredential") {
 				continue
 			}
 			if strings.Contains(w, "Agent Hub's own credential") {
@@ -207,8 +237,11 @@ func CredentialRefs(docs []Doc, opts Options) Result {
 				"rename anything. Nothing downstream reports this: the CR is valid and the failure is at runtime"
 		}
 		var parts []string
-		if n := len(warnings) - unread; n > 0 {
+		if n := len(warnings) - unread - deprecated; n > 0 {
 			parts = append(parts, fmt.Sprintf("%d unusable", n))
+		}
+		if deprecated > 0 {
+			parts = append(parts, fmt.Sprintf("%d deprecated secretRef(s)", deprecated))
 		}
 		if unread > 0 {
 			parts = append(parts, fmt.Sprintf("%d declared key(s) read by nothing", unread))
@@ -221,17 +254,36 @@ func CredentialRefs(docs []Doc, opts Options) Result {
 	if checked == 0 {
 		return Result{Summary: "no credential references"}
 	}
-	if opts.Release == "" {
+	if n := checked - tokenRefs; opts.Release == "" && n > 0 {
+		summary := fmt.Sprintf("%d credential reference(s), none checked", checked)
+		if tokenRefs > 0 {
+			summary = fmt.Sprintf("%d credential reference(s), %d not checked", checked, n)
+		}
 		return Result{
 			Warnings: []string{fmt.Sprintf(
 				"%d credential reference(s) went unchecked: with no release name the injected Secret and "+
 					"ConfigMap names are unknown, so a reference to an object that will not exist cannot be "+
 					"told apart from a correct one. Render through `asgard-cli verify <release>` to check them",
-				checked)},
-			Summary: fmt.Sprintf("%d credential reference(s), none checked", checked),
+				n)},
+			Summary: summary,
 		}
 	}
 	return Result{Summary: fmt.Sprintf("%d credential reference(s), all to this release's own objects", checked)}
+}
+
+// The keys the platform writes into an OAuthCredential's token Secret.
+var oauthTokenKeys = map[string]bool{"access_token": true, "refresh_token": true, "expires_at": true}
+
+func deprecatedSecretRef(d Doc) string {
+	if d.Kind == "OAuthProvider" {
+		return fmt.Sprintf("%s/%s: spec.secretRef is deprecated and the platform no longer reads it. The client is "+
+			"spec.clientId and spec.clientSecret, each `valueFrom.secretKeyRef` to a key of this release's Secret "+
+			"declared under `appSecret:` - the key names are the chart's own, so one release can hold several "+
+			"clients - and secretRef should go", d.Kind, d.Name)
+	}
+	return fmt.Sprintf("%s/%s: spec.secretRef is deprecated and the platform no longer reads it. The tokens are in "+
+		"the Secret named %q, which the platform creates and owns; remove secretRef, and read the token with "+
+		"`secretKeyRef` `name: %s`, `key: access_token`", d.Kind, d.Name, d.Name, d.Name)
 }
 
 func refObject(ref string) string {

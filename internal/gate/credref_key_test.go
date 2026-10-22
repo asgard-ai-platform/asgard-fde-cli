@@ -155,22 +155,98 @@ func TestPlatformInternalReadDoesNotSatisfyADeclaration(t *testing.T) {
 	}
 }
 
-// **An OAuthProvider reads client_id and client_secret without naming them.**
-// Its secretRef names the release's Secret and the platform reads those two
-// keys from it, so a chart that declares them for a customer's own Google
-// client is not declaring keys "read by nothing".
-func TestCredentialRefsCountsTheOAuthProviderKeys(t *testing.T) {
+// **An OAuthProvider's client is two references like any other.** Its
+// clientId and clientSecret read keys of the release's Secret under names the
+// chart chooses, so a declaration of them is read, and a key nothing declares
+// is said to be.
+func TestCredentialRefsFollowsTheOAuthProviderClient(t *testing.T) {
+	ref := func(key string) map[string]any {
+		return map[string]any{"valueFrom": map[string]any{
+			"secretKeyRef": map[string]any{"name": "iac-purchasing-dev-app-secret", "key": key},
+		}}
+	}
+	oap := Doc{Kind: "OAuthProvider", Name: "oap-google-drive", Spec: map[string]any{
+		"clientId":     ref("google_drive_client_id"),
+		"clientSecret": ref("google_drive_client_secret"),
+	}}
+	opts := Options{Release: "purchasing-dev", DeclaredKeys: map[string]map[string]bool{
+		"secretKeyRef": {"google_drive_client_id": true, "google_drive_client_secret": true}, "configMapKeyRef": {},
+	}}
+	if got := Placeholder(CredentialRefs([]Doc{oap}, opts)); got != "" {
+		t.Errorf("a provider whose client is declared was reported:\n%s", got)
+	}
+	delete(opts.DeclaredKeys["secretKeyRef"], "google_drive_client_secret")
+	if got := Placeholder(CredentialRefs([]Doc{oap}, opts)); !strings.Contains(got, `reads key "google_drive_client_secret", and .asgard-pipeline.yaml declares it for no release`) {
+		t.Errorf("an undeclared client secret key passed:\n%s", got)
+	}
+}
+
+// **`secretRef` is read by nothing, on either kind.** asgard-kube v1.2.0
+// deprecated both. A provider's own fixed `client_id` and `client_secret` are
+// no longer read through it, so declaring them is declaring keys nothing reads;
+// a credential's is ignored, and the warning names the Secret the tokens are in.
+func TestCredentialRefsWarnsOnADeprecatedSecretRef(t *testing.T) {
 	oap := Doc{Kind: "OAuthProvider", Name: "oap-google-drive", Spec: map[string]any{
 		"secretRef": map[string]any{"name": "iac-purchasing-dev-app-secret"},
 	}}
-	opts := Options{Release: "purchasing-dev", DeclaredKeys: map[string]map[string]bool{
-		"secretKeyRef": {"client_id": true, "client_secret": true}, "configMapKeyRef": {},
+	oac := Doc{Kind: "OAuthCredential", Name: "oac-google-drive", Spec: map[string]any{
+		"providerRef": "oap-google-drive",
+		"secretRef":   map[string]any{"name": "oac-google-drive-token"},
 	}}
-	if got := Placeholder(CredentialRefs([]Doc{oap}, opts)); strings.Contains(got, "nothing in this render reads it") {
-		t.Errorf("the OAuthProvider's two keys were reported as unread:\n%s", got)
+	opts := Options{Release: "purchasing-dev", DeclaredKeys: map[string]map[string]bool{
+		"secretKeyRef": {"client_id": true}, "configMapKeyRef": {},
+	}}
+	r := CredentialRefs([]Doc{oap, oac}, opts)
+	got := Placeholder(r)
+	for _, want := range []string{
+		"OAuthProvider/oap-google-drive: spec.secretRef is deprecated and the platform no longer reads it",
+		`OAuthCredential/oac-google-drive: spec.secretRef is deprecated and the platform no longer reads it. The tokens are in the Secret named "oac-google-drive"`,
+		`"client_id" and nothing in this render reads it`,
+	} {
+		if !strings.Contains(got, want) {
+			t.Errorf("missing %q in:\n%s", want, got)
+		}
 	}
-	// Without the OAuthProvider they are unread, and still said to be.
-	if got := Placeholder(CredentialRefs([]Doc{{Kind: "Agent", Name: "ag-x", Spec: map[string]any{}}}, opts)); !strings.Contains(got, `"client_id" and nothing in this render reads it`) {
-		t.Errorf("an unread client_id was not reported:\n%s", got)
+	if strings.Contains(got, "The Platform injects the name on every run") {
+		t.Errorf("a deprecated secretRef was given the advice for a literal Secret name:\n%s", got)
+	}
+	if !strings.Contains(r.Summary, "2 deprecated secretRef(s)") || strings.Contains(r.Summary, "unusable") {
+		t.Errorf("summary %q", r.Summary)
+	}
+}
+
+// **An OAuthCredential's token Secret is the one other Secret a reference may
+// name.** The platform keeps the tokens in a Secret of the credential's own
+// name, and a Workflow reads access_token from it as a variable. The name is
+// known from the render, so it is checked with or without a release name; a key
+// the platform does not write is reported, and a credential this render does
+// not deploy is not a token Secret.
+func TestCredentialRefsKnowsTheOAuthCredentialTokenSecret(t *testing.T) {
+	oac := Doc{Kind: "OAuthCredential", Name: "oac-google-drive", Spec: map[string]any{"providerRef": "oap-google-drive"}}
+	wf := func(key string) Doc {
+		return Doc{Kind: "Workflow", Name: "wf-drive-search", Spec: map[string]any{
+			"variables": []any{map[string]any{"name": "driveToken", "valueFrom": map[string]any{
+				"secretKeyRef": map[string]any{"name": "oac-google-drive", "key": key},
+			}}},
+		}}
+	}
+	opts := Options{Release: "purchasing-dev", DeclaredKeys: map[string]map[string]bool{
+		"secretKeyRef": {}, "configMapKeyRef": {},
+	}}
+
+	r := CredentialRefs([]Doc{oac, wf("access_token")}, opts)
+	if got := Placeholder(r); got != "" {
+		t.Errorf("reading the credential's token was reported:\n%s", got)
+	}
+	r = CredentialRefs([]Doc{oac, wf("access_token")}, Options{})
+	if got := Placeholder(r); got != "" || !strings.Contains(r.Summary, "all to this release's own objects") {
+		t.Errorf("with no release name the token reference went unchecked: %q\n%s", r.Summary, got)
+	}
+
+	if got := Placeholder(CredentialRefs([]Doc{oac, wf("token")}, opts)); !strings.Contains(got, `reads key "token" from the token Secret of OAuthCredential oac-google-drive`) {
+		t.Errorf("a key the platform does not write passed:\n%s", got)
+	}
+	if got := Placeholder(CredentialRefs([]Doc{wf("access_token")}, opts)); !strings.Contains(got, `secretKeyRef.name is "oac-google-drive", and the only Secret this release has is "iac-purchasing-dev-app-secret"`) {
+		t.Errorf("a credential this render does not deploy was taken for a token Secret:\n%s", got)
 	}
 }
