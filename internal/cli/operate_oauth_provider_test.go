@@ -29,7 +29,7 @@ const providerManifest = `{"success":true,"data":{"helm_revision":1,"helm_status
 const providerList = `{"success":true,"data":[
 {"oauth_provider_id":"oap-sheet","personal_account_eligible":false},
 {"oauth_provider_id":"oap-intercom","personal_account_eligible":true,"individual_credentials":{"status":"not_open","connected_count":0,"needs_reauth_count":0}},
-{"oauth_provider_id":"oap-drive","display_name":"Google Drive","personal_account_eligible":true,"individual_credentials":{"status":"open","connected_count":12,"needs_reauth_count":1}}
+{"oauth_provider_id":"oap-drive","display_name":"Google Drive（測試）","personal_account_eligible":true,"individual_credentials":{"status":"open","connected_count":12,"needs_reauth_count":1}}
 ]}`
 
 func (f *providerFake) server(t *testing.T) *httptest.Server {
@@ -102,9 +102,17 @@ func TestOperateOAuthProviderListThroughARelease(t *testing.T) {
 	if len(lines) != 3 {
 		t.Fatalf("want a header and the release's two providers, got:\n%s", out)
 	}
-	if !strings.HasPrefix(lines[1], "oap-drive") || !strings.Contains(lines[1], "Google Drive") ||
+	if !strings.HasPrefix(lines[1], "oap-drive") || !strings.HasSuffix(lines[1], "Google Drive（測試）") ||
 		!strings.Contains(lines[1], "open") || !strings.Contains(lines[1], "12 (1 to reconnect)") {
 		t.Errorf("oap-drive row %q", lines[1])
+	}
+	// The display name is last, so a CJK one cannot push the other columns
+	// out of line: MEMBERS starts at the same place on every row.
+	col := strings.Index(lines[0], "MEMBERS")
+	for _, l := range lines[1:] {
+		if strings.Index(l, "open") != col && strings.Index(l, "not open") != col {
+			t.Errorf("MEMBERS not at column %d in %q", col, l)
+		}
 	}
 	if !strings.HasPrefix(lines[2], "oap-intercom") || !strings.Contains(lines[2], "not open") {
 		t.Errorf("oap-intercom row %q", lines[2])

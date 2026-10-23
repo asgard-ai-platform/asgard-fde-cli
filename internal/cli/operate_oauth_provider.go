@@ -63,6 +63,7 @@ of the project's. The columns:
                              label, so only shared OAuthCredentials use it
                   unknown    Asgard Connector did not answer
     CONNECTED     members connected, and how many must reconnect
+    DISPLAY NAME  what members see in Connections; - when there is none
 
 Needs project-resource/read.`,
 		Args: cobra.NoArgs,
@@ -202,9 +203,12 @@ func explainSwitchRefusal(err error, name string) error {
 	return err
 }
 
+// writeOAuthProviders prints the table. The display name goes last: it is
+// often CJK, which tabwriter counts one column per rune although a terminal
+// draws two, so any column after it would be pushed out of line.
 func writeOAuthProviders(out io.Writer, providers []platform.OAuthProvider) {
 	tw := tabwriter.NewWriter(out, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(tw, "NAME\tDISPLAY NAME\tMEMBERS\tCONNECTED")
+	fmt.Fprintln(tw, "NAME\tMEMBERS\tCONNECTED\tDISPLAY NAME")
 	for _, p := range providers {
 		display := p.DisplayName
 		if display == "" {
@@ -226,7 +230,7 @@ func writeOAuthProviders(out io.Writer, providers []platform.OAuthProvider) {
 				connected += fmt.Sprintf(" (%d to reconnect)", ic.NeedsReauthCount)
 			}
 		}
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", p.ID, display, members, connected)
+		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", p.ID, members, connected, display)
 	}
 	_ = tw.Flush()
 }
