@@ -197,6 +197,33 @@ func (f *File) Set(key, value string) {
 	f.lines = append(f.lines, line{raw: key + "=" + Encode(value), key: key, value: value})
 }
 
+// keyName is a key a shell can export: the names assignment parses.
+var keyName = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
+
+// AddPlaceholders appends an empty `KEY=` for each key that is not in the file
+// yet, and returns the ones it added. Nothing reaches the disk until Save.
+//
+// The person filling the form in is often not an engineer. Adding a key by hand
+// - finding the button, spelling the name exactly as the agent will read it -
+// is where they give up, so the keys the agent asked for are always there.
+//
+// A name that is not a valid key is an error rather than a placeholder: a typo
+// in --focus would otherwise become a field nobody reads.
+func (f *File) AddPlaceholders(keys []string) ([]string, error) {
+	var added []string
+	for _, k := range keys {
+		if !keyName.MatchString(k) {
+			return nil, fmt.Errorf("%q is not a key name: letters, digits and _, not starting with a digit", k)
+		}
+		if f.Has(k) {
+			continue
+		}
+		f.lines = append(f.lines, line{raw: k + "=", key: k})
+		added = append(added, k)
+	}
+	return added, nil
+}
+
 // Has reports whether the key is in the file at all, filled in or not.
 func (f *File) Has(key string) bool {
 	for _, l := range f.lines {
