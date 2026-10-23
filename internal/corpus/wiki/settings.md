@@ -188,8 +188,34 @@ name that something else made first: the credential then stays Failed, says
 so in its status, and never writes to it. Rename the credential.
 
 The Console's Connection page was built around the presets - its Type list
-grouped them by name - and is being redesigned, so a chart's credential is
-granted from here rather than there.
+grouped them by name - and is being redesigned as Settings › Connection Points,
+so a chart's credential is granted from here rather than there. The labels
+`asgard-ai.com/oauth-provider-type` and `asgard-ai.com/correlated-resource-type`
+belonged to that page; nothing reads them any more, so a chart does not write
+them.
+
+**Members' own accounts.** A provider can also let each member of the project
+connect their own account, in Connections where they talk to agents; an agent
+then works as the member it is talking to, through `asgard-keyring` in its
+sandbox. The chart allows it on the `OAuthProvider`:
+
+- the label `asgard-ai.com/personal-account: eligible`;
+- the annotation `asgard-ai.com/display-name` - the name members see. A
+  provider without one cannot be opened: the platform refuses, since members
+  would see the CR name;
+- `asgard-ai.com/description` and `spec.endpoints.userInfoURL` - recommended:
+  without them members do not know what connecting is for, or which account
+  they connected;
+- `asgard-ai.com/example-prompts` (a JSON array of strings) and
+  `asgard-ai.com/keyring-env` (the variable `asgard-keyring token --env`
+  sets) are optional.
+
+Allowing is not opening. Whether members can connect, in a given project, is a
+switch in Asgard Connector that no deploy turns on: after the deploy,
+`asgard-cli operate oauth-provider enable <name> --release <release>`, or the
+project's admin in Odin. The Agent's prompt names the provider and when to
+connect; how to use `asgard-keyring` is in its `--help`, and the platform
+tells the agent it is there.
 
 ## Before writing the chart
 
@@ -202,7 +228,10 @@ PENDING and whatever reads it fails at runtime while every check before it
 passes. The grant is a post-deploy step, started with
 `asgard-cli operate oauth-credential authorize <name> --release <release>`;
 whoever signs in decides whose data it reads, and the platform does not
-check which account it was.
+check which account it was. A provider for members' own accounts has a
+post-deploy step too: `asgard-cli operate oauth-provider enable <name>
+--release <release>` opens it in the project, and it needs the display-name
+annotation first.
 
 ## Sources
 

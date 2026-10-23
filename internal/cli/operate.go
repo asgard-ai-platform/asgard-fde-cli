@@ -36,6 +36,7 @@ their own history rather than in the pipeline run that deployed them.
     asgard-cli operate trigger runs <name> --release <r>        its invocations, and their logs
     asgard-cli operate source-set reindex <name> --release <r>  a context index refresh, now
     asgard-cli operate oauth-credential authorize <name>        the grant a chart cannot make
+    asgard-cli operate oauth-provider enable|disable <name>     open it to members' own accounts
     asgard-cli operate source-set ls|cat|put <name> ...         a drive's files, as the Console shows them
     asgard-cli operate chat send agent/<name> "<text>"          an Agent's preview, from here
 
@@ -43,7 +44,8 @@ Only what IaC cannot do is here. A CR's spec, its labels, whether it is
 published or suspended - those are the chart's, and changing one here would be
 reverted by the next run that deploys it. So there is no command that edits a
 CR, and none that lists them: "asgard-cli pipeline manifest" already reads back
-what a release has.
+what a release has. "oauth-provider list" is the one list, and it is of what no
+CR holds: which OAuthProviders are open to members.
 
 WHICH CR. A CR is named by its metadata.name as the cluster has it, which is
 the rendered name, and found in one of two ways:
@@ -73,6 +75,7 @@ help. A refusal says which permission it was.`,
 		newOperateSourceSetCmd(),
 		newOperateTriggerCmd(),
 		newOperateOAuthCredentialCmd(),
+		newOperateOAuthProviderCmd(),
 	)
 	cmd.AddGroup(&cobra.Group{ID: operateGroupConversation, Title: "Conversation - talk to what was deployed:"})
 	addTo(cmd, operateGroupConversation, newOperateChatCmd())

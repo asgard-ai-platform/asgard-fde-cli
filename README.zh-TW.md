@@ -799,6 +799,8 @@ asgard-cli operate source-set reindex <name> --release <r>        # 現在重建
 asgard-cli operate source-set index-runs <name> --release <r>     # 它的每次重建；index-logs 讀其中一次
 asgard-cli operate oauth-credential authorize <name> --release <r> # chart 做不到的授權
 asgard-cli operate oauth-credential status <name> --release <r> --wait 10m
+asgard-cli operate oauth-provider list --release <r>              # 哪些開放給成員連自己的帳號
+asgard-cli operate oauth-provider enable <name> --release <r>     # 開放；disable 關閉
 asgard-cli operate source-set ls <name> docs/ --release <r>      # 一個 drive 的檔案；另有 stat、cat、put、mkdir、rm、mv、cp
 asgard-cli operate source-set put <name> ./faq.pdf docs/faq.pdf --release <r>
 asgard-cli operate skill-set ls <name> skills/ --release <r>     # SkillSet 的檔案，同一組指令
