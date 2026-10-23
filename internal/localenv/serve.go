@@ -10,7 +10,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/asgard-ai-platform/asgard-fde-cli/internal/browser"
@@ -341,19 +340,6 @@ func Keys(f *File) []string {
 	var out []string
 	for _, e := range f.Entries() {
 		out = append(out, e.Key)
-	}
-	return out
-}
-
-// MissingFocus reports which of the requested focus keys are not in the file,
-// so a typo in --focus is said out loud rather than silently highlighting
-// nothing.
-func MissingFocus(f *File, focus []string) []string {
-	var out []string
-	for _, k := range focus {
-		if k = strings.TrimSpace(k); k != "" && !f.Has(k) {
-			out = append(out, k)
-		}
 	}
 	return out
 }

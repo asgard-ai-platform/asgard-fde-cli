@@ -37,11 +37,16 @@ been through a transcript has to be treated as disclosed. Asking a person who
 may not be an engineer to open a dotfile, find the right line and mind the
 whitespace usually fails as well.
 
-The agent writes the keys it needs, with the values left empty, and this
-opens a form to fill them in:
+Name the keys you need with --focus, and this opens a form to fill them in:
 
-    asgard-cli local-env
     asgard-cli local-env --focus UOF_DB_HOST,UOF_DB_PASSWORD
+    asgard-cli local-env
+
+A key that is not in ` + "`.env`" + ` yet is added to the form, empty, and written to
+the file when the form is saved, so nobody filling it in has to add a key by
+hand. A key written beforehand with a comment above it - db-query's ` + "`--keys`" + `
+writes them that way - shows the comment in the form as a note on what it is
+for.
 
 It serves one page on 127.0.0.1 on a random port, opens a browser at it, and
 closes as soon as the form is saved. The URL carries a one-time token, the
@@ -52,7 +57,7 @@ What this command reports is a list of key names. It never prints a value,
 on save, in an error or in the summary: the values are written to the file and
 nowhere else.
 
-` + "`--focus`" + ` highlights the keys you are waiting for. It does not hide the
+` + "`--focus`" + ` also highlights the keys you are waiting for. It does not hide the
 others, because the person filling this in may know about a second database
 nobody has mentioned yet. They can add keys too, so the agent should re-read
 ` + "`.env`" + ` afterwards rather than assume it got back exactly what it asked for.
@@ -117,12 +122,15 @@ returns. --terminal has no terminal to ask at there.`,
 			}
 
 			focus = splitFocus(focus)
-			if missing := localenv.MissingFocus(file, focus); len(missing) > 0 {
-				// A typo in --focus would otherwise highlight nothing and look
-				// like the form simply had nothing to point at.
-				fmt.Fprintf(errOut, "warning: --focus names %s that %s not in %s yet, so nothing is highlighted for %s\n",
-					plural(len(missing), "key"), isAre(len(missing)), localenv.FileName,
-					strings.Join(missing, ", "))
+			added, err := file.AddPlaceholders(focus)
+			if err != nil {
+				return fmt.Errorf("--focus: %w", err)
+			}
+			if len(added) > 0 {
+				// Said out loud, so a misspelt key shows up as a field nobody
+				// meant rather than as a form that quietly asks for it.
+				fmt.Fprintf(errOut, "%s not in %s yet, so the form adds %s empty: %s (written when the form is saved)\n",
+					plural(len(added), "key"), localenv.FileName, itThem(len(added)), strings.Join(added, ", "))
 			}
 
 			opts := localenv.Options{
@@ -153,7 +161,7 @@ returns. --terminal has no terminal to ask at there.`,
 
 	f := cmd.Flags()
 	f.StringSliceVar(&focus, "focus", nil,
-		"highlight these keys in the form; it never hides the rest")
+		"highlight these keys in the form, adding any that .env does not have yet; it never hides the rest")
 	f.BoolVar(&noBrowser, "no-browser", false,
 		"do not open a browser; the URL is printed either way")
 	f.BoolVar(&terminal, "terminal", false,
@@ -232,9 +240,9 @@ func splitFocus(in []string) []string {
 	return out
 }
 
-func isAre(n int) string {
+func itThem(n int) string {
 	if n == 1 {
-		return "is"
+		return "it"
 	}
-	return "are"
+	return "them"
 }
