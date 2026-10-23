@@ -215,7 +215,9 @@ switch in Asgard Connector that no deploy turns on: after the deploy,
 `asgard-cli operate oauth-provider enable <name> --release <release>`, or the
 project's admin in Odin. The Agent's prompt names the provider and when to
 connect; how to use `asgard-keyring` is in its `--help`, and the platform
-tells the agent it is there.
+tells the agent it is there. Writes with that token happen in the sandbox and
+are confirmed by the member in the conversation, not by a consenting tool:
+`../usecase/external-api.md`.
 
 ## Before writing the chart
 

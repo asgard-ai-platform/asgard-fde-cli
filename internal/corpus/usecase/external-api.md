@@ -55,8 +55,10 @@ reviewed and gated:
 | Use for | anything with a side effect, and reads you want pinned | reads only, where the surface is wide and exploratory |
 
 Every write goes through A, with `requestConsent: true`. Never let a sandbox
-make a side-effecting call to an external system: there is no gate, no record of
-what was sent, and no way to review the request shape before it goes out.
+make a side-effecting call to an external system with a credential the chart
+holds: there is no gate, no record of what was sent, and no way to review the
+request shape before it goes out. The one exception is a member's own account,
+below.
 
 Reads may use B in two cases:
 
@@ -88,6 +90,26 @@ only after somebody has completed its grant, which a chart cannot do
 directories to create and carries no content. A `hook` is an expression stored
 in the CR spec, so a key written by one is a key baked into the chart, which
 `../usecase/conventions.md` refuses.
+
+**A member's own account writes from the sandbox.** When each member connects
+their own account (`../wiki/settings.md`, Members' own accounts), the token is
+handed to the sandbox per turn by `asgard-keyring` and never reaches a Workflow,
+so A cannot carry it. The writes that member asks for happen in the sandbox,
+and the gate moves into the conversation:
+
+- the skill's write command prints what it would send unless told to send
+  (`--send`);
+- the agent lists it for the member - what, where, under whose name - and
+  ends its turn with `needs input:`;
+- it sends only after the member confirms in their next message, and reports
+  what was written.
+
+There is no approval card in this path. The token can do what the member can
+do in that system, so the limit is the vendor's own: the permissions the
+customer's app or integration grants and the member's role there. Narrow them
+on the vendor's side; a prompt is not a limit. A credential the chart holds
+never takes this path. Checked in Sindri on DEV against `asgard-keyring`
+`v0.2.0`, writing to NetSuite and Intercom as the member.
 
 So a system that needs a static key goes through A, however well it fits
 B's description otherwise: `Workflow.spec.variables[].valueFrom.secretKeyRef` is
@@ -394,7 +416,8 @@ tools now cover has to drop whatever the tools hide.
 ## Writes: the approval gate
 
 A tool with a side effect sets `requestConsent: true` on its entry in the
-Toolset. The harness intercepts the call and waits for a human. The prompt
+Toolset (a member's own account is the exception: it writes from the sandbox,
+gated in the conversation - see "When this shape, and when not"). The harness intercepts the call and waits for a human. The prompt
 should not describe an approval flow - the gate is the harness's, and prompting
 around it only invites the model to work past it.
 
