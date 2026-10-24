@@ -18,9 +18,7 @@ system:
   category: crm
 routes:
   - id: build-time.static-secret
-    status: experimental
   - id: shared-account.oauth-customer
-    status: verified
     brakes: [dataconnector-semanticlayer]
 oauth:
   customer_client:
@@ -127,9 +125,9 @@ func TestLintErrors(t *testing.T) {
 			j := strings.Index(f["README.md"], "listing:")
 			f["README.md"] = f["README.md"][:i] + f["README.md"][j:]
 		}, "oauth.customer_client: required"},
-		{"bad status", func(f map[string]string) {
-			f["README.md"] = strings.Replace(f["README.md"], "status: verified", "status: planned", 1)
-		}, "must be one of experimental, verified"},
+		{"status refused", func(f map[string]string) {
+			f["README.md"] = strings.Replace(f["README.md"], "  - id: build-time.static-secret\n", "  - id: build-time.static-secret\n    status: verified\n", 1)
+		}, "routes no longer carry a status"},
 		{"env file", func(f map[string]string) { f["knowledge/.env"] = "TOKEN=x\n" }, "environment file"},
 	}
 	for _, c := range cases {

@@ -41,8 +41,12 @@ type System struct {
 // Route is one usage crossed with one way of authenticating, written
 // `<usage>.<auth>`. Each has a document under routes/ named after its id.
 type Route struct {
-	ID       string   `yaml:"id" json:"id"`
-	Status   string   `yaml:"status" json:"status"`
+	ID string `yaml:"id" json:"id"`
+	// Status is gone from the schema: a route that ships has been walked (the
+	// author's test and a clean-room run), so there is nothing left to mark.
+	// It is still read so that lint can refuse it, and so that versions
+	// published before the change decode.
+	Status   string   `yaml:"status,omitempty" json:"status,omitempty"`
 	Produces []string `yaml:"produces,omitempty" json:"produces,omitempty"`
 	Brakes   []string `yaml:"brakes,omitempty" json:"brakes,omitempty"`
 	Note     string   `yaml:"note,omitempty" json:"note,omitempty"`

@@ -30,9 +30,7 @@ system:
   category: crm
 routes:
   - id: build-time.static-secret
-    status: verified
   - id: shared-account.static-secret
-    status: experimental
 requires:
   skills: [db-query]
 listing: unlisted
@@ -320,7 +318,7 @@ func TestExtensionSearchAndShow(t *testing.T) {
 	t.Chdir(t.TempDir())
 
 	out, _, err := runCLI(t, "", "extension", "search", "acme")
-	if err != nil || !strings.Contains(out, "asgard-ext-acme") || !strings.Contains(out, "Acme Cloud  crm") || !strings.Contains(out, "build-time.static-secret verified") {
+	if err != nil || !strings.Contains(out, "asgard-ext-acme") || !strings.Contains(out, "Acme Cloud  crm") || !strings.Contains(out, "build-time.static-secret") || strings.Contains(out, "verified") {
 		t.Fatalf("search: %v\n%s", err, out)
 	}
 	if out, _, err := runCLI(t, "", "extension", "search", "nothing"); err != nil || !strings.Contains(out, "no Extension") {
