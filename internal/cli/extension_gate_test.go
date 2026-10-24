@@ -20,7 +20,6 @@ system:
   category: crm
 routes:
   - id: shared-account.static-secret
-    status: experimental
 listing: public
 source: closed
 owners: ["fde@example.com"]

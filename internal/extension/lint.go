@@ -41,7 +41,6 @@ var (
 		"documents": true, "communication": true, "crm": true, "erp": true, "project": true,
 		"finance": true, "developer": true, "calendar": true, "data": true,
 	}
-	statuses = map[string]bool{"verified": true, "experimental": true}
 	listings = map[string]bool{"public": true, "unlisted": true}
 	sources  = map[string]bool{"closed": true, "open": true}
 
@@ -241,8 +240,8 @@ func (l *linter) routes(meta *Meta) {
 			l.errorf(p, "%s.id: %q is declared twice", where, r.ID)
 		}
 		declared[r.ID] = true
-		if !statuses[r.Status] {
-			l.errorf(p, "%s.status: %q must be one of %s", where, r.Status, keysOf(statuses))
+		if r.Status != "" {
+			l.errorf(p, "%s.status: routes no longer carry a status - a route that ships has been walked (author's test and clean-room); delete the line", where)
 		}
 		for _, b := range r.Brakes {
 			if _, ok := Brakes[b]; !ok {

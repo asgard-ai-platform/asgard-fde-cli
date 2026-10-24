@@ -41,10 +41,9 @@ func newExtensionSearchCmd() *cobra.Command {
     asgard-cli extension search --category erp --format json
 
 The words match the id, name, summary, vendor, product or a tag, as one
-case-insensitive phrase. Each Extension is described by its latest version:
-its routes and whether each has been walked (verified) or not yet
-(experimental). Unlisted Extensions are included; listing only decides what the
-public website shows.
+case-insensitive phrase. Each Extension is described by its latest version
+and the routes it teaches; every route it ships has been walked. Unlisted
+Extensions are included; listing only decides what the public website shows.
 
 When the customer names an external system, search for it first. When there is
 an Extension, ` + "`asgard-cli extension get <id>`" + ` brings it into the repository
@@ -216,7 +215,7 @@ func printVersionInfo(out io.Writer, info *platform.ExtensionVersionInfo) {
 	fmt.Fprintln(out, "routes")
 	tw := tabwriter.NewWriter(out, 0, 2, 2, ' ', 0)
 	for _, r := range m.Routes {
-		fmt.Fprintf(tw, "  %s\t%s", r.ID, r.Status)
+		fmt.Fprintf(tw, "  %s", r.ID)
 		if len(r.Produces) > 0 {
 			fmt.Fprintf(tw, "\tproduces %s", strings.Join(r.Produces, ", "))
 		}
@@ -650,11 +649,11 @@ func systemName(s platform.ExtensionSystem) string {
 	return s.Vendor
 }
 
-// routeList is the routes on one line, with how far each has been walked.
+// routeList is the routes on one line.
 func routeList(routes []platform.ExtensionRoute) string {
 	parts := make([]string, 0, len(routes))
 	for _, r := range routes {
-		parts = append(parts, r.ID+" "+r.Status)
+		parts = append(parts, r.ID)
 	}
 	return strings.Join(parts, ", ")
 }
